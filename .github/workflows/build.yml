@@ -78,4 +78,22 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |
         choco install innosetup
-        iscc OmniBoard_Studio_Installer.iss
+        iscc OmniBoard_Studio_Installer
+      
+    - name: 📤 Upload Executable (Linux)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: OmniBoard-Linux
+        path: OmniBoard_Studio_Linux.tar.gz
+
+    - name: 📤 Upload Executable (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: OmniBoard-Windows
+        path: OmniBoard_Studio_Windows.zip  
+        
+        
+        
+        .iss
