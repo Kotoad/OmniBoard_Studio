@@ -93,3 +93,19 @@ jobs:
       with:
         name: OmniBoard-Windows
         path: OmniBoard_Studio_Windows.zip  
+
+    - name: 📤 Upload Linux Artifact
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: OmniBoard_Studio_Linux_${{ inputs.version }}
+        path: OmniBoard_Studio_Linux.tar.gz
+
+    - name: 📤 Upload Windows Artifact
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: OmniBoard_Studio_Windows_${{ inputs.version }}
+        path: |
+          OmniBoard_Studio_Windows.zip
+          Output/*.exe # Adjust this path if your Inno Setup OutputDir is different
