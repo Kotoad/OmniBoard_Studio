@@ -1,30 +1,12 @@
 from Imports import (QDialog, pyqtSignal, QObject, QsciLexerPython, QFont,
-                      QsciScintilla, QsciAPIs, Qt, QColor, QVBoxLayout,
+                      QsciScintilla, QsciAPIs, Qt, QColor, QVBoxLayout, QWidget,
                       QPropertyAnimation, QEasingCurve, QTimer, QRect, QIcon) 
 import keyword, builtins
 
-from Imports import get_utils
-Utils = get_utils()
+from Imports import get_Utils
+Utils = get_Utils()
 
-class CodeEditorWindow(QDialog):
-    _instance = None
-
-    @classmethod
-    def get_instance(cls, parent=None):
-        if cls._instance is None:
-            try:
-                _ = cls._instance.isVisible()  # Check if the instance is still valid
-                if cls._instance.is_hidden:
-                    cls._instance = None  # Reset instance if it was hidden
-            except RuntimeError:
-                cls._instance = None  # Reset instance if it was deleted
-            except Exception as e:
-                cls._instance = None  # Reset instance on any unexpected error
-        if cls._instance is None:
-            cls._instance = cls(parent=parent)
-
-        return cls._instance
-
+class CodeEditorWindow(QWidget):
     def __init__(self, parent=None):
         super().__init__()
         self.parent_canvas = parent
@@ -36,11 +18,6 @@ class CodeEditorWindow(QDialog):
         self.setup_ui()
     
     def setup_ui(self):
-        self.setWindowTitle(self.t("code_editor_window.window_title"))
-        self.setWindowIcon(QIcon('resources/images/APPicon.ico'))
-        self.setMinimumSize(600, 400)
-        self.setWindowFlags(Qt.WindowType.Window)
-
         
         self.editor = QsciScintilla(self)
         
@@ -78,6 +55,8 @@ class CodeEditorWindow(QDialog):
         with open("File.py", "r", encoding="utf-8") as f:
             sample_code = f.read()
             self.editor.setText(sample_code)
+
+        self.editor.SendScintilla(QsciScintilla.SCI_COLOURISE, 0, -1)
 
         layout = QVBoxLayout()
         layout.addWidget(self.editor)

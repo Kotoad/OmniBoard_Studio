@@ -8,6 +8,8 @@ import threading
 import time
 from typing import Optional, Dict, List
 from concurrent.futures import ThreadPoolExecutor
+from Imports import get_Utils
+Utils = get_Utils()
 try:
     import paramiko
     PARAMIKO_AVAILABLE = True
@@ -127,14 +129,14 @@ class RPiAutoDiscovery:
             return False
         
         passwords_to_try = [password] if password else RPiAutoDiscovery.DEFAULT_PASSWORDS
-        
+        print(f"Passwords to try for SSH connection: {passwords_to_try}")
         for pwd in passwords_to_try:
+            print(f"📋 Testing SSH connection to {ip} with username '{username}' and password {pwd}...")
             try:
-                #print(f"🔑 Testing connection to {username}@{ip} with password: {'***' if pwd else '(none)'}")
                 
                 client = paramiko.SSHClient()
                 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-                
+                print(f"📋 Attempting SSH connection to {ip} with username '{username}' and password {pwd}...")
                 # Try to connect
                 client.connect(
                     hostname=ip,
@@ -156,7 +158,7 @@ class RPiAutoDiscovery:
                     return True
             
             except paramiko.AuthenticationException:
-                print(f"⚠ Authentication failed for password: {'***' if pwd else '(none)'}")
+                print(f"⚠ Authentication failed for password: {pwd}")
                 continue
             except paramiko.SSHException as e:
                 print(f"⚠ SSH error: {e}")
@@ -184,10 +186,10 @@ class RPiAutoDiscovery:
         
         passwords_to_try = [password] if password else RPiAutoDiscovery.DEFAULT_PASSWORDS
         
-        #print(f"🔍 Retrieving Raspberry Pi info from {ip}...")
-        #print(f"📝 Trying passwords: {['***' if p else '(none)' for p in passwords_to_try]}")
+        print(f"Passwords to try for SSH connection: {passwords_to_try}")
         
         for pwd in passwords_to_try:
+            print(f"📋 Attempting SSH connection to {ip} with username '{username}' and password {pwd}...")
             client = None
             try:
                 #print(f"📋 Connecting to {ip} to retrieve device info...")
@@ -326,19 +328,18 @@ class RPiConnectionWizard:
             return None
         
         # Step 3: Get RPI info
-        #print(f"\nStep 3: Getting Raspberry Pi information...")
+        print(f"\nStep 3: Getting Raspberry Pi information...")
         
         # Use stored username/password if available, otherwise try defaults
         try:
-            from Imports import get_utils
-            Utils = get_utils()
+            print("📋 Retrieving stored credentials from app settings...")
             username = Utils.app_settings.rpi_user or RPiAutoDiscovery.DEFAULT_USERNAME
             password = Utils.app_settings.rpi_password or None
             #print(f"Using stored credentials: {username}@{ip}")
         except:
             username = RPiAutoDiscovery.DEFAULT_USERNAME
             password = None
-            #print(f"Using default credentials: {username}@{ip}")
+            print(f"Using default credentials: {username}@{ip}")
         
         rpi_info = RPiAutoDiscovery.get_rpi_info_paramiko(ip, username=username, password=password)
         

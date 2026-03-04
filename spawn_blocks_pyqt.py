@@ -10,8 +10,8 @@ QPainterPath, QFont, QStyledItemDelegate, QSortFilterProxyModel,
 QStandardItemModel, QListWidget, QEvent, ctypes, sys, time,
 QGraphicsPixmapItem, QGraphicsItem, QPointF, QCursor)
 import random
-from Imports import get_utils
-Utils = get_utils()
+from Imports import get_Utils
+Utils = get_Utils()
 
 class BlockSignals(QObject):
     """Signal container for block interactions"""
@@ -26,18 +26,18 @@ class BlockSignals(QObject):
 class BlockGraphicsItem(QGraphicsObject):
     """Graphics item representing a block - renders with QPainter for perfect zoom quality"""
 
-    def __init__(self, x, y, block_id, block_type, parent_canvas, main_window=None, name=None, conditions=1, networks=2):
+    def __init__(self, x, y, block_id, block_type, parent_canvas, GUI=None, name=None, conditions=1, networks=2):
         super().__init__()
         print(f'Initializing BlockGraphicsItem: {block_id} of type {block_type} at ({x}, {y}) on canvas {parent_canvas}, name: {name if name else "N/A"}')
         self.signals = BlockSignals()
         self.state_manager = Utils.state_manager
-        if main_window is not None:
-            self.main_window = main_window
-        elif hasattr(parent_canvas, 'main_window'):
-            self.main_window = parent_canvas.main_window
+        if GUI is not None:
+            self.GUI = GUI
+        elif hasattr(parent_canvas, 'GUI'):
+            self.GUI = parent_canvas.GUI
         else:
-            self.main_window = QApplication.instance().activeWindow()
-        #print(f"Main window in BlockGraphicsItem: {self.main_window}")
+            self.GUI = QApplication.instance().activeWindow()
+        #print(f"GUI window in BlockGraphicsItem: {self.GUI}")
         self.border_color = QColor("black")
         self.block_id = block_id
         self.block_type = block_type
@@ -606,7 +606,7 @@ class BlockGraphicsItem(QGraphicsObject):
 
                 if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
                     if self.canvas.last_inspector_block and self.canvas.last_inspector_block.block_id == self.block_id:
-                        self.main_window.update_pos(self.canvas.last_inspector_block)
+                        self.GUI.update_pos(self.canvas.last_inspector_block)
         
         return super().itemChange(change, value)
     #MARK: - Mouse Events
@@ -998,7 +998,7 @@ class blocks_events(QObject):
         block.update()
         if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
             #print(f"Updating inspector for block {block.block_id} after adding condition")
-            self.canvas.main_window.update_inspector_content(block)
+            self.canvas.GUI.update_inspector_content(block)
         
     def on_remove_condition(self, block):
         """Handle removing condition from If block"""
@@ -1078,7 +1078,7 @@ class blocks_events(QObject):
             block.update()
             if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
                 #print(f"Updating inspector for block {block.block_id} after removing condition")
-                self.canvas.main_window.update_inspector_content(block)
+                self.canvas.GUI.update_inspector_content(block)
     
     def on_add_network(self, block):
         """Handle adding network to Networks block"""
@@ -1100,7 +1100,7 @@ class blocks_events(QObject):
         block.update()
         if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
             print(f"Updating inspector for block {block.block_id} after adding network")
-            self.canvas.main_window.update_inspector_content(block)
+            self.canvas.GUI.update_inspector_content(block)
         
     def on_remove_network(self, block):
         """Handle removing network from Networks block"""
@@ -1147,7 +1147,7 @@ class blocks_events(QObject):
             block.update()
             if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
                 print(f"Updating inspector for block {block.block_id} after removing network")
-                self.canvas.main_window.update_inspector_content(block)
+                self.canvas.GUI.update_inspector_content(block)
 
 #MARK: - Element_spawn
 class Element_spawn:

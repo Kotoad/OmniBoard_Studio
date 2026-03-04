@@ -4,9 +4,9 @@ FileManager.py - Complete Save/Load System for Visual Programming Projects
 Handles serialization and deserialization of projects with proper separation
 of persistent data (JSON-safe) and runtime references (QWidget objects).
 """
-from Imports import (json, os, datetime, Path, get_utils, ProjectData)
+from Imports import (json, os, datetime, Path, get_Utils, ProjectData)
 
-Utils = get_utils()
+Utils = get_Utils()
         
 class FileManager:
     """Manages project file operations with auto-save capabilities"""
@@ -29,7 +29,7 @@ class FileManager:
     # ========================================================================
     # SAVE OPERATIONS
     # ========================================================================
-    
+    #MARK: - Save Operations
     @classmethod
     def save_project(cls, project_name: str, is_autosave: bool = False, is_compare=False) -> bool:
         """
@@ -260,7 +260,7 @@ class FileManager:
     # ========================================================================
     # LOAD OPERATIONS
     # ========================================================================
-    
+    #MARK: - Load Operations
     @classmethod
     def load_app_settings(cls) -> bool:
         """
@@ -408,7 +408,7 @@ class FileManager:
     # ========================================================================
     # UTILITY OPERATIONS
     # ========================================================================
-    
+    #MARK: - Utility Operations
     @classmethod
     def list_projects(cls) -> list:
         """List all saved projects"""
@@ -453,7 +453,7 @@ class FileManager:
     # ========================================================================
     # NEW PROJECT
     # ========================================================================
-    
+    #MARK: - New Project
     @classmethod
     def new_project(cls):
         """Initialize a new empty project"""
@@ -479,7 +479,7 @@ class FileManager:
         }
         
         #print("✓ New project created")
-
+    #MARK: - compare project
     @classmethod
     def compare_projects(cls, name: str) -> bool:
         """
@@ -509,7 +509,7 @@ class FileManager:
             saved_data = ProjectData.from_dict(compare_dict)
             cls._build_save_data(name, for_dict=False)
             current_data = Utils.project_data
-            print(f"current_data: {current_data}\n\n\nsaved_data: {saved_data}")
+            print(f"current_data: {current_data}\nsaved_data: {saved_data}")
             # =====================================================
             # 1. COMPARE MAIN CANVAS BLOCKS & CONNECTIONS
             # =====================================================
@@ -574,6 +574,7 @@ class FileManager:
         # Find added blocks
         for bid, c_block in current_blocks.items():
             if bid not in saved_blocks:
+                print(f" New block detected: {bid}")
                 return True
             else:
                 # Check for modifications
@@ -610,6 +611,7 @@ class FileManager:
                     val_c = c_block.get(prop, "")
                     val_s = s_block.get(prop, "")
                     if val_c != val_s:
+                        print(f" Block {bid} property '{prop}' changed: saved='{val_s}' vs current='{val_c}'")
                         return True
                 
                 # Check connections
@@ -619,12 +621,16 @@ class FileManager:
                 s_out = s_block.get('out_connections', [])
                 
                 if c_in != s_in or c_out != s_out:
+                    print(f" Block {bid} connections changed: saved_in={s_in}, current_in={c_in}, saved_out={s_out}, current_out={c_out}")
                     return True
     
         # Find removed blocks
         for bid in saved_blocks:
             if bid not in current_blocks:
+                print(f" Block removed: {bid}")
                 return True
+        
+        return False
 
     @staticmethod
     def _compare_main_canvas_connections(saved_data, current_data):
@@ -644,6 +650,8 @@ class FileManager:
         for connid in saved_paths:
             if connid not in current_paths:
                 return True
+        
+        return False
     
     # =========================================================================
     # FUNCTION CANVAS COMPARISONS
@@ -673,6 +681,8 @@ class FileManager:
         for fid, func_info in saved_funcs.items():
             if fid not in current_funcs:
                 return True
+            
+        return False
     
     @staticmethod
     def _compare_function_blocks(fid, saved_funcs, current_funcs):
@@ -723,6 +733,8 @@ class FileManager:
         for bid in saved_blocks:
             if bid not in current_blocks:
                 return True
+
+        return False
     
     @staticmethod
     def _compare_function_connections(fid, saved_funcs, current_funcs):
@@ -738,6 +750,8 @@ class FileManager:
                 if connid in current_paths:
                     if saved_paths[connid] != current_paths[connid]:
                         return True
+                    
+        return False
     
     # =========================================================================
     # VARIABLES COMPARISON (main + all functions)
@@ -764,6 +778,8 @@ class FileManager:
             
             if FileManager._compare_variable_group(saved_fvars, current_fvars, f"function_{fid}"):
                 return True
+        
+        return False
     
     @staticmethod
     def _compare_variable_group(saved_vars, current_vars, location):
@@ -783,6 +799,8 @@ class FileManager:
         for vid in saved_vars:
             if vid not in current_vars:
                 return True
+        
+        return False
     
     # =========================================================================
     # DEVICES COMPARISON (main + all functions)
@@ -809,6 +827,8 @@ class FileManager:
             
             if FileManager._compare_device_group(saved_fdevs, current_fdevs):
                 return True
+            
+        return False
     
     @staticmethod
     def _compare_device_group(saved_devs, current_devs):
@@ -828,6 +848,8 @@ class FileManager:
         for did in saved_devs:
             if did not in current_devs:
                 return True
+        
+        return False
     
     # =========================================================================
     # SETTINGS COMPARISON
@@ -847,6 +869,8 @@ class FileManager:
             
             if s_val != c_val:
                 return True
+        
+        return False
     
     # =========================================================================
     # HELPER METHODS

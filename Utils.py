@@ -35,6 +35,7 @@ reports = {}
 config = {
     'grid_size': 25,  # Snap-to-grid pixel size
     'pico_port': None,  # Serial port for Pico W (auto-detected
+    'CURRENT_VERSION': "V0.14",
 }
 
 compiler = None

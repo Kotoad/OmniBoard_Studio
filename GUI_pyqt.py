@@ -6,9 +6,10 @@ import inspect
 from pyboard import Pyboard, PyboardError
 import urllib.request
 import tempfile
+from binascii import hexlify
 import serial.tools.list_ports
 from Imports import (
-    sys, QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, threading,
+    sys, QApplication, QWidget, QVBoxLayout, QHBoxLayout, threading,
     QMenuBar, QMenu, QPushButton, QLabel, QFrame, QScrollArea, QListWidget, QMovie,
     QLineEdit, QComboBox, QDialog, QPainter, QPen, QColor, QBrush, pyqtProperty,
     QPropertyAnimation, QEasingCurve, QStyledItemDelegate, os, QThread, paramiko,
@@ -19,303 +20,45 @@ from Imports import (
     QGraphicsItem, QPointF, QRectF, QPixmap, QImage, QGraphicsPixmapItem, QPainterPath, QEvent,
     QStackedWidget, QSplitter, QIcon, QKeySequence, QShortcut, json, QSplashScreen, QProgressBar,
     QScroller, QTest, QInputDevice, QEventPoint, QTouchEvent, QObject, warnings, QToolBar, QSlider,
-    QIntValidator, QProgressDialog
+    QIntValidator, QProgressDialog, QPixmap
 )
 from Imports import (
-    get_code_compiler, get_spawn_blocks, get_device_settings_window,
-    get_file_manager, get_path_manager, get_blocks_Window, get_utils,
-    get_Help_Window, get_State_Manager, get_CodeViewer_Window,
-    get_Translation_Manager, get_Data_Control, get_Code_Editor_Window
+    get_Spawn_Blocks, get_Device_Settings_Mindow,
+    get_Path_Manager, get_Blocks_Window, get_Utils,
+    get_Help_Window, get_Code_Editor_Window
 )
-Utils = get_utils()
-Code_Compiler = get_code_compiler()
-BlockGraphicsItem = get_spawn_blocks()[0]
-spawningblocks = get_spawn_blocks()[1]
-elementevents = get_spawn_blocks()[2]
-DeviceSettingsWindow = get_device_settings_window()
-FileManager = get_file_manager()
-PathManager = get_path_manager()[0]
-PathGraphicsItem = get_path_manager()[1]
-blocksWindow = get_blocks_Window()
+Utils = get_Utils()
+
+BlockGraphicsItem = get_Spawn_Blocks()[0]
+spawningblocks = get_Spawn_Blocks()[1]
+elementevents = get_Spawn_Blocks()[2]
+DeviceSettingsWindow = get_Device_Settings_Mindow()
+PathManager = get_Path_Manager()[0]
+PathGraphicsItem = get_Path_Manager()[1]
+blocksWindow = get_Blocks_Window()
 HelpWindow = get_Help_Window()
-StateManager = get_State_Manager()
-CodeViewerWindow = get_CodeViewer_Window()
-TranslationManager = get_Translation_Manager()
-DataControl = get_Data_Control()
-CodeEditorWindow = get_Code_Editor_Window()
 
-CURRENT_VERSION = "V0.14"  # Update this with each release (format: Vx.y)
+#MARK: - Threads for background tasks
+class PromptPolicy(paramiko.MissingHostKeyPolicy):
+    def __init__(self, execution_thread, filepath=None):
+        self.execution_thread = execution_thread
+        self.filepath = filepath
 
-# --- WORKER THREAD (Background Data Loading) ---
-class LoaderThread(QThread):
-    """
-    Handles heavy non-GUI initialization in the background.
-    Move file reading, API calls, or config loading here.
-    """
-    progress = pyqtSignal(int)
-    status = pyqtSignal(str)
-    finished = pyqtSignal()
+    def missing_host_key(self, ssh, hostname, key):
 
-    def run(self):
-        # PHASE 1: Load Settings (Example of moving logic to thread)
-        self.status.emit("Loading App Settings...")
-        Utils.compiler = Code_Compiler() # <--- Pre-initialize objects here if they don't use QWidgets
-        Utils.state_manager = StateManager()
-        Utils.file_manager = FileManager()
-        Utils.data_control = DataControl()
-        time.sleep(0.5) # Simulated delay (remove this in production)
-        self.progress.emit(20)
+        fingerprint = hexlify(key.get_fingerprint()).decode('utf-8')
+        key_name = key.get_name()
 
-        # PHASE 2: Check Resources
-        self.status.emit("Checking Resources...")
-        time.sleep(0.5) 
-        self.progress.emit(40)
+        self.execution_thread.host_key_verification.emit(hostname, key_name, fingerprint)
 
-        # PHASE 3: Initialize Compiler
-        self.status.emit("Initializing Compiler...")
-        Utils.file_manager.load_app_settings()
-        Utils.translation_manager = TranslationManager()
-        time.sleep(0.5)
-        self.progress.emit(60)
-        
-        # PHASE 4: Preparing UI
-        self.status.emit("Preparing Interface...")
-        time.sleep(0.5)
-        self.progress.emit(80)
+        self.execution_thread.key_prompt_event.wait()  # Wait for user response
 
-        # Done
-        self.finished.emit()
+        if self.execution_thread.key_prompt_accept:
+            ssh._host_keys.add(hostname, key_name, key)
+            ssh.save_host_keys(self.filepath)
+        else:
+            raise paramiko.ssh_exception.SSHException(f"Host key verification failed for {hostname} ({key_name} - {fingerprint})")
 
-class NativeSplash(QSplashScreen):
-    def __init__(self):
-        # Create a basic pixmap for the window size
-        # We fill it with your app's dark background color
-        pixmap = QPixmap(400, 300)
-        pixmap.fill(QColor("#1F1F1F")) 
-        super().__init__(pixmap)
-        
-        self.angle = 0
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.rotate_spinner)
-        self.timer.start(30) # Update every 30ms for smooth animation
-
-        # UI Setup (Progress Bar)
-        self.progressBar = QProgressBar(self)
-        self.progressBar.setGeometry(20, 260, 360, 10)
-        self.progressBar.setStyleSheet("""
-            QProgressBar {
-                border: none;
-                background-color: #333;
-                border-radius: 5px;
-            }
-            QProgressBar::chunk {
-                background-color: #1F538D;
-                border-radius: 5px;
-            }
-        """)
-        self.progressBar.setTextVisible(False)
-        self.loading_text = "Initializing..."
-
-    def rotate_spinner(self):
-        self.angle = (self.angle + 10) % 360
-        self.repaint() # Force a redraw
-
-    def paintEvent(self, event):
-        # 1. Draw Background
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-        painter.fillRect(self.rect(), QColor("#1F1F1F"))
-        
-        # 2. Draw Loading Spinner
-        center_x = self.width() // 2
-        center_y = (self.height() // 2) - 20 # Slightly up to make room for text
-        radius = 30
-        
-        painter.translate(center_x, center_y)
-        painter.rotate(self.angle)
-        
-        # Draw 8 "spokes"
-        for i in range(8):
-            painter.rotate(45) # 360 / 8 = 45 degrees
-            # Fade transparency
-            opacity = int(255 * (i / 8))
-            color = QColor("#1F538D") 
-            color.setAlpha(opacity)
-            
-            pen = QPen(color)
-            pen.setWidth(6)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            painter.setPen(pen)
-            
-            # Draw line segment
-            painter.drawLine(radius - 10, 0, radius, 0)
-            
-        painter.resetTransform()
-        
-        # 3. Draw Text
-        painter.setPen(QColor("white"))
-        font = painter.font()
-        font.setPointSize(10)
-        painter.setFont(font)
-        
-        # Draw text centered below spinner
-        text_rect = QRectF(0, 220, 400, 30)
-        painter.drawText(text_rect, Qt.AlignmentFlag.AlignCenter, self.loading_text)
-
-    def update_progress(self, value):
-        self.progressBar.setValue(value)
-
-    def update_status(self, text):
-        self.loading_text = text
-        self.repaint()
-#MARK: - Update Checker
-def check_for_updates():
-    try:
-        url = "https://api.github.com/repos/Kotoad/APP_PyQt/releases"
-        req = urllib.request.Request(url, headers={'User-Agent': 'OmniBoard-Updater'})
-        context = ssl.create_default_context(cafile=certifi.where())
-        with urllib.request.urlopen(req, timeout=5, context=context) as response:
-            data = json.loads(response.read().decode())
-            if isinstance(data, list) and len(data) > 0:
-                latest_release = data[0]
-                latest_version = latest_release.get("tag_name", "")
-                assets = latest_release.get("assets", [])
-                if latest_version:
-                    has_update = (latest_version != CURRENT_VERSION)
-                    return has_update, latest_version, assets
-    except Exception as e:
-        print(f"Update check failed: {e}")
-    return False, None, None
-
-class UpdateCheckerThread(QThread):
-    update_available = pyqtSignal(str, list)
-    up_to_date = pyqtSignal(str)
-
-    def run(self):
-        has_update, version, assets = check_for_updates()
-        print(f"Update check result: has_update={has_update}, version={version}, assets={assets}")
-        print(f"Current version: {CURRENT_VERSION}")
-        if has_update:
-            self.update_available.emit(version, assets)
-        elif version:
-            self.up_to_date.emit(version)
-
-class DownloadUpdateThread(QThread):
-    progress = pyqtSignal(int)
-    finished = pyqtSignal(str)
-
-    def __init__(self, url):
-        super().__init__()
-        self.url = url
-
-    def run(self):
-        temp_dir = tempfile.gettempdir()
-        ext = ".exe" if sys.platform == "win32" else ".tar.gz"
-        save_path = os.path.join(temp_dir, f"OmniBoard_Update{int(time.time())}{ext}")
-        print(f"Downloading update to: {save_path}")
-        def report(block_num, block_size, total_size):
-            if total_size > 0:
-                percent = int(block_num * block_size * 100 / total_size)
-                self.progress.emit(min(percent, 100))
-
-        try:
-            urllib.request.urlretrieve(self.url, save_path, reporthook=report)
-            self.finished.emit(save_path)
-        except Exception as e:
-            print(f"Download failed: {e}")
-
-class UniversalErrorHandler(QObject):
-    """
-    Captures:
-    1. Uncaught Python Exceptions (sys.excepthook)
-    2. Python Warnings (warnings.showwarning)
-    3. Threading Exceptions (threading.excepthook)
-    4. Qt Internal Messages (qInstallMessageHandler)
-    """
-    # Signal: (Title, Message, IconType)
-    error_occurred = pyqtSignal(str, str, object)
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._setup_hooks()
-
-    def _setup_hooks(self):
-        # 1. Standard Python Exceptions
-        sys.excepthook = self.handle_exception
-
-        # 2. Python Warnings
-        self._original_showwarning = warnings.showwarning
-        warnings.showwarning = self.handle_warning
-
-        # 3. Threading Exceptions (Python 3.8+)
-        threading.excepthook = self.handle_threading_exception
-
-        # 4. Qt Internal Messages (Optional - can be noisy)
-        # from PyQt6.QtCore import qInstallMessageHandler, QtMsgType
-        # qInstallMessageHandler(self.handle_qt_message)
-
-    def handle_exception(self, exc_type, exc_value, exc_traceback):
-        """Catch standard crashes."""
-        if issubclass(exc_type, KeyboardInterrupt):
-            sys.__excepthook__(exc_type, exc_value, exc_traceback)
-            return
-
-        error_msg = "".join(tb.format_exception(exc_type, exc_value, exc_traceback))
-        print(error_msg, file=sys.stderr)  # Also print to console for logging
-        self.error_occurred.emit("Critical Error", error_msg, QMessageBox.Icon.Critical)
-
-    def handle_warning(self, message, category, filename, lineno, file=None, line=None):
-        """Catch warnings (e.g., DeprecationWarning)."""
-        msg = f"{category.__name__}:\n{message}\n\nFile: {filename}\nLine: {lineno}"
-        self.error_occurred.emit("Warning", msg, QMessageBox.Icon.Warning)
-        print(f"Warning captured: {msg}", file=sys.stderr)  # Also print to console
-        if self._original_showwarning:
-            print("Original Warning Handler Output:")
-            self._original_showwarning(message, category, filename, lineno, file, line)
-
-    def handle_threading_exception(self, args):
-        """Catch exceptions in threads that aren't joined."""
-        error_msg = f"Thread: {args.thread.name}\n"
-        if args.exc_type:
-            error_msg += "".join(tb.format_exception(args.exc_type, args.exc_value, args.exc_traceback))
-        
-        print(error_msg, file=sys.stderr)
-        self.error_occurred.emit("Thread Error", error_msg, QMessageBox.Icon.Critical)
-
-    # Optional: Handle Qt internal C++ messages
-    # def handle_qt_message(self, mode, context, message):
-    #     msg_type = "Info"
-    #     if mode == QtMsgType.QtWarningMsg: msg_type = "Qt Warning"
-    #     elif mode == QtMsgType.QtCriticalMsg: msg_type = "Qt Critical"
-    #     elif mode == QtMsgType.QtFatalMsg: msg_type = "Qt Fatal"
-    #     self.error_occurred.emit(msg_type, message, QMessageBox.Icon.Information)
-
-    def show_error_dialog(self, title, body, icon):
-        """Slot to show the GUI dialog. Must run on Main Thread."""
-        msg_box = QMessageBox()
-        msg_box.setIcon(icon)
-        msg_box.setWindowTitle(title)
-        msg_box.setText(f"An unexpected {title} occurred.")
-        msg_box.setInformativeText("Please check the details below.")
-        
-        # Detailed text area (scrollable)
-        msg_box.setDetailedText(body)
-        
-        # Allow resizing
-        copy_btn = msg_box.addButton("Copy Error", QMessageBox.ButtonRole.ActionRole)
-        msg_box.setStandardButtons(QMessageBox.StandardButton.Ok)
-        
-        # Force the detailed text to be visible/copyable nicely
-        msg_box.setStyleSheet("QMessageBox { min-width: 600px; }")
-        
-        msg_box.exec()
-        
-        if msg_box.clickedButton() == copy_btn:
-            clipboard = QApplication.clipboard()
-            clipboard.setText(f"{title}:\n{body}")
-
-
-#MARK: - RPiExecutionThread
 class RPiExecutionThread(QThread):
     """
     Background thread for executing code on Raspberry Pi via SSH.
@@ -329,6 +72,7 @@ class RPiExecutionThread(QThread):
     output = pyqtSignal(str)  # Command output
     status = pyqtSignal(str)  # Status messages
     execution_completed = pyqtSignal(bool)  # Success/failure status
+    host_key_verification = pyqtSignal(str, str, str)  # Emitted when host key verification is needed
     
     def __init__(self, ssh_config):
         """
@@ -343,6 +87,9 @@ class RPiExecutionThread(QThread):
         self.ssh = None  # SSH connection reference
         self.channel = None  # SSH channel reference
         self.stop_lock = threading.Lock()  # Thread-safe stop flag
+
+        self.key_prompt_event = threading.Event()  # Event to wait for host key verification response
+        self.key_prompt_accept = False  # Store user response for host key verification
     
     def stop(self):
         """
@@ -393,7 +140,18 @@ class RPiExecutionThread(QThread):
             
             try:
                 ssh = paramiko.SSHClient()
-                ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+                ssh_dir = Utils.get_base_path() / "Config"
+                os.makedirs(ssh_dir, exist_ok=True)  # Ensure Config directory exists
+
+                known_hosts_path = ssh_dir / "known_hosts"
+                open(known_hosts_path, 'a').close()  # Ensure known_hosts file exists
+
+                ssh.load_system_host_keys(str(known_hosts_path))  # Load existing known hosts
+
+                custom_policy = PromptPolicy(self, str(known_hosts_path))
+                ssh.set_missing_host_key_policy(custom_policy) # Reject unknown hosts for security; you can change to AutoAddPolicy if you want to allow new hosts
+
                 self.ssh = ssh  # Store reference for cleanup
                 
                 # Set timeout for connection attempt
@@ -405,6 +163,10 @@ class RPiExecutionThread(QThread):
                     allow_agent=False,
                     look_for_keys=False
                 )
+            except paramiko.ssh_exception.SSHException as e:
+                self.error.emit(f"SSH error: {str(e)}")
+                self.execution_completed.emit(False)
+                return
             except Exception as e:
                 self.error.emit(f"Failed to connect to RPi: {str(e)}")
                 self.execution_completed.emit(False)
@@ -574,6 +336,13 @@ class RPiExecutionThread(QThread):
             if self.should_continue():
                 self.error.emit(f"Thread error: {str(e)}")
                 self.execution_completed.emit(False)
+
+        finally:
+            if self.ssh is not None:
+                try:
+                    self.ssh.close()
+                except:
+                    pass
 
     def kill_process(self):
         """
@@ -779,7 +548,15 @@ class GridScene(QGraphicsScene):
         super().__init__()
         self.grid_size = grid_size
         self.grid_color = QColor("#3A3A3A")
-        self.grid_pen = QPen(self.grid_color, 1)
+        self.bg_pixmap = QPixmap(self.grid_size, self.grid_size)
+        self.bg_pixmap.fill(Qt.GlobalColor.transparent)
+
+        pix_painter = QPainter(self.bg_pixmap)
+        pix_painter.setPen(QPen(self.grid_color, 1))
+
+        pix_painter.drawLine(0, 0, self.grid_size, 0)  # Horizontal line
+        pix_painter.drawLine(0, 0, 0, self.grid_size)  # Vertical line
+        pix_painter.end()
     
     def drawBackground(self, painter, rect):
         """
@@ -788,29 +565,9 @@ class GridScene(QGraphicsScene):
         """
         super().drawBackground(painter, rect)
         
-        # Only draw grid lines within the visible rect
-        # This means only ~10-30 lines needed instead of 160,000
-        left = int(rect.left()) - (int(rect.left()) % self.grid_size)
-        top = int(rect.top()) - (int(rect.top()) % self.grid_size)
-        right = int(rect.right())
-        bottom = int(rect.bottom())
-        
-        painter.setPen(self.grid_pen)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, False)
-        
-        # Draw vertical lines
-        x = left
-        while x < right:
-            painter.drawLine(x, int(rect.top()), x, int(rect.bottom()))
-            x += self.grid_size
-        
-        # Draw horizontal lines
-        y = top
-        while y < bottom:
-            painter.drawLine(int(rect.left()), y, int(rect.right()), y)
-            y += self.grid_size
-        
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing, True)
+        offset = QPointF(rect.x() % self.grid_size, rect.y() % self.grid_size)
+
+        painter.drawTiledPixmap(rect, self.bg_pixmap, offset)
 #MARK: - Custom widgets
 class CustomSwitch(QWidget):
     """
@@ -1187,8 +944,8 @@ class SearchableLineEdit(QLineEdit):
         elif event.key() == Qt.Key.Key_Escape:
             self.popup.hide()
             return
-
-        super().keyPressEvent(event)
+        else:
+            super().keyPressEvent(event)
 
 #MARK: - GridCanvas
 class GridCanvas(QGraphicsView):
@@ -1201,7 +958,6 @@ class GridCanvas(QGraphicsView):
         blocks_window = blocksWindow.get_instance(parent=self)
         self.spawner = spawningblocks(self, blocks_window)  
         print(f"[GridCanvas] spawner {self.spawner}")
-        self.state_manager = Utils.state_manager
         self.path_manager = PathManager(self)
         self.blocks_events = elementevents(self)
         # Create graphics scene
@@ -1231,6 +987,7 @@ class GridCanvas(QGraphicsView):
         self.middle_mouse_start = QPoint()
         
         # Tracking
+        self.GUI = None
         self.main_window = None
         
         # Style
@@ -1278,7 +1035,8 @@ class GridCanvas(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
         self.scale(new_zoom / self.zoom_level, new_zoom / self.zoom_level)
         self.zoom_level = new_zoom
-        self.main_window.zoom_slider.setValue(int(self.zoom_level * 100))
+        print(f"[GridCanvas.wheelEvent] GUI {self.GUI}, zoom level: {self.zoom_level}, slider value: {self.zoom_level*100}")
+        self.GUI.zoom_slider.setValue(int(self.zoom_level * 100))
         event.accept()
     
     def zoom_calc(self, zoom):
@@ -1298,7 +1056,7 @@ class GridCanvas(QGraphicsView):
         self.resetTransform()
         self.zoom_level = 1.0
         print(f"Resetting view to default. Zoom level: {self.zoom_level}, zoom for slider {self.zoom_level*100}")
-        self.main_window.zoom_slider.setValue(int(self.zoom_level*100))
+        self.GUI.zoom_slider.setValue(int(self.zoom_level*100))
 
     def keyPressEvent(self, event):
         """Handle keyboard shortcuts"""
@@ -1449,7 +1207,7 @@ class GridCanvas(QGraphicsView):
             block_id=block_id,
             block_type=block_type,
             parent_canvas=self,
-            main_window=self.main_window,
+            GUI=self.GUI,
             name=name
         )
         
@@ -1537,25 +1295,17 @@ class GridCanvas(QGraphicsView):
                     self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
                     self.scale(new_zoom / self.zoom_level, new_zoom / self.zoom_level)
                     self.zoom_level = new_zoom
-                    self.main_window.zoom_slider.setValue(int(self.zoom_level * 100))
+                    self.GUI.zoom_slider.setValue(int(self.zoom_level * 100))
                     event.accept()
         elif event.type() == QEvent.Type.TouchEnd:
             self.setDragMode(QGraphicsView.DragMode.NoDrag)
             self.middle_mouse_pressed = False
             event.accept()
-
-    def clear_canvas(self):
-        """Clear all blocks and paths from canvas"""
-        #TODO: complete clearing logic
-        self.scene.clear()
-        Utils.top_infos.clear()
-        Utils.paths.clear()
-        self.draw_grid()
     
     def remove_block(self, block_id):
         """Remove a block from canvas"""
         try:
-            current_canvas = self.main_window.current_canvas
+            current_canvas = self.GUI.current_canvas
             if not current_canvas:
                 return
             
@@ -1605,11 +1355,11 @@ class GridCanvas(QGraphicsView):
             
     def remove_path(self, path_id):
         """Remove a path from canvas"""
-        if self.main_window.current_canvas.reference == "canvas":
+        if self.GUI.current_canvas.reference == "canvas":
             paths = Utils.main_canvas.get('paths', {})
-        elif self.main_window.current_canvas.reference == "function":
+        elif self.GUI.current_canvas.reference == "function":
             for f_id, f_info in Utils.functions.items():
-                if self.main_window.current_canvas == f_info.get('canvas'):
+                if self.GUI.current_canvas == f_info.get('canvas'):
                     paths = Utils.functions[f_id].get('paths', {})
                     break
         print(f"paths {paths}")
@@ -1623,7 +1373,7 @@ class GridCanvas(QGraphicsView):
                 print(f"Path item {path_id} removed from scene.")
                 out_part, in_part = path_id.split("-")
                 print(f"Path connects {in_part} to {out_part}")
-                if self.main_window.current_canvas.reference == "canvas":
+                if self.GUI.current_canvas.reference == "canvas":
                     if in_part in Utils.main_canvas['blocks']:
                         print(f"Removing path from block {in_part} in main_canvas")
                         del Utils.main_canvas['blocks'][in_part]['in_connections'][path_id]
@@ -1631,9 +1381,9 @@ class GridCanvas(QGraphicsView):
                         print(f"Removing path from block {out_part} in main_canvas")
                         del Utils.main_canvas['blocks'][out_part]['out_connections'][path_id]
                     
-                elif self.main_window.current_canvas.reference == "function":
+                elif self.GUI.current_canvas.reference == "function":
                     for f_id, f_info in Utils.functions.items():
-                        if self.main_window.current_canvas == f_info.get('canvas'):
+                        if self.GUI.current_canvas == f_info.get('canvas'):
                             print(f"Found matching function canvas for path removal: {f_id}")
                             if in_part in Utils.functions[f_id]['blocks']:
                                 print(f"Removing path from block {in_part} in function {f_id}")
@@ -1653,14 +1403,14 @@ class GridCanvas(QGraphicsView):
         
         edit_action = QAction("Edit Block", self)
         edit_action.triggered.connect(lambda: self.edit_block(block, block_id))
-        menu.addAction(edit_action)
+        #menu.addAction(edit_action)
         
         duplicate_action = QAction("Duplicate", self)
         duplicate_action.triggered.connect(lambda: self.duplicate_block(block, block_id))
         #menu.addAction(duplicate_action)
         
         inspector_action = QAction("Show Inspector", self)
-        inspector_action.triggered.connect(lambda: self.main_window.toggle_inspector_frame(block))
+        inspector_action.triggered.connect(lambda: self.GUI.toggle_inspector_frame(block))
         menu.addAction(inspector_action)
         
         menu.addSeparator()
@@ -1712,8 +1462,9 @@ class GridCanvas(QGraphicsView):
         """Delete a connection path"""
         print(f"Deleting path: {path.path_id}")
         self.remove_path(path.path_id)
-#MARK: - MainWindow
-class MainWindow(QMainWindow):
+
+#MARK: - Main GUI
+class GUI(QWidget):
     """Main application window"""
     
     tab_changed = pyqtSignal(int)
@@ -1750,23 +1501,12 @@ class MainWindow(QMainWindow):
         print(" No canvas available.")
         return None
         
-    def __init__(self):
+    def __init__(self, parent=None):
         super().__init__()
         
-        self.code_compiler = Utils.compiler
-        self.state_manager = Utils.state_manager
-        self.state_manager.app_state.window_closed.connect(self.on_window_closed)
-        self.translation_manager = Utils.translation_manager
-        self.t = self.translation_manager.translate
-        self.path_manager = PathManager(self)
-
-        self.setWindowTitle(self.t("main_GUI._metadata.app_title") + f" {CURRENT_VERSION}")
-        self.setWindowIcon(QIcon('resources/images/APPicon.ico'))
-        self.resize(1200, 800)
-
-        self.create_shortcuts()
-        self.setup_auto_save_timer()
-        
+        self.main_window = parent 
+        self.t = Utils.translation_manager.translate
+        self.path_manager = PathManager(self)  
         # Style
         self.setStyleSheet("""
             QWidget {
@@ -1774,7 +1514,7 @@ class MainWindow(QMainWindow):
                 color: #FFFFFF;
             }
 
-            QMainWindow {
+            QGUI {
                 background-color: #1F1F1F;
             }
             QMenuBar {
@@ -1864,6 +1604,7 @@ class MainWindow(QMainWindow):
             }
         """)
         self.opend_project = None
+        self.zoom_slider = None
         self.last_canvas = None
         self.blockIDs = {}
         self.execution_thread = None
@@ -1874,21 +1615,12 @@ class MainWindow(QMainWindow):
         self.count_w_separator = 0
         self.canvas_count = 0
         self.tab_buttons = []  # Track tab buttons
-        self.opend_windows = []
         self.opend_inspectors = {}
-
-        self.reset_file()
-
-        self.create_menu_bar()
-        self.create_top_toolbar()
-        self.create_bottom_toolbar()
         self.create_canvas_frame()
-        if getattr(sys, 'frozen', False):
-            self.start_update_check()
     
     def mousePressEvent(self, event):
         """Debug: Track if main window gets mouse press"""
-        print("MainWindow.mousePressEvent fired!")
+        print("GUI.mousePressEvent fired!")
         super().mousePressEvent(event)
     
     def keyPressEvent(self, event):
@@ -1896,214 +1628,46 @@ class MainWindow(QMainWindow):
             if self.current_canvas:
                 self.current_canvas.reset_zoom()
             event.accept()
-
-    def reset_file(self):
-        try:
-            with open("File.py", "w") as f:
-                f.write("")
-        except Exception as e:
-            print(f"Error resetting File.py: {e}")
-        Reports_path = Utils.get_base_path()/"resources"
-        try:
-            with open(Reports_path/"last_report.json", "w") as f:
-                f.write("")
-        except Exception as e:
-            print(f"Error resetting last_report.json: {e}")
-
-    #MARK: - UI Creation Methods
-    def create_menu_bar(self):
-        """Create the menu bar"""
-        self.menubar = self.menuBar()
-        #print(f"Menubar Height: {menubar.height()}")
-        # File menu
-        file_menu = self.menubar.addMenu(self.t("main_GUI.menu.file"))
-        
-        new_action = file_menu.addAction(self.t("main_GUI.menu.new"))
-        new_action.triggered.connect(self.on_new_file)
-        
-        open_action = file_menu.addAction(self.t("main_GUI.menu.open"))
-        open_action.triggered.connect(self.on_open_file)
-        
-        save_action = file_menu.addAction(self.t("main_GUI.menu.save"))
-        save_action.triggered.connect(self.on_save_file)
-        
-        save_as_action = file_menu.addAction(self.t("main_GUI.menu.save_as"))
-        save_as_action.triggered.connect(self.on_save_file_as)
-        
-        file_menu.addSeparator()
-        
-        exit_action = file_menu.addAction(self.t("main_GUI.menu.exit"))
-        exit_action.triggered.connect(self.close)
-        
-        # blocks menu
-        blocks_menu = self.menubar.addMenu(self.t("main_GUI.menu.blocks"))
-        
-        add_element = blocks_menu.addAction(self.t("main_GUI.menu.add_block"))
-        add_element.triggered.connect(self.open_blocks_window)
-        
-        settings_menu = self.menubar.addMenu(self.t("main_GUI.menu.settings"))
-        settings_menu_action = settings_menu.addAction(self.t("main_GUI.menu.settings"))
-        settings_menu_action.triggered.connect(self.open_settings_window)
-        
-        Help_menu = self.menubar.addMenu(self.t("main_GUI.menu.help"))
-        
-        Get_stared = Help_menu.addAction(self.t("main_GUI.menu.get_started"))
-        Get_stared.triggered.connect(lambda: self.open_help(0))
-        
-        tutorials = Help_menu.addAction(self.t("main_GUI.menu.tutorials"))
-        tutorials.triggered.connect(lambda: self.open_help(1))
-        
-        FAQ = Help_menu.addAction(self.t("main_GUI.menu.faq"))
-        FAQ.triggered.connect(lambda: self.open_help(2))
-        
-        # Compile menu
-        compile_menu = self.menubar.addMenu(self.t("main_GUI.menu.compile"))
-        
-        compile_action = compile_menu.addAction(self.t("main_GUI.menu.compile_code"))
-        compile_action.triggered.connect(self.compile_and_upload)
-
-        edit_code_action = compile_menu.addAction(self.t("main_GUI.menu.edit_code"))
-        edit_code_action.triggered.connect(self.open_edit_code_window)
-
-        view_code_action = compile_menu.addAction(self.t("main_GUI.menu.view_code"))
-        view_code_action.triggered.connect(self.open_view_code_window)
-    
-    def create_top_toolbar(self):
-
-        icon_path = "resources/images/Tool_bar/"
-
-        toolbar = QToolBar(self.t("main_GUI.top_toolbar.toolbar"))
-        toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(16, 16))
-
-        save_icon = QAction(QIcon(icon_path+"Save.png"), self.t("main_GUI.top_toolbar.save"), self)
-        save_icon.triggered.connect(self.on_save_file)
-        toolbar.addAction(save_icon)
-
-        open_icon = QAction(QIcon(icon_path+"Open_file.png"), self.t("main_GUI.top_toolbar.open"), self)
-        open_icon.triggered.connect(self.on_open_file)
-        toolbar.addAction(open_icon)
-
-        new_icon = QAction(QIcon(icon_path+"New_file.png"), self.t("main_GUI.top_toolbar.new"), self)
-        new_icon.triggered.connect(self.on_new_file)
-        toolbar.addAction(new_icon)
-
-        toolbar.addSeparator()
-
-        add_block_icon = QAction(QIcon(icon_path+"Add_block.png"), self.t("main_GUI.top_toolbar.add_block"), self)
-        add_block_icon.triggered.connect(self.open_blocks_window)
-        toolbar.addAction(add_block_icon)
-
-        toolbar.addSeparator()
-
-        settings_icon = QAction(QIcon(icon_path+"Settings.png"), self.t("main_GUI.top_toolbar.settings"), self)
-        settings_icon.triggered.connect(self.open_settings_window)
-        toolbar.addAction(settings_icon)
-
-        toolbar.addSeparator()
-
-        run_and_compile_icon = QAction(QIcon(icon_path+"Run_and_compile.png"), self.t("main_GUI.top_toolbar.compile_upload"), self)
-        run_and_compile_icon.triggered.connect(self.compile_and_upload)
-        toolbar.addAction(run_and_compile_icon)
-
-        run_icon = QAction(QIcon(icon_path+"Run.png"), self.t("main_GUI.top_toolbar.run"), self)
-        run_icon.triggered.connect(self.execute_on_rpi_ssh_background)
-        toolbar.addAction(run_icon)
-
-        stop_execution_icon = QAction(QIcon(icon_path+"Stop_execution.png"), self.t("main_GUI.top_toolbar.stop"), self)
-        stop_execution_icon.triggered.connect(self.stop_execution)
-        toolbar.addAction(stop_execution_icon)
-
-        #test_icon = QAction(QIcon(icon_path+"Test.png"), self.t("main_GUI.toolbar.test"), self)
-        #test_icon.triggered.connect(self.simulate_pinch)
-        #toolbar.addAction(test_icon)
-
-        self.addToolBar(Qt.ToolBarArea.TopToolBarArea, toolbar)
-        self.top_toolbar = toolbar
-
-    def create_bottom_toolbar(self):
-
-        toolbar = QToolBar(self.t("main_GUI.bottom_toolbar.toolbar"))
-        toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(16, 16))
-
-        font = QFont("Consolas", 16)
-        font.setBold(True)
-
-        spacer = QWidget()
-
-        spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-
-        self.pan_button = QAction(QIcon("resources/images/Tool_bar/Pan.png"), self.t("main_GUI.bottom_toolbar.pan"), self)
-        self.pan_button.setCheckable(True)
-        self.pan_button.toggled.connect(lambda checked: self.toggle_pan_mode(checked))
-
-        minus_label = QLabel("-")
-
-        minus_label.setFont(font)
-
-        zoom_slider = QSlider(Qt.Orientation.Horizontal)
-        zoom_slider.setRange(50, 200)
-        zoom_slider.setValue(100)
-        zoom_slider.setFixedWidth(150)
-        zoom_slider.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        #zoom_slider.setSpecificTicks([50, 100, 200])
-
-        zoom_slider.valueChanged.connect(lambda value: self.current_canvas.zoom_change(value))
-
-        self.zoom_slider = zoom_slider
-
-        plus_label = QLabel("+")
-
-        plus_label.setFont(font)
-
-        toolbar.addWidget(spacer)
-        toolbar.addAction(self.pan_button)
-        toolbar.addWidget(minus_label)
-        toolbar.addWidget(zoom_slider)
-        toolbar.addWidget(plus_label)
-
-
-        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, toolbar)
-        self.bottom_toolbar = toolbar
-
-    def toggle_pan_mode(self, checked):
-        print(f"Pan mode toggled: {'ON' if checked else 'OFF'}")
-        self.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
-        self.canvas.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
-        self.current_canvas.pan_mode = checked
+        else:
+            super().keyPressEvent(event)
 
     def stop_execution(self):
         if Utils.app_settings.rpi_model_index == 0:
-            print("[MainWindow] Stopping Pico W")
+            print("[GUI] Stopping Pico W")
             self.stop_pico_execution()
         else:
             if self.execution_thread and self.execution_thread.isRunning():
-                print("[MainWindow] Stopping execution thread...")
+                print("[GUI] Stopping execution thread...")
+                self.execution_thread.should_stop = True
                 self.execution_thread.kill_process()
                 self.execution_thread.stop()
-                self.execution_thread.wait(3000)
-                self.execution_thread.terminate()
+
+                if not self.execution_thread.wait(5000):
+                    print(f"[GUI] Execution thread did not stop in time, terminating...")
+                    self.execution_thread.terminate()
+                    self.execution_thread.wait()
             else:
-                print("[MainWindow] No execution thread is running.")
+                print("[GUI] No execution thread is running.")
 
     def create_canvas_frame(self):
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
         
-        main_layout = QHBoxLayout(self.central_widget)
-        main_layout.setContentsMargins(0, 0, 0, 0)
-        main_layout.setSpacing(0)
-        
+        self.main_layout = QHBoxLayout(self)
+        self.main_layout.setContentsMargins(0, 0, 0, 0)
+        self.main_layout.setSpacing(0)
+        print(f"[GUI] Main layout created: {self.main_layout}")
         self.sidebar = self.create_sidebar()
         
         # Create a splitter for canvas + inspector
         
         self.canvas = GridCanvas()
+
+        print(f"[GUI]Created GridCanvas instance: {self.canvas}")
         try:
-            self.canvas.main_window = self
+            self.canvas.GUI = self
+            self.canvas.main_window = self.main_window
+            print(f"[GUI] Set GUI reference {self} in canvas as {self.canvas.GUI}")
         except Exception as e:
-            print(f"Error setting mainwindow on canvas: {e}")
+            print(f"Error setting GUI on canvas: {e}")
         
         Utils.canvas_instances[self.canvas] = {
             'name': self.t("main_GUI.sidebar.canvas"),
@@ -2113,7 +1677,7 @@ class MainWindow(QMainWindow):
         }
         
         # Add splitter to main layout
-        main_layout.addWidget(self.sidebar)
+        self.main_layout.addWidget(self.sidebar)
         
         # Rest of your code...
         self.add_tab(tab_name=self.t("main_GUI.sidebar.canvas"), content_widget=self.canvas, reference="canvas")
@@ -2564,7 +2128,7 @@ class MainWindow(QMainWindow):
     
     def _on_new_canvas_clicked(self):
         """Handler for new canvas tab button click"""
-        if not self.state_manager.app_state.on_tab_created():
+        if not Utils.state_manager.app_state.on_tab_created():
             return
 
         name, ok = QInputDialog.getText(
@@ -2575,7 +2139,8 @@ class MainWindow(QMainWindow):
         if not ok or not name.strip():
             return
         new_canvas = GridCanvas()
-        new_canvas.main_window = self
+        new_canvas.GUI = self
+        new_canvas.main_window = self.main_window
         new_tab_index = self.add_tab(
             name,
             new_canvas,
@@ -2636,7 +2201,7 @@ class MainWindow(QMainWindow):
     
     def _on_tab_clicked(self, tab_index, reference=None):
         """Internal handler for tab clicks"""
-        if self.state_manager.app_state.on_tab_changed():
+        if Utils.state_manager.app_state.on_tab_changed():
             if 0 <= tab_index < len(self.tab_buttons):
                 self.content_area.setCurrentIndex(tab_index)
                 
@@ -2683,46 +2248,8 @@ class MainWindow(QMainWindow):
                         #print(f"Setting Utils.courent_canvas to index {tab_index - self.canvas_count+1}")
                         #Utils.courent_canvas = Utils.canvas_instances[tab_index-self.canvas_count+1]
                         #print(f"Set Utils.courent_canvas to tab '{Utils.courent_canvas}'")
-                self.state_manager.app_state.current_tab_reference = reference
+                Utils.state_manager.app_state.current_tab_reference = reference
                 self.tab_changed.emit(tab_index)
-
-    def reload_ui_language(self):
-        
-        self.auto_save_project()
-
-        self.setWindowTitle(self.t("main_GUI._metadata.app_title"))
-
-        self.menubar.clear()
-        self.create_menu_bar()
-
-        if hasattr(self, 'top_toolbar'):
-            self.removeToolBar(self.top_toolbar)
-            self.top_toolbar.deleteLater()
-            del self.top_toolbar
-        if hasattr(self, 'bottom_toolbar'):
-            self.removeToolBar(self.bottom_toolbar)
-            self.bottom_toolbar.deleteLater()
-            del self.bottom_toolbar
-        self.create_top_toolbar()
-        self.create_bottom_toolbar()
-
-        self.wipe_canvas()
-
-        self.open_project()
-
-        for window in self.opend_windows:
-            if window == 'blocks':
-                self.open_blocks_window()
-            elif window == 'Settings':
-                self.open_settings_window()
-            elif window == 'Help':
-                self.open_help()
-            elif window == 'CodeViewer':
-                self.open_code_viewer_window()
-            elif window == 'EditCode':
-                self.open_edit_code_window()
-        
-        
 
     def open_project(self):
         if Utils.file_manager.load_project(self.opend_project, is_autosave=True) and self.opend_project is not None:
@@ -4427,92 +3954,15 @@ class MainWindow(QMainWindow):
                         widget.setText(str(dev['state']))
         
     #MARK: - Other Methods
-
-    def on_window_closed(self, window_name):
-        """Handle window closed event"""
-        if window_name in self.opend_windows:
-            self.opend_windows.remove(window_name)
-
-    def open_blocks_window(self):
-        """Open the blocks window"""
-        #print("Opening blocks window")
-        blocks_window = blocksWindow.get_instance(parent=self.current_canvas)
-        print("blocks window instance:", blocks_window)
-        try:
-            print("Checking if blocks dialog can be opened...")
-            if self.state_manager.app_state.on_blocks_dialog_open():
-                print("Opening blocks dialog...")
-                self.opend_windows.append('blocks')
-                blocks_window.open()
-        except Exception as e:
-            print(f"Error opening blocks window: {e}")
-    
-    def open_settings_window(self):
-        """Open the device settings window"""
-        settings_window = DeviceSettingsWindow.get_instance(parent=self)
-        settings_window.reload_requested.connect(self.on_reload_reqested)
-        if self.state_manager.app_state.on_settings_dialog_open():
-            settings_window.open()
-            self.opend_windows.append('Settings')
-
-    def open_help(self, which):
-        """Open the help window"""
-        help_window = HelpWindow.get_instance(parent=self, which=which)
-        if self.state_manager.app_state.on_help_dialog_open():
-            help_window.open()
-            self.opend_windows.append('Help')
-    
-    def open_view_code_window(self):
-        """View the generated code"""
-        code_viewer = CodeViewerWindow.get_instance(parent=self)
-        if self.state_manager.app_state.on_code_viewer_dialog_open():
-            code_viewer.open()
-            self.opend_windows.append('CodeViewer')
-
-    def open_edit_code_window(self):
-        """Edit the generated code"""
-        code_editor = CodeEditorWindow.get_instance(parent=self)
-        if self.state_manager.app_state.on_code_editor_dialog_open():
-            code_editor.open()
-            self.opend_windows.append('EditCode')
-
-    def block_management(self, block_id, window):
-        """Track block windows"""
-        self.blockIDs[block_id] = window
-    
     def compile_code(self):
         """Compile the visual code"""
         try:
             #print("Starting code compilation...")
-            self.code_compiler.compile()
+            Utils.compiler.compile()
             #print("Code compiled successfully")
         except Exception as e:
             print(f"Compilation error: {e}")
             pass
-    
-    # Menu actions
-    
-    def create_shortcuts(self):
-        """Create Ctrl+S keyboard shortcut for saving"""
-        #print("Creating save shortcut (Ctrl+S)")
-        save_shortcut = QShortcut(QKeySequence.StandardKey.Save, self)
-        save_shortcut.activated.connect(self.on_save_file)
-
-        open_shortcut = QShortcut(QKeySequence.StandardKey.Open, self)
-        open_shortcut.activated.connect(self.on_open_file)
-
-        new_shortcut = QShortcut(QKeySequence.StandardKey.New, self)
-        new_shortcut.activated.connect(self.on_new_file)
-    
-    def setup_auto_save_timer(self):
-        """Setup auto-save timer for every 5 minutes"""
-        self.auto_save_timer = QTimer()
-        self.auto_save_timer.timeout.connect(self.auto_save_project)
-        
-        # 5 minutes = 300,000 milliseconds
-        self.auto_save_timer.start(300000)  # 300000 ms = 5 minutes
-        
-        #print("Auto-save timer started (every 5 minutes)")
     
     def get_current_time(self):
         """Get current time for logging"""
@@ -4580,9 +4030,19 @@ class MainWindow(QMainWindow):
                 self.rebuild_from_data()
                 #print(f"Project '{item}' loaded")
 
-    def on_reload_reqested(self, reqested):
-        if reqested:
-            self.reload_ui_language()
+    def on_open_specific_file(self, file):
+        projects = Utils.file_manager.list_projects()
+        print(f"Projects available for opening: {[p['name'] for p in projects]} at path: {[p['path'] for p in projects]}. Opening file: {file}")
+        if file in [p['name'] for p in projects]:
+            print(f"Found project '{file}' for opening")
+            self.stop_execution()
+            self.wipe_canvas()
+            if Utils.file_manager.load_project(file):
+                self.opend_project = Utils.project_data.metadata.get('name', 'Untitled')
+                self.rebuild_from_data()
+                #print(f"Project loaded from '{file_path}'")
+        else:
+            QMessageBox.warning(self, self.t("main_GUI.dialogs.file_dialogs.open_project"), self.t("main_GUI.dialogs.file_dialogs.project_file_not_found"))
 
     def clear_canvas(self):
         """Clear the canvas of all blocks and connections"""
@@ -4628,8 +4088,6 @@ class MainWindow(QMainWindow):
         
         Utils.file_manager.new_project()
 
-        blocksWindow._instance = None
-
         Utils.variables = {
             'main_canvas': {},
             'function_canvases': {}
@@ -4638,6 +4096,20 @@ class MainWindow(QMainWindow):
             'main_canvas': {},
             'function_canvases': {}
         }
+
+        if self.main_layout is not None:
+            print(f"Main layout {self.main_layout} exists, clearing widgets")
+            while self.main_layout.count():
+                item = self.main_layout.takeAt(0)
+                widget = item.widget()
+                if widget is not None:
+                    print(f"Deleting widget: {widget}")
+                    widget.setParent(None)
+                    widget.deleteLater()
+                    
+            QWidget().setLayout(self.main_layout)  # Detach layout from main window
+            self.main_layout = None
+
         self.last_canvas = None
         self.blockIDs = {}
         self.execution_thread = None
@@ -4648,9 +4120,6 @@ class MainWindow(QMainWindow):
         self.count_w_separator = 0
         self.canvas_count = 0
         self.tab_buttons = []  # Track tab buttons
-        
-        self.central_widget.setParent(None)
-        self.central_widget.deleteLater()
     
     def on_new_file(self):
         """Create new project"""
@@ -4684,10 +4153,6 @@ class MainWindow(QMainWindow):
                 canvas.canvas_tab_button.setParent(None)
                 canvas.internal_var_button.deleteLater()
                 canvas.canvas_tab_button.deleteLater()
-            
-            canvas.deleteLater()     
-            del Utils.canvas_instances[canvas]
-            self.remove_excess_separators(canvas)
     
     def remove_excess_separators(self, content_widget):
         """
@@ -4712,81 +4177,6 @@ class MainWindow(QMainWindow):
             content_widget.separator_container = None
             
             #print("All separators deleted.")    
-    
-    def closeEvent(self, event):
-        """Handle window close event - prompt to save if there are unsaved changes"""
-        
-        # Stop auto-save timer
-        if hasattr(self, 'auto_save_timer') and self.auto_save_timer.isActive():
-            self.auto_save_timer.stop()
-        
-        # Stop execution thread
-        self.stop_execution()
-        
-        name = Utils.project_data.metadata.get("name", "Untitled")
-        
-        if name == "Untitled":
-            # Check if untitled project has any content
-            has_content = (
-                len(Utils.main_canvas.get("blocks", {})) > 0 or
-                len(Utils.functions) > 0 or
-                len(Utils.variables.get("main_canvas", {})) > 0 or
-                len(Utils.devices.get("main_canvas", {})) > 0
-            )
-            
-            if not has_content:
-                # Empty untitled project, just close
-                self.clear_canvas()
-                self.close_child_windows()
-                import gc
-                gc.collect()
-                event.accept()
-                return
-            
-            # Has content but untitled
-            reply = QMessageBox.question(
-                self, self.t("main_GUI.dialogs.file_dialogs.save_project"),
-                self.t("main_GUI.dialogs.file_dialogs.save_project_close"),
-                QMessageBox.StandardButton.Save |
-                QMessageBox.StandardButton.Discard |
-                QMessageBox.StandardButton.Cancel,
-                QMessageBox.StandardButton.Save
-            )
-            
-            if reply == QMessageBox.StandardButton.Save:
-                self.on_save_file_as()
-            elif reply != QMessageBox.StandardButton.Discard:
-                event.ignore()
-                return
-        
-        else:
-            # Compare with saved version
-            comparison = Utils.file_manager.compare_projects(name)
-            print(f"Comparison result for '{name}': {comparison}")
-            print(f"Has changes: {comparison}")
-            if comparison == True:
-                print("Unsaved changes detected, prompting user")
-                
-                reply = QMessageBox.question(
-                    self, self.t("main_GUI.dialogs.file_dialogs.save_project"),
-                    f"{self.t('main_GUI.dialogs.file_dialogs.unsaved_changes').format(name=name)}",
-                    QMessageBox.StandardButton.Save |
-                    QMessageBox.StandardButton.Discard |
-                    QMessageBox.StandardButton.Cancel,
-                    QMessageBox.StandardButton.Save
-                ) 
-                if reply == QMessageBox.StandardButton.Save:
-                    Utils.file_manager.save_project(name)
-                elif reply != QMessageBox.StandardButton.Discard:
-                    event.ignore()
-                    return
-        
-        # Cleanup and close
-        self.clear_canvas()
-        self.close_child_windows()
-        import gc
-        gc.collect()
-        event.accept()
         
     def close_child_windows(self):
         
@@ -4797,7 +4187,8 @@ class MainWindow(QMainWindow):
                     print("Closing blocks window")
                     blocksWindow._instance.close()
                 blocksWindow._instance = None
-        except:
+        except Exception as e:
+            print(f"Error closing blocks window: {e}")
             # If instance already deleted, just reset
             blocksWindow._instance = None
         
@@ -4809,9 +4200,9 @@ class MainWindow(QMainWindow):
                 print("Closing device settings window")
                 device_settings_window.close()
             DeviceSettingsWindow._instance = None
-        except:
+        except Exception as e:
+            print(f"Error closing device settings window: {e}")
             DeviceSettingsWindow._instance = None
-            pass
         
         try:
             help_window = HelpWindow.get_instance(self.current_canvas)
@@ -4819,29 +4210,9 @@ class MainWindow(QMainWindow):
                 print("Closing help window")
                 help_window.close()
             HelpWindow._instance = None
-        except:
+        except Exception as e:
+            print(f"Error closing help window: {e}")
             HelpWindow._instance = None
-            pass
-
-        try:
-            code_viewer_window = CodeViewerWindow.get_instance(self.current_canvas)
-            if code_viewer_window.is_hidden == False:
-                print("Closing code viewer window")
-                code_viewer_window.close()
-            CodeViewerWindow._instance = None
-        except:
-            CodeViewerWindow._instance = None
-            pass
-
-        try:
-            code_editor_window = CodeEditorWindow.get_instance(self.current_canvas)
-            if code_editor_window.is_hidden == False:
-                print("Closing code editor window")
-                code_editor_window.close()
-            CodeEditorWindow._instance = None
-        except:
-            CodeEditorWindow._instance = None
-            pass
 
     #MARK: - Compile and Upload Methods
     def compile_and_upload(self):
@@ -4860,7 +4231,7 @@ class MainWindow(QMainWindow):
             
             # ===== STEP 1: Compile code =====
             #print("Step 1: Compiling code...")
-            self.code_compiler.compile()  # This creates File.py
+            Utils.compiler.compile()  # This creates File.py
             #print("Code compiled successfully to File.py")
             
             # ===== STEP 2: Show compiled output =====
@@ -4993,6 +4364,23 @@ class MainWindow(QMainWindow):
             QMessageBox.StandardButton.Ok
         )
 
+    def on_host_key_verification(self, hostname, key_type, fingerprint):
+
+        reply = QMessageBox.question(
+            self,
+            self.t("main_GUI.dialogs.progress_dialogs.host_key_verification"),
+            self.t("main_GUI.dialogs.progress_dialogs.host_key_verification_message").format(hostname=hostname, key_type=key_type, fingerprint=fingerprint),
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            self.execution_thread.key_prompt_accept = True
+        else:
+            self.execution_thread.key_prompt_accept = False
+
+        self.execution_thread.key_prompt_event.set()
+
     def execute_on_pico_w(self):
         """
         Execute on Pico W using native pyboard library (No subprocess/Admin rights needed)
@@ -5037,7 +4425,8 @@ class MainWindow(QMainWindow):
                 print(f"Error during reset command: {e}")
             
             # Give it a moment to flush the command before closing
-            time.sleep(0.5) 
+            QTimer.singleShot(500, lambda: print("Pico should be running now..."))
+
             try:
                 pyb.close()
             except Exception as e:
@@ -5092,22 +4481,21 @@ class MainWindow(QMainWindow):
     def execute_on_rpi_ssh_background(self):
         """
         Execute code on RPi in background thread.
-        This replaces the old execute_on_rpi_ssh_background() method.
         """
         try:
             # ===== STEP 1: Stop old execution if running =====
             if self.execution_thread is not None and self.execution_thread.isRunning():
-                #print("[MainWindow] Stopping previous execution...")
+                #print("[GUI] Stopping previous execution...")
                 self.execution_thread.stop()  # Signal it to stop
                 
                 # Wait for thread to finish (max 5 seconds)
                 if not self.execution_thread.wait(5000):
-                    print("[MainWindow] Warning: Thread didn't stop gracefully")
+                    print("[GUI] Warning: Thread didn't stop gracefully")
                     # Optional: Force terminate (not recommended, but available)
                     # self.execution_thread.terminate()
                     pass
                 
-                #print("[MainWindow] Previous execution stopped")
+                #print("[GUI] Previous execution stopped")
             
             # ===== STEP 2: Get RPi settings =====
             rpi_host = Utils.app_settings.rpi_host
@@ -5137,19 +4525,22 @@ class MainWindow(QMainWindow):
             self.execution_thread.status.connect(self.on_execution_status)
             self.execution_thread.output.connect(self.on_execution_output)
             self.execution_thread.error.connect(self.on_execution_error)
+            self.execution_thread.host_key_verification.connect(self.on_host_key_verification)
             
             # ===== STEP 4: Start execution =====
             self.execution_thread.start()
-            print("[MainWindow] New execution started")
+            print("[GUI] New execution started")
         
         except Exception as e:
-            print(f"[MainWindow]Error: {str(e)}")
+            print(f"[GUI]Error: {str(e)}")
             QMessageBox.critical(
                 self,
                 self.t("main_GUI.dialogs.progress_dialogs.execution_error"),
                 self.t("main_GUI.dialogs.progress_dialogs.execution_error_message").format(error_details=str(e)),
                 QMessageBox.StandardButton.Ok
             ) 
+
+    
     #MARK: - Rebuild UI from Saved Data
     def rebuild_from_data(self):
         """
@@ -5203,7 +4594,8 @@ class MainWindow(QMainWindow):
             elif canvas_info['ref'] == 'function':
                 print(f" Creating function canvas: {canvas_info['name']}")
                 new_canvas = GridCanvas()
-                new_canvas.main_window = self
+                new_canvas.GUI = self
+                new_canvas.main_window = self.main_window
                 new_tab_index = self.add_tab(
                     tab_name=canvas_info['name'],
                     content_widget=new_canvas,
@@ -5511,116 +4903,5 @@ class MainWindow(QMainWindow):
                     self.add_internal_device_row(dev_id, dev_info, canvas)
                 print(f"Devices after function canvas rebuild: {Utils.devices['function_canvases'][canvas_info['id']]}")
 
-    #MARK: - Update manager
-    def start_update_check(self):
-        self.update_thread = UpdateCheckerThread()
-        self.update_thread.update_available.connect(self.prompt_update)
-        self.update_thread.up_to_date.connect(self.notify_up_to_date)
-        self.update_thread.start()
-
-    def notify_up_to_date(self, version):
-        QMessageBox.information(
-            self, 'No Update Available',
-            f'You are already using the latest version ({version}).',
-            QMessageBox.StandardButton.Ok
-        )
-
-    def prompt_update(self, version, assets):
-        reply = QMessageBox.question(
-            self, 'Update Available',
-            f'Version {version} is available. Would you like to update and restart now?',
-            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
-        )
-        
-        if reply == QMessageBox.StandardButton.Yes:
-            download_url = None
-            target_extension = ".exe" if sys.platform == "win32" else ".tar.gz"
-            
-            for asset in assets:
-                if asset['name'].endswith(target_extension):
-                    download_url = asset['browser_download_url']
-                    break
-            
-            if download_url:
-                print(f"Starting update download from: {download_url}")
-                self.show_update_progress(download_url)
-
-    def show_update_progress(self, url):
-        self.progress_dialog = QProgressDialog("Downloading Update...", "Cancel", 0, 100, self)
-        self.progress_dialog.setWindowModality(Qt.WindowModality.WindowModal)
-        self.progress_dialog.setAutoClose(True)
-        self.progress_dialog.show()
-
-        self.download_thread = DownloadUpdateThread(url)
-        self.download_thread.progress.connect(self.progress_dialog.setValue)
-        self.download_thread.finished.connect(self.apply_update)
-        self.progress_dialog.canceled.connect(self.download_thread.terminate)
-        self.download_thread.start()
-
-    def apply_update(self, save_path):
-        from updater import perform_update
-        perform_update(save_path)
-        os._exit(0)
-#MARK: Main  
-def main():
-    app = QApplication(sys.argv)
-    app.setStyle('Fusion')
     
-    dark_palette = QPalette()
-    dark_palette.setColor(QPalette.ColorRole.Window, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
-    dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Button, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-    dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
-    dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
-    dark_palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
 
-    app.setPalette(dark_palette)
-
-    app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
-
-    error_handler = UniversalErrorHandler()
-
-    error_handler.error_occurred.connect(error_handler.show_error_dialog)
-    # 1. SETUP SPLASH
-    # Use a .gif path here. If you don't have one, it will default to a dark screen.
-    splash = NativeSplash() 
-    splash.show()
-    
-    # 2. SETUP WORKER THREAD
-    loader = LoaderThread()
-    
-    # 3. DEFINE WHAT HAPPENS WHEN THREAD FINISHES
-    def on_loaded():
-        # Update splash one last time
-        splash.update_status("Starting GUI...")
-        splash.update_progress(100)
-        
-        # CRITICAL: Initialize MainWindow on the MAIN THREAD
-        # We define 'window' global or attached to app so it doesn't get garbage collected
-        global window 
-        window = MainWindow()
-        window.show()
-        
-        # Close splash when window is ready
-        splash.finish(window)
-    
-    # 4. CONNECT SIGNALS
-    loader.progress.connect(splash.update_progress)
-    loader.status.connect(splash.update_status)
-    loader.finished.connect(on_loaded)
-    
-    # 5. START LOADING
-    loader.start()
-    
-    sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    main()

@@ -64,32 +64,32 @@ from PyQt6.Qsci import QsciScintilla, QsciLexerPython, QsciAPIs
 from App_settings import AppSettings
 from Project_Data import ProjectData
 
-def get_gui():
+def get_Graphic_Programing_Window():
     """Lazy import GUI MainWindow - avoid circular deps"""
-    from GUI_pyqt import MainWindow, GridCanvas
-    return MainWindow, GridCanvas
+    from GUI_pyqt import GUI, GridCanvas
+    return GUI, GridCanvas
 
-def get_code_compiler():
+def get_Code_Compiler():
     """Lazy import CodeCompiler - avoid circular import"""
     from code_compiler import CodeCompiler
     return CodeCompiler
 
-def get_spawn_blocks():
+def get_Spawn_Blocks():
     """Lazy import spawning_blocks and blocks_events - avoid circular import"""
     from spawn_blocks_pyqt import spawning_blocks, blocks_events, BlockGraphicsItem
     return BlockGraphicsItem, spawning_blocks, blocks_events
 
-def get_device_settings_window():
+def get_Device_Settings_Mindow():
     """Lazy import DeviceSettingsWindow - avoid circular import"""
     from settings_window import DeviceSettingsWindow
     return DeviceSettingsWindow
 
-def get_path_manager():
+def get_Path_Manager():
     """Lazy import PathManager - avoid circular import"""
     from Path_manager_pyqt import PathManager, PathGraphicsItem
     return PathManager, PathGraphicsItem
 
-def get_blocks_Window():
+def get_Blocks_Window():
     """Lazy import blocksWindow - avoid circular import"""
     from Blocks_window_pyqt import blocksWindow
     return blocksWindow
@@ -109,11 +109,6 @@ def get_State_Manager():
     from state_manager import StateManager
     return StateManager
 
-def get_CodeViewer_Window():
-    """Lazy import CodeViewerWindow - avoid circular import"""
-    from Code_view_window import CodeViewerWindow
-    return CodeViewerWindow
-
 def get_Translation_Manager():
     """Lazy import TranslationManager - avoid circular import"""
     from Translation_manager import TranslationManager
@@ -129,19 +124,12 @@ def get_Code_Editor_Window():
     from Code_editor_window import CodeEditorWindow
     return CodeEditorWindow
 
-# ============================================================================
-# LAZY IMPORTS (Imported only when needed to avoid circular deps)
-# ============================================================================
-# These are imported inside functions/methods where needed:
-# - FileManager (imported in methods, not at module level)
-# - Utils (imported carefully, after AppSettings)
-
-def get_utils():
+def get_Utils():
     """Lazy import Utils to avoid circular dependency"""
     import Utils
     return Utils
 
-def get_file_manager():
+def get_File_Manager():
     """Lazy import FileManager when needed"""
     from FileManager import FileManager
     return FileManager

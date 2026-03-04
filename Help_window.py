@@ -1,8 +1,8 @@
 from Imports import (QDialog, Qt, QVBoxLayout, QLabel, QTabWidget, QWidget, QFont, QTextEdit,
-                     QScrollArea, QPushButton,Path, os, get_utils, QScroller, QTextBrowser, QIcon,
+                     QScrollArea, QPushButton,Path, os, get_Utils, QScroller, QTextBrowser, QIcon,
                      QPropertyAnimation, QEasingCurve, QTimer, QRect)
 
-Utils = get_utils()
+Utils = get_Utils()
 
 class HelpWindow(QDialog):
     """Singleton Help Window"""

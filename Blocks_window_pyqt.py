@@ -1,12 +1,12 @@
 from cProfile import label
 from Imports import (QWidget, QDialog, QVBoxLayout, QHBoxLayout,
-QPushButton, QLabel, QFrame, QTabWidget, Qt, QFont, QTimer, QRect,
-pyqtSignal, QListWidget, QScrollArea, QScroller, QIcon, QPropertyAnimation, QEasingCurve)
+QPushButton, QLabel, QTabWidget, Qt, QFont, QTimer, QRect,
+pyqtSignal, QScrollArea, QScroller, QIcon, QPropertyAnimation, QEasingCurve)
 
-from Imports import get_spawn_blocks, get_utils
+from Imports import get_Spawn_Blocks, get_Utils
 
-Utils = get_utils()
-spawning_blocks = get_spawn_blocks()[1]
+Utils = get_Utils()
+spawning_blocks = get_Spawn_Blocks()[1]
 
 
 background_color = "#2B2B2B"
@@ -502,7 +502,7 @@ class blocksWindow(QDialog):
             print(f" Parent canvas in blocksWindow: {self.parent_canvas}, main_window: {getattr(self.parent_canvas, 'main_window', None)}")
             if self.parent and hasattr(self.parent_canvas, 'main_window'):
                 #print(" Getting current canvas from main window")
-                current_canvas = self.parent_canvas.main_window.current_canvas
+                current_canvas = self.parent_canvas.GUI.current_canvas
             else:
                 current_canvas = self.parent_canvas
             print(f"Current canvas determined for spawning: {current_canvas}")

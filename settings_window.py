@@ -1,6 +1,6 @@
 from operator import index
-from Imports import get_utils
-Utils = get_utils()
+from Imports import get_Utils
+Utils = get_Utils()
 from Imports import (QDialog, QVBoxLayout, QLabel, QTabWidget, QWidget, QMessageBox, QPushButton, QHBoxLayout,
 QComboBox, Qt, QEvent, QFont, QMouseEvent, json, QLineEdit, QApplication, QProgressDialog, QPoint, QRect,
 QObject, pyqtSignal, QTimer, sys, os, subprocess, time, QIcon, QPropertyAnimation, QEasingCurve,  QAction, QIcon)

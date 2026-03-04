@@ -182,7 +182,9 @@
         "error": "Chyba",
         "unknown_model": "Neznámý model Raspberry Pi: {model}. Prosím vyberte svůj model ručně v nastavení.",
         "config_error": "Chyba konfigurace",
-        "config_error_message": "Konfigurace Raspberry Pi je neúplná nebo neplatná. Zkontrolujte prosím své nastavení."
+        "config_error_message": "Konfigurace Raspberry Pi je neúplná nebo neplatná. Zkontrolujte prosím své nastavení.",
+        "host_key_verification": "Ověření klíče hostitele",
+        "host_key_verification_message": "Autenticita hostitele '{hostname}' nelze ověřit.\n\nTyp klíče: {key_type}\nOtisk prstu: {fingerprint}\n\nDůvěřujete tomuto hostiteli?"
       },
       "new_canvas": "Nové plátno",
       "enter_canvas_name": "Zadejte název nového plátna"

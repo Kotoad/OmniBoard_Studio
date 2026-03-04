@@ -1,5 +1,5 @@
-from Imports import get_utils
-Utils = get_utils()
+from Imports import get_Utils
+Utils = get_Utils()
 
 
 class DataControl:

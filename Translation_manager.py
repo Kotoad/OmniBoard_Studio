@@ -1,6 +1,6 @@
-from Imports import json, os, Path, get_utils
+from Imports import json, os, Path, get_Utils
 
-Utils = get_utils()
+Utils = get_Utils()
 
 class TranslationManager:
     _instance = None

@@ -1,8 +1,8 @@
 from Imports import (Qt, QPoint, QLine, QPainter, QPen, QColor, QGraphicsPathItem,
                      QPointF, QPainterPath, QGraphicsEllipseItem, QGraphicsItem)
-from Imports import get_utils
+from Imports import get_Utils
 
-Utils = get_utils()
+Utils = get_Utils()
 #MARK: - WaypointHandle
 class WaypointHandle(QGraphicsEllipseItem):
 
@@ -334,7 +334,10 @@ class PathManager:
         if not self.start_node:
             return
         
-        self.preview_points.insert(-1, (pos.x(), pos.y()))
+        snapped_x = round(pos.x() / 25) * 25
+        snapped_y = round(pos.y() / 25) * 25
+
+        self.preview_points.insert(-1, (snapped_x, snapped_y))
         # Update preview path
         print(f"Preview points: {self.preview_points}")
         if self.preview_item:
@@ -349,7 +352,9 @@ class PathManager:
         # Calculate waypoints
         if not self.preview_points:
             print(" → Initializing preview points")
-            self.preview_points = [(self.start_node['pos'].x(), self.start_node['pos'].y()), (mouse_pos.x(), mouse_pos.y())]
+            snapped_x = round(self.start_node['pos'].x() / 25) * 25
+            snapped_y = round(self.start_node['pos'].y() / 25) * 25
+            self.preview_points = [(snapped_x, snapped_y), (mouse_pos.x(), mouse_pos.y())]
         else:
             print(" → Updating last preview point")
             grid_size = 25

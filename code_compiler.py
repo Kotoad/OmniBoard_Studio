@@ -1,5 +1,5 @@
-from Imports import get_utils
-Utils = get_utils()
+from Imports import get_Utils
+Utils = get_Utils()
 
 #MARK: Code Compiler
 class CodeCompiler:
@@ -35,6 +35,8 @@ class CodeCompiler:
             'LED_ON': self.handle_LED_block,
             'LED_OFF': self.handle_LED_block,
             "Basic_operations": self.handle_math_block,
+            "Plus_one": self.handle_math_block,
+            "Minus_one": self.handle_math_block,
             "Exponential_operations": self.handle_math_block,
             "Random_number": self.handle_rand_block,
             "Function": self.handle_function_block,
@@ -1169,13 +1171,17 @@ class CodeCompiler:
 
     def handle_math_block(self, block):
         value_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
-        value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'])
-        operator = self.get_math_operator(block['operator'])
-        result_var = self.resolve_value(block['result_var_name'], block['result_var_type'])
+        if block['type'] not in ('Plus_one', 'Minus_one'):
+            value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'])
+            operator = self.get_math_operator(block['operator'])
+            result_var = self.resolve_value(block['result_var_name'], block['result_var_type'])
         #print(f"Resolved Math block values: {value_1}, {value_2}, result var: {result_var}")
         if block['type'] in ('Basic_operations', 'Exponential_operations'):
             self.writeline(f"{result_var} = {value_1} {operator} {value_2}")
-        
+        elif block['type'] == 'Plus_one':
+            self.writeline(f"{value_1} = {value_1} + 1")
+        elif block['type'] == 'Minus_one':
+            self.writeline(f"{value_1} = {value_1} - 1")
         next_id = self.get_next_block(block['id'])
         if next_id:
             #print(f"Processing next block after Math: {next_id}")

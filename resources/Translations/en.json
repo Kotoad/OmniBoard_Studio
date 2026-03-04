@@ -182,7 +182,9 @@
         "error": "Error",
         "unknown_model": "Unknown Raspberry Pi model: {model}. Please select your model manually in settings.",
         "config_error": "Configuration Error",
-        "config_error_message": "Raspberry Pi configuration is incomplete or invalid. Please check your settings."
+        "config_error_message": "Raspberry Pi configuration is incomplete or invalid. Please check your settings.",
+        "host_key_verification": "Host Key Verification",
+        "host_key_verification_message": "The authenticity of host '{hostname}' can't be established.\n\nfKey type: {key_type}\nFingerprint: {fingerprint}\n\nDo you trust this host?"
       },
       "new_canvas": "New Canvas",
       "enter_canvas_name": "Enter name for new canvas"
