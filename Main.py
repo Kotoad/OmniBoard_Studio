@@ -311,13 +311,14 @@ class HubWindow(QWidget):
 
         projects_path = Utils.get_base_path()/"projects"
 
-        for i in projects_path.iterdir():
-            if i.is_file() and i.suffix == ".project":
-                name = i.name.split(".")[0]
-                project_button = QPushButton(f"Project {name}")
-                project_button.setStyleSheet("text-align: left; padding: 10px;")
-                recent_layout.addWidget(project_button)
-                project_button.clicked.connect(lambda _, p=name: self.open_file(p))
+        if os.makedirs(projects_path, exist_ok=True):
+            for i in projects_path.iterdir():
+                if i.is_file() and i.suffix == ".project":
+                    name = i.name.split(".")[0]
+                    project_button = QPushButton(f"Project {name}")
+                    project_button.setStyleSheet("text-align: left; padding: 10px;")
+                    recent_layout.addWidget(project_button)
+                    project_button.clicked.connect(lambda _, p=name: self.open_file(p))
 
         recent_layout.addStretch()
 
