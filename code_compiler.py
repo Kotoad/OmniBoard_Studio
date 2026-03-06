@@ -77,9 +77,11 @@ class CodeCompiler:
             self.writeline("try:")
             self.indent_level += 1
             if self.GPIO_compile:
-                self.writeline("print(\"System booting... waiting 1.5s\", flush=True)")
+                #self.writeline("print(\"System booting... waiting 1.5s\", flush=True)")
+                pass
             if self.MC_compile:
-                self.writeline("print(\"System booting... waiting 1.5s\")")
+                #self.writeline("print(\"System booting... waiting 1.5s\")")
+                pass
             self.writeline("time.sleep(1.5)  # Initial delay to allow reporter thread to start and stabilize")
             if self.led_in_code:
                 self.writeline("led = LED()")
@@ -1201,7 +1203,8 @@ class CodeCompiler:
         self.process_block(next_id)
 
     def handle_LED_block(self, block):
-        DEV_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
+        if block['type'] in ('Blink_LED', 'Toggle_LED', 'PWM_LED', 'LED_ON', 'LED_OFF'):
+            DEV_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
         if block['type'] == 'Blink_LED':
             duration = block['sleep_time']
             self.writeline(f"led.Blink_LED({DEV_1}, {duration})")

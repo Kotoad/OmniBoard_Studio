@@ -1603,7 +1603,6 @@ class GUI(QWidget):
                 background: #e0e0e0;
             }
         """)
-        self.opend_project = None
         self.zoom_slider = None
         self.last_canvas = None
         self.blockIDs = {}
@@ -2252,7 +2251,7 @@ class GUI(QWidget):
                 self.tab_changed.emit(tab_index)
 
     def open_project(self):
-        if Utils.file_manager.load_project(self.opend_project, is_autosave=True) and self.opend_project is not None:
+        if Utils.file_manager.load_project(Utils.config['opend_project'], is_autosave=True) and Utils.config['opend_project'] is not None:
             self.rebuild_from_data()
 
     #MARK: - Inspector Panel Methods
@@ -3968,20 +3967,6 @@ class GUI(QWidget):
         """Get current time for logging"""
         from datetime import datetime
         return datetime.now().strftime("%H:%M:%S")
-    
-    def auto_save_project(self):
-        """Auto-save current project"""
-        name = Utils.project_data.metadata.get('name', 'Untitled')
-        print(f"Auto-saving project '{name}'")
-        self.opend_project = name
-        try:
-            if Utils.file_manager.save_project(name, is_autosave=True):
-                print(f"Auto-saved '{name}' at {self.get_current_time()}")
-                pass
-            else:
-                print(f" Auto-save failed for '{name}'")
-        except Exception as e:
-            print(f" Auto-save error: {e}")
 
     def on_save_file(self):
         """Save current project"""
@@ -3989,13 +3974,13 @@ class GUI(QWidget):
         name = Utils.project_data.metadata.get('name', 'Untitled')
         if name == 'Untitled':
             self.on_save_file_as()
-            self.opend_project = name
+            Utils.config['opend_project'] = name
             return
         #print(f"Metadata: {Utils.project_data.metadata}")
         #print(f"Saving project as '{name}'")
         if Utils.file_manager.save_project(name):
             print(f"Project '{name}' saved")
-            self.opend_project = name
+            Utils.config['opend_project'] = name
 
     def on_save_file_as(self):
         """Save current project with new name"""
@@ -4026,7 +4011,7 @@ class GUI(QWidget):
             self.stop_execution()
             self.wipe_canvas()
             if Utils.file_manager.load_project(item):
-                self.opend_project = item
+                Utils.config['opend_project'] = item
                 self.rebuild_from_data()
                 #print(f"Project '{item}' loaded")
 
@@ -4038,7 +4023,7 @@ class GUI(QWidget):
             self.stop_execution()
             self.wipe_canvas()
             if Utils.file_manager.load_project(file):
-                self.opend_project = Utils.project_data.metadata.get('name', 'Untitled')
+                Utils.config['opend_project'] = Utils.project_data.metadata.get('name', 'Untitled')
                 self.rebuild_from_data()
                 #print(f"Project loaded from '{file_path}'")
         else:
@@ -4123,7 +4108,7 @@ class GUI(QWidget):
     
     def on_new_file(self):
         """Create new project"""
-        self.opend_project = None
+        Utils.config['opend_project'] = None
         self.stop_execution()
         self.wipe_canvas()
         
@@ -4902,6 +4887,3 @@ class GUI(QWidget):
                     #print(f"  Recreating device {dev_id} on function canvas")
                     self.add_internal_device_row(dev_id, dev_info, canvas)
                 print(f"Devices after function canvas rebuild: {Utils.devices['function_canvases'][canvas_info['id']]}")
-
-    
-

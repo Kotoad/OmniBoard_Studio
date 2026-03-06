@@ -21,6 +21,8 @@ class AppSettings:
         self.auto_detected = False
         self.language = "en"  # Default language
         self.available_languages = ['en', 'cz']  # Populated from TranslationManager
+        self.theme = 'dark'  # Default theme
+        self.ui_scale = 'medium'  # Default UI scale (small, medium, large)
     
     def to_dict(self):
         return {
@@ -32,6 +34,8 @@ class AppSettings:
             'use_ssh_key': self.use_ssh_key,
             'ssh_key_path': self.ssh_key_path,
             'language': self.language,
+            'theme': self.theme,
+            'ui_scale': self.ui_scale
             #'available_languages': self.available_languages
         }
     
@@ -46,5 +50,7 @@ class AppSettings:
         s.use_ssh_key = data.get('use_ssh_key', True)
         s.ssh_key_path = data.get('ssh_key_path', '~/.ssh/id_rsa')
         s.language = data.get('language', 'en')
+        s.theme = data.get('theme', 'dark')
+        s.ui_scale = data.get('ui_scale', 'medium')
         #s.available_languages = data.get('available_languages', ['en', 'cz'])
         return s

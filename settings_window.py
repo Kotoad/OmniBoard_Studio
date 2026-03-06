@@ -158,6 +158,7 @@ class DeviceSettingsWindow(QDialog):
         self.create_basic_tab()
         self.create_rpi_settings_section()
     
+    #MARK: - Basic Settings Tab
     def create_basic_tab(self):
         tab = QWidget()
         tab_layout = QVBoxLayout(tab)
@@ -166,14 +167,25 @@ class DeviceSettingsWindow(QDialog):
         title = QLabel(self.t("setting_window.basic_settings_tab.title"))
         title.setFont(QFont("Arial", 16, QFont.Weight.Bold))
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        tab_layout.addWidget(title)
 
-        tab_layout.addSpacing(10)
-
-        label = QLabel(self.t("setting_window.basic_settings_tab.select_language"))
-        tab_layout.addWidget(label)
+        language_label = QLabel(self.t("setting_window.basic_settings_tab.select_language"))
 
         self.language_combo = MaxWidthComboBox(self, max_popup_width=358)
+
+        theme_label = QLabel(self.t("setting_window.basic_settings_tab.select_theme"))
+
+        self.theme_combo = MaxWidthComboBox(self, max_popup_width=358)
+        self.theme_combo.addItem(self.t("setting_window.basic_settings_tab.light"), "light")
+        self.theme_combo.addItem(self.t("setting_window.basic_settings_tab.datk"), 'dark')
+
+        size_label = QLabel(self.t("setting_window.basic_settings_tab.ui_scale"))
+
+        self.size_combo = MaxWidthComboBox(self, max_popup_width=358)
+        self.size_combo.addItem(self.t("setting_window.basic_settings_tab.small"), 'small')
+        self.size_combo.addItem(self.t("setting_window.basic_settings_tab.medium"), 'medium')
+        self.size_combo.addItem(self.t("setting_window.basic_settings_tab.large"), 'large')
+
+        reload_ui_btn = QPushButton(self.t("setting_window.basic_settings_tab.reload_ui"))
 
         languages = self.translation_manager.get_available_languages()
         for lang_code, name in languages.items():
@@ -183,13 +195,32 @@ class DeviceSettingsWindow(QDialog):
         index = self.language_combo.findData(current_lang)
         if index >= 0:
             self.language_combo.setCurrentIndex(index)
-        
+
+        current_theme = Utils.app_settings.theme if hasattr(Utils.app_settings, 'theme') else 'dark'
+        theme_index = 0 if current_theme == 'light' else 1
+        self.theme_combo.setCurrentIndex(theme_index)
+
+        current_size = Utils.app_settings.ui_scale if hasattr(Utils.app_settings, 'ui_scale') else 'medium'
+        size_index = {'small': 0, 'medium': 1, 'large': 2}.get(current_size, 1)
+        self.size_combo.setCurrentIndex(size_index)
+
         self.language_combo.currentIndexChanged.connect(self.on_language_changed)
-        tab_layout.addWidget(label)
+        self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
+        self.size_combo.currentIndexChanged.connect(self.on_size_changed)
+        reload_ui_btn.clicked.connect(lambda: self.reload_requested.emit(True))
+        tab_layout.addWidget(title)
+        tab_layout.addSpacing(10)
+        tab_layout.addWidget(language_label)
         tab_layout.addWidget(self.language_combo)
+        tab_layout.addWidget(theme_label)
+        tab_layout.addWidget(self.theme_combo)
+        tab_layout.addWidget(size_label)
+        tab_layout.addWidget(self.size_combo)
+        tab_layout.addWidget(reload_ui_btn)
         tab_layout.addStretch()
         self.tab_widget.addTab(tab, self.t("setting_window.basic_settings_tab.title"))
     
+    #MARK: - RPI Settings Tab
     def create_rpi_settings_section(self):
         """Create RPI connection settings group"""
         tab = QWidget()
@@ -272,6 +303,7 @@ class DeviceSettingsWindow(QDialog):
         self.main_layout.addLayout(pwd_layout)
         self.tab_widget.addTab(tab, self.t("setting_window.rpi_settings_tab.title"))
     
+    #MARK: - Settings Methods
     def on_model_changed(self, index):
         """Handle model change"""
         Utils.app_settings.rpi_model = self.rpi_model_combo.itemText(index)
@@ -307,19 +339,24 @@ class DeviceSettingsWindow(QDialog):
 
         app_settings_dict = self.build_save_data()
 
+        print("Saving settings:", app_settings_dict)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(app_settings_dict, f, indent=2)
         
         print("Settings saved.")
 
     def build_save_data(self):
+
+        print(f"Theme {self.theme_combo.currentData()} selected, scale {self.size_combo.currentData()}")
         data = {
             'rpi_model': self.rpi_model_combo.currentText(),
             'rpi_model_index': self.rpi_model_combo.currentIndex(),
             'rpi_host': self.rpi_host_input.text(),
             'rpi_user': self.rpi_user_input.text(),
             'rpi_password': self.rpi_password_input.text(),
-            'language': self.language_combo.currentData()
+            'language': self.language_combo.currentData(),
+            'theme': self.theme_combo.currentData(),
+            'ui_scale': self.size_combo.currentData()
         }
 
         Utils.app_settings.rpi_model = data['rpi_model']
@@ -328,6 +365,8 @@ class DeviceSettingsWindow(QDialog):
         Utils.app_settings.rpi_user = data['rpi_user']
         Utils.app_settings.rpi_password = data['rpi_password']
         Utils.app_settings.language = data['language']
+        Utils.app_settings.theme = data['theme']
+        Utils.app_settings.ui_scale = data['ui_scale']
         return data
 
     def on_language_changed(self):
@@ -335,9 +374,18 @@ class DeviceSettingsWindow(QDialog):
         self.translation_manager.set_language(lang_code)
         Utils.app_settings.language = lang_code
         self.save_settings()
-
-        self.reload_requested.emit(True)
     
+    def on_theme_changed(self):
+        theme = 'light' if self.theme_combo.currentIndex() == 0 else 'dark'
+        Utils.app_settings.theme = theme
+        print(f"Theme changed to: {theme}, current data {self.theme_combo.currentData()}")
+        self.save_settings()
+
+    def on_size_changed(self):
+        size = {0: 'small', 1: 'medium', 2: 'large'}.get(self.size_combo.currentIndex(), 'medium')
+        Utils.app_settings.ui_scale = size
+        print(f"UI scale changed to: {size}, current data {self.size_combo.currentData()}")
+        self.save_settings()
 
     def auto_detect_rpi(self):
         """Auto-detect Raspberry Pi on network"""

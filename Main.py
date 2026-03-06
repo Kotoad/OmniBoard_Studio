@@ -2,7 +2,7 @@ from Imports import (QThread, pyqtSignal, QSplashScreen, QPixmap, QColor, QProgr
                      QTimer, QMessageBox, QApplication, QPalette, QObject, sys, time, QStackedWidget, QWidget,
                      json, os, threading, warnings, QProgressDialog, QMainWindow, QIcon, QVBoxLayout, QLabel,
                      QAction, QFont, QToolBar, QSize, QSizePolicy, QSlider, QShortcut, QKeySequence, QHBoxLayout,
-                     QPushButton, QScrollArea, QListWidget, QSplitter)
+                     QPushButton, QScrollArea, QListWidget, QSplitter, QInputDialog, QLineEdit)
 import urllib.request, ssl, certifi, tempfile, traceback as tb, glob
 from Imports import (get_Utils, get_Code_Compiler, get_State_Manager, get_File_Manager, get_Data_Control, get_Translation_Manager,
                      get_Graphic_Programing_Window, get_Code_Editor_Window, get_Device_Settings_Mindow, get_Help_Window, get_Blocks_Window)
@@ -387,7 +387,7 @@ class MainWindow(QMainWindow):
     def setup_auto_save_timer(self):
         """Setup auto-save timer for every 5 minutes"""
         self.auto_save_timer = QTimer()
-        self.auto_save_timer.timeout.connect(self.visual_programming_window.auto_save_project)
+        self.auto_save_timer.timeout.connect(self.auto_save_project)
         
         # 5 minutes = 300,000 milliseconds
         self.auto_save_timer.start(300000)  # 300000 ms = 5 minutes
@@ -618,13 +618,65 @@ class MainWindow(QMainWindow):
 
     def zoom_changed(self, value):
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
-            self.visual_programming_window.set_zoom(value)
+            self.visual_programming_window.current_canvas.zoom_change(value)
 
     def on_new_file(self):
         # Placeholder for new file logic
         print("New file action triggered")
+        has_content = (
+                len(Utils.main_canvas.get("blocks", {})) > 0 or
+                len(Utils.functions) > 0 or
+                len(Utils.variables.get("main_canvas", {})) > 0 or
+                len(Utils.devices.get("main_canvas", {})) > 0
+            )
+        projects = Utils.file_manager.list_projects()
+        items = [p['name'] for p in projects]
+        if Utils.config['opend_project'] is not None and has_content is False:
+            self.visual_programming_window.on_new_file()
+        elif has_content and Utils.config['opend_project'] is not None and Utils.config['opend_project'] not in items:
+            text, ok = QInputDialog.getText(
+                self,
+                self.t("main_GUI.dialogs.file_dialogs.save_project_as"), 
+                self.t("main_GUI.dialogs.file_dialogs.enter_project_name"),
+                QLineEdit.EchoMode.Normal, 
+                Utils.project_data.metadata.get('name', ''))
+        
+            if ok and text:
+                Utils.project_data.metadata['name'] = text
+                if Utils.file_manager.save_project(text):
+                    print(f"Project saved as '{text}'")
+                    self.visual_programming_window.on_new_file()  # Clear current project after saving
+            elif not ok:
+                print("New file action cancelled by user")
+                self.visual_programming_window.on_new_file()  # Clear current project without saving
+        elif has_content and Utils.config['opend_project'] is not None and Utils.config['opend_project'] in items:
+            reply = QMessageBox.question(
+                self, self.t("main_GUI.dialogs.file_dialogs.confirm_new_title"),
+                self.t("main_GUI.dialogs.file_dialogs.confirm_new_message"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                self.visual_programming_window.on_new_file()
+            else:
+                print("New file action cancelled by user")
+        elif has_content and Utils.config['opend_project'] is None:
+            text, ok = QInputDialog.getText(
+                self,
+                self.t("main_GUI.dialogs.file_dialogs.save_project_as"), 
+                self.t("main_GUI.dialogs.file_dialogs.enter_project_name"),
+                QLineEdit.EchoMode.Normal, 
+                Utils.project_data.metadata.get('name', ''))
+        
+            if ok and text:
+                Utils.project_data.metadata['name'] = text
+                if Utils.file_manager.save_project(text):
+                    print(f"Project saved as '{text}'")
+                    self.visual_programming_window.on_new_file()  # Clear current project after saving
+            elif not ok:
+                print("New file action cancelled by user")
+                self.visual_programming_window.on_new_file()  # Clear current project without saving
         self.switch_widget(1)  # Switch back to Visual Programming for now
-        self.visual_programming_window.on_new_file()
+        
 
     def on_open_file(self):
         # Placeholder for open file logic
@@ -741,6 +793,20 @@ class MainWindow(QMainWindow):
         self.visual_programming_window.wipe_canvas()
 
         self.visual_programming_window.open_project()
+
+    def auto_save_project(self):
+        """Auto-save current project"""
+        name = Utils.project_data.metadata.get('name', 'Untitled')
+        print(f"Auto-saving project '{name}'")
+        Utils.config['opend_project'] = name
+        try:
+            if Utils.file_manager.save_project(name, is_autosave=True):
+                print(f"Auto-saved '{name}' at {self.get_current_time()}")
+                pass
+            else:
+                print(f" Auto-save failed for '{name}'")
+        except Exception as e:
+            print(f" Auto-save error: {e}")
 
     #MARK: - Update manager
     def start_update_check(self):
