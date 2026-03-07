@@ -23,8 +23,9 @@
       "faq": "Časté dotazy",
       "compile": "Kompilovat",
       "compile_code": "Kompilovat kód",
-      "edit_code": "Upravit vygenerovaný kód",
-      "view_code": "Zobrazit vygenerovaný kód"
+      "hub": "Hub",
+      "visual_editor": "Vizualní editor",
+      "code_editor": "Editor kódu"
     },
     "top_toolbar": {
       "toolbar": "Hlavní panel nástrojů",
@@ -35,7 +36,10 @@
       "settings": "Nastavení",
       "compile_upload": "Kompilovat a nahrát",
       "run": "Spustit",
-      "stop": "Zastavit vykonávání"
+      "stop": "Zastavit vykonávání",
+      "hub": "Hub",
+      "visual_editor": "Vizualní editor",
+      "code_editor": "Editor kódu"
     },
     "bottom_toolbar": {
       "toolbar": "Dolní panel nástrojů",
@@ -343,7 +347,15 @@
     "title": "Nastavení",
     "basic_settings_tab": {
       "title": "Základní nastavení",
-      "select_language": "Vyberte jazyk"
+      "select_language": "Vyberte jazyk",
+      "select_theme": "Vyberte motiv",
+      "light": "Světlý",
+      "dark": "Tmavý",
+      "ui_scale": "Měřítko uživatelského rozhraní",
+      "small": "Malý",
+      "medium": "Střední",
+      "large": "Velký",
+      "apply_settings": "Použít nastavení"
     },
 
     "rpi_settings_tab": {

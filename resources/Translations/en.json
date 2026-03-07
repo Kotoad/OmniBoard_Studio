@@ -23,8 +23,9 @@
       "faq": "FAQ",
       "compile": "Compile",
       "compile_code": "Compile Code",
-      "edit_code": "Edit Generated Code",
-      "view_code": "View Generated Code"
+      "hub": "Hub",
+      "visual_editor": "Visual Editor",
+      "code_editor": "Code Editor"
     },
     "top_toolbar": {
       "toolbar": "Main Toolbar",
@@ -35,7 +36,10 @@
       "settings": "Settings",
       "compile_upload": "Compile and Upload",
       "run": "Run",
-      "stop": "Stop Execution"
+      "stop": "Stop Execution",
+      "hub": "Hub",
+      "visual_editor": "Visual Editor",
+      "code_editor": "Code Editor"
     },
     "bottom_toolbar": {
       "toolbar": "Bottom Toolbar",
@@ -265,13 +269,6 @@
       "no_description": "No description available."
     }
   },
-  "code_view_window": {
-    "window_title": "Generated Code View",
-    "code_label": "Generated Code:",
-    "file_empty": "File is not generated. To generate the file, please compile the code first.",
-    "file_not_found": "File.py not found",
-    "error_reading_file": "Error reading file: {error_type}: {error_message}"
-  },
   "code_editor_window": {
     "window_title": "Code Editor",
     "save_button": "Save",
@@ -343,7 +340,16 @@
     "title": "Settings",
     "basic_settings_tab": {
       "title": "Basic Settings",
-      "select_language": "Select Language"
+      "select_language": "Select Language",
+      "select_theme": "Select Theme",
+      "light": "Light",
+      "dark": "Dark",
+      "ui_scale": "UI Scale",
+      "small": "Small",
+      "medium": "Medium",
+      "large": "Large",
+      "apply_settings": "Apply Settings"
+
     },
     "rpi_settings_tab": {
       "title": "Raspberry Pi Settings",

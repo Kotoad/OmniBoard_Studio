@@ -66,6 +66,9 @@ class DeviceSettingsWindow(QDialog):
         self.state_manager = Utils.state_manager
         self.translation_manager = Utils.translation_manager
         self.t = self.translation_manager.translate
+        self.selected_language = ''
+        self.selected_theme = ''
+        self.selected_size = ''
 
         self.models = {
             "RPI pico/pico W": {"name": "RPI pico/pico W", "index": 0},
@@ -185,7 +188,7 @@ class DeviceSettingsWindow(QDialog):
         self.size_combo.addItem(self.t("setting_window.basic_settings_tab.medium"), 'medium')
         self.size_combo.addItem(self.t("setting_window.basic_settings_tab.large"), 'large')
 
-        reload_ui_btn = QPushButton(self.t("setting_window.basic_settings_tab.reload_ui"))
+        reload_ui_btn = QPushButton(self.t("setting_window.basic_settings_tab.apply_settings"))
 
         languages = self.translation_manager.get_available_languages()
         for lang_code, name in languages.items():
@@ -207,7 +210,7 @@ class DeviceSettingsWindow(QDialog):
         self.language_combo.currentIndexChanged.connect(self.on_language_changed)
         self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
         self.size_combo.currentIndexChanged.connect(self.on_size_changed)
-        reload_ui_btn.clicked.connect(lambda: self.reload_requested.emit(True))
+        reload_ui_btn.clicked.connect(self.on_reload_ui_clicked)
         tab_layout.addWidget(title)
         tab_layout.addSpacing(10)
         tab_layout.addWidget(language_label)
@@ -307,6 +310,46 @@ class DeviceSettingsWindow(QDialog):
         self.tab_widget.addTab(tab, self.t("setting_window.rpi_settings_tab.title"))
     
     #MARK: - Settings Methods
+    def on_reload_ui_clicked(self):
+        lang_changed = False
+        theme_changed = False
+        size_changed = False
+
+        if self.selected_language != '' and self.selected_language != Utils.app_settings.language:
+            self.translation_manager.set_language(self.selected_language)
+            Utils.app_settings.language = self.selected_language
+            lang_changed = True
+        if self.selected_theme != '' and self.selected_theme != Utils.app_settings.theme:
+            Utils.app_settings.theme = self.selected_theme
+            theme_changed = True
+        if self.selected_size != '' and self.selected_size != Utils.app_settings.ui_scale:
+            Utils.app_settings.ui_scale = self.selected_size
+            size_changed = True
+        
+        self.save_settings()
+        if theme_changed or size_changed and lang_changed == False:
+            reply = QMessageBox().information(
+                self,
+                self.t("setting_window.reload_ui.title"),
+                self.t("setting_window.reload_ui.message"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                QApplication.instance().closeAllWindows()
+        elif theme_changed or size_changed and lang_changed:
+            reply = QMessageBox().information(
+                self,
+                self.t("setting_window.reload_ui.title"),
+                self.t("setting_window.reload_ui.message"),
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            if reply == QMessageBox.StandardButton.Yes:
+                QApplication.instance().closeAllWindows()
+        elif lang_changed and theme_changed == False and size_changed == False:
+            self.reload_requested.emit(True)
+            self.flash_window()
+
+
     def on_model_changed(self, index):
         """Handle model change"""
         Utils.app_settings.rpi_model = self.rpi_model_combo.itemText(index)
@@ -379,22 +422,17 @@ class DeviceSettingsWindow(QDialog):
         return data
 
     def on_language_changed(self):
+
         lang_code = self.language_combo.currentData()
-        self.translation_manager.set_language(lang_code)
-        Utils.app_settings.language = lang_code
-        self.save_settings()
+        self.selected_language = lang_code
     
     def on_theme_changed(self):
         theme = 'light' if self.theme_combo.currentIndex() == 0 else 'dark'
-        Utils.app_settings.theme = theme
-        print(f"Theme changed to: {theme}, current data {self.theme_combo.currentData()}")
-        self.save_settings()
+        self.selected_theme = theme
 
     def on_size_changed(self):
         size = {0: 'small', 1: 'medium', 2: 'large'}.get(self.size_combo.currentIndex(), 'medium')
-        Utils.app_settings.ui_scale = size
-        print(f"UI scale changed to: {size}, current data {self.size_combo.currentData()}")
-        self.save_settings()
+        self.selected_size = size
 
     def auto_detect_rpi(self):
         """Auto-detect Raspberry Pi on network"""

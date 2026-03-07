@@ -461,7 +461,7 @@ class MainWindow(QMainWindow):
         hub_window_action = view_menu.addAction(self.t("main_GUI.menu.hub"))
         hub_window_action.triggered.connect(lambda: self.switch_widget(0))
 
-        visual_programming_window_action = view_menu.addAction(self.t("main_GUI.menu.visual_programming"))
+        visual_programming_window_action = view_menu.addAction(self.t("main_GUI.menu.visual_editor"))
         visual_programming_window_action.triggered.connect(lambda: self.switch_widget(1))
 
         code_editor_window_action = view_menu.addAction(self.t("main_GUI.menu.code_editor"))
@@ -574,9 +574,9 @@ class MainWindow(QMainWindow):
         toolbar.addAction(to_hub_icon)
 
         if Utils.app_settings.theme == 'light':
-            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI_black.png"), self.t("main_GUI.top_toolbar.visual_programming"), self)
+            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI_black.png"), self.t("main_GUI.top_toolbar.visual_editor"), self)
         else:
-            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI.png"), self.t("main_GUI.top_toolbar.visual_programming"), self)
+            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI.png"), self.t("main_GUI.top_toolbar.visual_editor"), self)
         to_GUI_icon.triggered.connect(lambda: self.switch_widget(1))
         toolbar.addAction(to_GUI_icon)
 
@@ -906,7 +906,7 @@ class MainWindow(QMainWindow):
     #MARK: - Cleanup on Close
     def closeEvent(self, event):
         """Handle window close event - prompt to save if there are unsaved changes"""
-        
+        print("Close event triggered - checking for unsaved changes")
         # Stop auto-save timer
         if hasattr(self, 'auto_save_timer') and self.auto_save_timer.isActive():
             self.auto_save_timer.stop()
