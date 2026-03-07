@@ -8,10 +8,6 @@ from Imports import get_Spawn_Blocks, get_Utils
 Utils = get_Utils()
 spawning_blocks = get_Spawn_Blocks()[1]
 
-
-background_color = "#2B2B2B"
-border_color = "#3A3A3A"
-
 class blocksWindow(QDialog):
     """blocks selection window with tabs - synced with spawn_blocks"""
     
@@ -64,50 +60,50 @@ class blocksWindow(QDialog):
         # Style
         self.setStyleSheet(f"""
             QDialog {{
-                background-color: {background_color};
+                background-color: palette(window);
             }}
             QTabWidget::pane {{
-                border: 1px solid {border_color};
-                background-color: {background_color};
+                border: 1px solid palette(base);
+                background-color: palette(window);
             }}
             QTabWidget::tab-bar {{
                 alignment: left;
             }}
             QTabBar::tab {{
-                background-color: {background_color};
-                color: #FFFFFF;
+                background-color: palette(window);
+                color: palette(text);
                 padding: 8px 20px;
-                border: 1px solid {border_color};
+                border: 1px solid palette(base);
                 border-bottom: none;
             }}
             QTabBar::tab:selected {{
-                background-color: #1F538D;
+                background-color: palette(highlight);
             }}
             QTabBar::tab:hover {{
-                background-color: #2667B3;
+                background-color: palette(highlight);
             }}
             QLabel {{
-                color: #FFFFFF;
+                color: palette(text);
             }}
             QPushButton {{
-                background-color: {background_color};
-                color: #FFFFFF;
+                background-color: palette(window);
+                color: palette(text);
                 border: none;
                 padding: 10px;
-                border: 1px solid {border_color};
+                border: 1px solid palette(base);
                 border-radius: 4px;
                 text-align: left;
             }}
             QPushButton:hover {{
-                background-color: #4A4A4A;
+                background-color: palette(highlight);
             }}
             QPushButton:pressed {{
-                background-color: #1F538D;
+                background-color: palette(highlight);
             }}
-            QWidget {{ background-color: {background_color}; }}
+            QWidget {{ background-color: palette(window); }}
             QLabel {{
-                background-color: {background_color};
-                border: 1px solid {border_color};
+                background-color: palette(window);
+                border: 1px solid palette(base);
                 padding: 10px;
             }}
         """)
@@ -555,7 +551,7 @@ class blocksWindow(QDialog):
 
     def flash_window(self):
         original_style = self.styleSheet()
-        highlight_style = original_style + "QDialog { background-color: #696969; }"
+        highlight_style = original_style + "QDialog { background-color: palette(norole); }"
         
         def toggle_style(step):
             if step >= 8:  # 4 flashes = 8 toggles (on/off)

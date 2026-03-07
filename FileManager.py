@@ -404,6 +404,8 @@ class FileManager:
         Utils.app_settings.rpi_user = settings_dict.get('rpi_user', 'pi')
         Utils.app_settings.rpi_password = settings_dict.get('rpi_password', 'rasppberry')    
         Utils.app_settings.language = settings_dict.get('language', 'en')
+        Utils.app_settings.theme = settings_dict.get('theme', 'dark')
+        Utils.app_settings.ui_scale = settings_dict.get('ui_scale', 'medium')
 
     # ========================================================================
     # UTILITY OPERATIONS

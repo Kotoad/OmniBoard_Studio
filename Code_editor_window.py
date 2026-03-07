@@ -174,7 +174,7 @@ class CodeEditorWindow(QWidget):
 
     def flash_window(self):
         original_style = self.styleSheet()
-        highlight_style = original_style + "QDialog { background-color: #696969; }"
+        highlight_style = original_style + "QDialog { background-color: palette(norole); }"
         
         def toggle_style(step):
             if step >= 8:  # 4 flashes = 8 toggles (on/off)

@@ -480,13 +480,13 @@ class MainWindow(QMainWindow):
         Help_menu = self.menubar.addMenu(self.t("main_GUI.menu.help"))
         
         Get_stared = Help_menu.addAction(self.t("main_GUI.menu.get_started"))
-        Get_stared.triggered.connect(lambda: self.open_help(0))
+        Get_stared.triggered.connect(lambda: self.open_help_window(0))
         
         tutorials = Help_menu.addAction(self.t("main_GUI.menu.tutorials"))
-        tutorials.triggered.connect(lambda: self.open_help(1))
+        tutorials.triggered.connect(lambda: self.open_help_window(1))
         
         FAQ = Help_menu.addAction(self.t("main_GUI.menu.faq"))
-        FAQ.triggered.connect(lambda: self.open_help(2))
+        FAQ.triggered.connect(lambda: self.open_help_window(2))
         
         # Compile menu
         compile_menu = self.menubar.addMenu(self.t("main_GUI.menu.compile"))
@@ -501,56 +501,89 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar(self.t("main_GUI.top_toolbar.toolbar"))
         toolbar.setMovable(False)
         toolbar.setIconSize(QSize(16, 16))
-
-        save_icon = QAction(QIcon(icon_path+"Save.png"), self.t("main_GUI.top_toolbar.save"), self)
+        
+        if Utils.app_settings.theme == 'light':
+            save_icon = QAction(QIcon(icon_path+"Save_black.png"), self.t("main_GUI.top_toolbar.save"), self)
+        else:
+            save_icon = QAction(QIcon(icon_path+"Save.png"), self.t("main_GUI.top_toolbar.save"), self)
         save_icon.triggered.connect(self.on_save_file)
         toolbar.addAction(save_icon)
 
-        open_icon = QAction(QIcon(icon_path+"Open_file.png"), self.t("main_GUI.top_toolbar.open"), self)
+        if Utils.app_settings.theme == 'light':
+            open_icon = QAction(QIcon(icon_path+"Open_file_black.png"), self.t("main_GUI.top_toolbar.open"), self)
+        else:
+            open_icon = QAction(QIcon(icon_path+"Open_file.png"), self.t("main_GUI.top_toolbar.open"), self)
         open_icon.triggered.connect(self.on_open_file)
         toolbar.addAction(open_icon)
 
-        new_icon = QAction(QIcon(icon_path+"New_file.png"), self.t("main_GUI.top_toolbar.new"), self)
+        if Utils.app_settings.theme == 'light':
+            new_icon = QAction(QIcon(icon_path+"New_file_black.png"), self.t("main_GUI.top_toolbar.new"), self)
+        else:
+            new_icon = QAction(QIcon(icon_path+"New_file.png"), self.t("main_GUI.top_toolbar.new"), self)
         new_icon.triggered.connect(self.on_new_file)
         toolbar.addAction(new_icon)
 
         toolbar.addSeparator()
 
-        add_block_icon = QAction(QIcon(icon_path+"Add_block.png"), self.t("main_GUI.top_toolbar.add_block"), self)
+        if Utils.app_settings.theme == 'light':
+            add_block_icon = QAction(QIcon(icon_path+"Add_block_black.png"), self.t("main_GUI.top_toolbar.add_block"), self)
+        else:
+            add_block_icon = QAction(QIcon(icon_path+"Add_block.png"), self.t("main_GUI.top_toolbar.add_block"), self)
         add_block_icon.triggered.connect(self.open_blocks_window)
         toolbar.addAction(add_block_icon)
 
         toolbar.addSeparator()
 
-        settings_icon = QAction(QIcon(icon_path+"Settings.png"), self.t("main_GUI.top_toolbar.settings"), self)
+        if Utils.app_settings.theme == 'light':             
+            settings_icon = QAction(QIcon(icon_path+"Settings_black.png"), self.t("main_GUI.top_toolbar.settings"), self)
+        else:
+            settings_icon = QAction(QIcon(icon_path+"Settings.png"), self.t("main_GUI.top_toolbar.settings"), self)
         settings_icon.triggered.connect(self.open_settings_window)
         toolbar.addAction(settings_icon)
 
         toolbar.addSeparator()
 
-        run_and_compile_icon = QAction(QIcon(icon_path+"Run_and_compile.png"), self.t("main_GUI.top_toolbar.compile_upload"), self)
+        if Utils.app_settings.theme == 'light':
+            run_and_compile_icon = QAction(QIcon(icon_path+"Run_and_compile_black.png"), self.t("main_GUI.top_toolbar.compile_upload"), self)
+        else:
+            run_and_compile_icon = QAction(QIcon(icon_path+"Run_and_compile.png"), self.t("main_GUI.top_toolbar.compile_upload"), self)
         run_and_compile_icon.triggered.connect(self.compile_and_upload)
         toolbar.addAction(run_and_compile_icon)
 
-        run_icon = QAction(QIcon(icon_path+"Run.png"), self.t("main_GUI.top_toolbar.run"), self)
+        if Utils.app_settings.theme == 'light':
+            run_icon = QAction(QIcon(icon_path+"Run_black.png"), self.t("main_GUI.top_toolbar.run"), self)
+        else:
+            run_icon = QAction(QIcon(icon_path+"Run.png"), self.t("main_GUI.top_toolbar.run"), self)
         run_icon.triggered.connect(self.execute_on_rpi_ssh_background)
         toolbar.addAction(run_icon)
 
-        stop_execution_icon = QAction(QIcon(icon_path+"Stop_execution.png"), self.t("main_GUI.top_toolbar.stop"), self)
+        if Utils.app_settings.theme == 'light':
+            stop_execution_icon = QAction(QIcon(icon_path+"Stop_execution_black.png"), self.t("main_GUI.top_toolbar.stop"), self)
+        else:
+            stop_execution_icon = QAction(QIcon(icon_path+"Stop_execution.png"), self.t("main_GUI.top_toolbar.stop"), self)
         stop_execution_icon.triggered.connect(self.stop_execution)
         toolbar.addAction(stop_execution_icon)
 
         toolbar.addSeparator()
 
-        to_hub_icon = QAction(QIcon(icon_path+"To_Hub.png"), self.t("main_GUI.top_toolbar.hub"), self)
+        if Utils.app_settings.theme == 'light':
+            to_hub_icon = QAction(QIcon(icon_path+"To_Hub_black.png"), self.t("main_GUI.top_toolbar.hub"), self)
+        else:
+            to_hub_icon = QAction(QIcon(icon_path+"To_Hub.png"), self.t("main_GUI.top_toolbar.hub"), self)
         to_hub_icon.triggered.connect(lambda: self.switch_widget(0))
         toolbar.addAction(to_hub_icon)
 
-        to_GUI_icon = QAction(QIcon(icon_path+"To_GUI.png"), self.t("main_GUI.top_toolbar.visual_programming"), self)
+        if Utils.app_settings.theme == 'light':
+            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI_black.png"), self.t("main_GUI.top_toolbar.visual_programming"), self)
+        else:
+            to_GUI_icon = QAction(QIcon(icon_path+"To_GUI.png"), self.t("main_GUI.top_toolbar.visual_programming"), self)
         to_GUI_icon.triggered.connect(lambda: self.switch_widget(1))
         toolbar.addAction(to_GUI_icon)
 
-        to_code_editor_icon = QAction(QIcon(icon_path+"To_code_editor.png"), self.t("main_GUI.top_toolbar.code_editor"), self)
+        if Utils.app_settings.theme == 'light':
+            to_code_editor_icon = QAction(QIcon(icon_path+"To_code_editor_black.png"), self.t("main_GUI.top_toolbar.code_editor"), self)
+        else:
+            to_code_editor_icon = QAction(QIcon(icon_path+"To_code_editor.png"), self.t("main_GUI.top_toolbar.code_editor"), self)
         to_code_editor_icon.triggered.connect(lambda: self.switch_widget(2))
         toolbar.addAction(to_code_editor_icon)
 
@@ -574,7 +607,10 @@ class MainWindow(QMainWindow):
 
         spacer.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
 
-        self.pan_button = QAction(QIcon("resources/images/Tool_bar/Hand.png"), self.t("main_GUI.bottom_toolbar.pan"), self)
+        if Utils.app_settings.theme == 'light':
+            self.pan_button = QAction(QIcon("resources/images/Tool_bar/Hand_black.png"), self.t("main_GUI.bottom_toolbar.pan"), self)
+        else:
+            self.pan_button = QAction(QIcon("resources/images/Tool_bar/Hand.png"), self.t("main_GUI.bottom_toolbar.pan"), self)
         self.pan_button.setCheckable(True)
         self.pan_button.toggled.connect(lambda checked: self.toggle_pan_mode(checked))
 
@@ -748,7 +784,10 @@ class MainWindow(QMainWindow):
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
             print(f"Pan mode toggled: {'ON' if checked else 'OFF'}")
             self.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
-            self.pan_button.setIcon(QIcon("resources/images/Tool_bar/Cursor.png") if checked else QIcon("resources/images/Tool_bar/Hand.png"))
+            if Utils.app_settings.theme == 'light':
+                self.pan_button.setIcon(QIcon("resources/images/Tool_bar/Cursor_black.png") if checked else QIcon("resources/images/Tool_bar/Hand_black.png"))
+            else:
+                self.pan_button.setIcon(QIcon("resources/images/Tool_bar/Cursor.png") if checked else QIcon("resources/images/Tool_bar/Hand.png"))
             self.visual_programming_window.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             self.visual_programming_window.current_canvas.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             self.visual_programming_window.current_canvas.pan_mode = checked
@@ -807,6 +846,11 @@ class MainWindow(QMainWindow):
                 print(f" Auto-save failed for '{name}'")
         except Exception as e:
             print(f" Auto-save error: {e}")
+
+    def get_current_time(self):
+        """Get current time for logging"""
+        from datetime import datetime
+        return datetime.now().strftime("%H:%M:%S")
 
     #MARK: - Update manager
     def start_update_check(self):
@@ -933,28 +977,76 @@ class MainWindow(QMainWindow):
         self.visual_programming_window.close_child_windows()
         event.accept()
 
+def apply_scale():
+    with open(Utils.get_base_path()/"app_settings.json", "r") as f:
+        app_settings = json.load(f)
+    scale = app_settings.get("ui_scale", "medium")
+    print(f"Applying UI scale: {scale}")
+
+    if scale == 'small':
+        print("Setting QT_SCALE_FACTOR to 0.8 for small UI scale")
+        os.environ["QT_SCALE_FACTOR"] = "0.8"
+    elif scale == 'medium':
+        print("Setting QT_SCALE_FACTOR to 1.0 for medium UI scale")
+        os.environ["QT_SCALE_FACTOR"] = "1.0"
+    elif scale == 'large':
+        print("Setting QT_SCALE_FACTOR to 1.2 for large UI scale")
+        os.environ["QT_SCALE_FACTOR"] = "1.2"
+
+def apply_theme(app):
+    with open(Utils.get_base_path()/"app_settings.json", "r") as f:
+        app_settings = json.load(f)
+    theme = app_settings.get("theme", "dark")
+    print(f"Applying theme: {theme}")
+
+    palette = QPalette()
+
+    if theme == 'dark':
+        palette.setColor(QPalette.ColorRole.Window, QColor(43, 43, 43))
+        palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(43, 43, 43))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.Button, QColor(43, 43, 43))
+        palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
+        palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+        palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.white)
+        palette.setColor(QPalette.ColorRole.NoRole, QColor(105, 105, 105))
+        palette.setColor(QPalette.ColorRole.Accent, QColor(255, 0, 0))
+    elif theme == 'light':
+        palette.setColor(QPalette.ColorRole.Window, QColor(253, 245, 230))
+        palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.Base, QColor(224, 218, 202))
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(225, 225, 225))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.Button, QColor(253, 245, 230))
+        palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
+        palette.setColor(QPalette.ColorRole.Link, QColor(0, 120, 215))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(0, 120, 215))
+        palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
+        palette.setColor(QPalette.ColorRole.NoRole, QColor(169, 169, 169))
+        palette.setColor(QPalette.ColorRole.Accent, QColor(255, 0, 0))
+    
+    app.setPalette(palette)
 def main():
+
+    apply_scale()
+
     app = QApplication(sys.argv)
     app.setStyle('Fusion')
     
-    dark_palette = QPalette()
-    dark_palette.setColor(QPalette.ColorRole.Window, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
-    dark_palette.setColor(QPalette.ColorRole.AlternateBase, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.Button, QColor(43, 43, 43))
-    dark_palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
-    dark_palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-    dark_palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
-    dark_palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
-    dark_palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.black)
+    
 
-    app.setPalette(dark_palette)
+    
 
-    app.setStyleSheet("QToolTip { color: #ffffff; background-color: #2a82da; border: 1px solid white; }")
+    app.setStyleSheet("QToolTip { color: palette(text); background-color: palette(highlight); border: 1px solid white; }")
 
     error_handler = UniversalErrorHandler()
 
@@ -973,6 +1065,7 @@ def main():
         splash.update_status("Starting GUI...")
         splash.update_progress(100)
         
+        apply_theme(app)
         # CRITICAL: Initialize MainWindow on the MAIN THREAD
         # We define 'window' global or attached to app so it doesn't get garbage collected
         global window 

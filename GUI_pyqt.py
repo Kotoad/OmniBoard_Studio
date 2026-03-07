@@ -754,14 +754,14 @@ class PassiveListPopup(QListWidget):
         # Styling
         self.setStyleSheet("""
             QListWidget { 
-                border: 1px solid gray; 
-                background: white; 
+                border: 1px solid palette(mid); 
+                background: palette(base); 
                 font-size: 10px;
-                color: #000000;
+                color: palette(text);
             }
             QListWidget::item:selected { 
                 background: #0078d7; 
-                color: white; 
+                color: #ffffff; 
             }
             QScrollBar:horizontal {
                 height: 0px;
@@ -835,8 +835,8 @@ class SearchableLineEdit(QLineEdit):
         
         self.setStyleSheet("""
         QLineEdit {
-            background-color: white;
-            border: 1px solid #333;
+            background-color: palette(base);
+            border: 1px solid palette(mid);
             border-radius: 3px;
             font-size: 10px;
             color: #333;
@@ -993,7 +993,7 @@ class GridCanvas(QGraphicsView):
         # Style
         self.setStyleSheet("""
             GridCanvas {
-                background-color: #2B2B2B;
+                background-color: palette(window);
             }
         """)
         
@@ -1006,7 +1006,7 @@ class GridCanvas(QGraphicsView):
         grid_size = self.grid_size
         scene_rect = self.scene.sceneRect()
         
-        pen = QPen(QColor("#3A3A3A"), 1)
+        pen = QPen(QColor("palette(mid)"), 1)
         
         # Vertical lines
         x = int(scene_rect.left())
@@ -1510,97 +1510,22 @@ class GUI(QWidget):
         # Style
         self.setStyleSheet("""
             QWidget {
-                background-color: #2B2B2B;
-                color: #FFFFFF;
+                background-color: palette(window);
+                color: palette(text);
             }
-
-            QGUI {
-                background-color: #1F1F1F;
-            }
-            QMenuBar {
-                background-color: #2B2B2B;
-                color: #FFFFFF;
-                border-bottom: 1px solid #3A3A3A;
-                padding: 4px;
-            }
-            QMenuBar::item {
-                background-color: transparent;
-                padding: 4px 12px;
-            }
-            QMenuBar::item:selected {
-                background-color: #1F538D;
-            }
-            QMenu {
-                background-color: #2B2B2B;
-                color: #FFFFFF;
-                border: 1px solid #3A3A3A;
-            }
-            QMenu::item:selected {
-                background-color: #1F538D;
-            }
-
-            QToolBar {
-                background-color: #2B2B2B;
-                border-bottom: 1px solid #3A3A3A;
-            }
-            
             QLineEdit {
-                background-color: #3A3A3A;
-                color: #FFFFFF;
-                border: 1px solid #555555;
+                background-color: palette(window);
+                color: palette(text);
+                border: 1px solid palette(base);
                 border-radius: 3px;
                 padding: 4px;
             }
             QComboBox {
-                background-color: #3A3A3A;
-                color: #FFFFFF;
-                border: 1px solid #555555;
+                background-color: palette(window);
+                color: palette(text);
+                border: 1px solid palette(base);
                 border-radius: 3px;
                 padding: 4px;
-            }
-            QToolButton {
-                background-color: transparent; 
-                border: none;
-                border-radius: 4px;
-                padding: 4px;
-            }
-            QToolButton:hover {
-                background-color: #3A3A3A; /* Dark grey hover accent */
-            }
-            QToolButton:pressed {
-                background-color: #1F538D; /* Blue active/pressed accent */
-            }
-            /* Optional: if you have checked/toggled buttons like your Pan button */
-            QToolButton:checked {
-                background-color: #1F538D; 
-            }
-            QSlider::groove:horizontal {
-                border: 1px solid #3A3A3A;
-                height: 6px;
-                border-radius: 3px;
-            }
-            
-            /* THE ACCENT COLOR: The track area filled by the slider */
-            QSlider::sub-page:horizontal {
-                background: #555555; /* Change this to your desired dark grey or blue */
-                border-radius: 3px;
-            }
-            
-            /* THE EMPTY TRACK: The track area ahead of the slider */
-            QSlider::add-page:horizontal {
-                background: #1F1F1F; 
-                border-radius: 3px;
-            }
-            
-            QSlider::handle:horizontal {
-                background: #FFFFFF;
-                border: 1px solid #555555;
-                width: 14px;
-                margin: -4px 0; 
-                border-radius: 7px;
-            }
-            QSlider::handle:horizontal:hover {
-                background: #e0e0e0;
             }
         """)
         self.zoom_slider = None
@@ -1770,14 +1695,14 @@ class GUI(QWidget):
         canvas_reference.layout.setContentsMargins(10, 10, 10, 10)
         
         header = QLabel(self.t("main_GUI.variables_tab.variables"))
-        header.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")
+        header.setStyleSheet("font-weight: bold; font-size: 14px; color: palette(text);")
         canvas_reference.layout.addWidget(header)
         
         add_btn = QPushButton(self.t("main_GUI.variables_tab.add_variable"))
         add_btn.setStyleSheet("""
             QPushButton {
-                background-color: #1F538D;
-                color: white;
+                background-color: palette(base);
+                color: palette(text);
                 padding: 8px;
                 border-radius: 4px;
             }
@@ -1799,7 +1724,7 @@ class GUI(QWidget):
         canvas_reference.layout.addWidget(scroll)
         add_btn.clicked.connect(lambda: self.add_variable_row(None, None, canvas_reference))
         canvas_reference.widget.setStyleSheet("""
-            QWidget { background-color: #2B2B2B; }
+            QWidget { background-color: palette(window); }
         """)
         return canvas_reference.widget
 
@@ -1810,14 +1735,14 @@ class GUI(QWidget):
         canvas_reference.layout.setContentsMargins(10, 10, 10, 10)
         
         header = QLabel(self.t("main_GUI.devices_tab.devices"))
-        header.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")
+        header.setStyleSheet("font-weight: bold; font-size: 14px; color: palette(text);")
         canvas_reference.layout.addWidget(header)
         
         add_btn = QPushButton(self.t("main_GUI.devices_tab.add_device"))
         add_btn.setStyleSheet("""
             QPushButton {
-                background-color: #1F538D;
-                color: white;
+                background-color: palette(base);
+                color: palette(text);
                 padding: 8px;
                 border-radius: 4px;
             }
@@ -1840,7 +1765,7 @@ class GUI(QWidget):
         canvas_reference.layout.addWidget(scroll)
         
         canvas_reference.widget.setStyleSheet("""
-            QWidget { background-color: #2B2B2B; }
+            QWidget { background-color: palette(window); }
         """)
         return canvas_reference.widget
     
@@ -1852,7 +1777,7 @@ class GUI(QWidget):
         canvas_reference.layout.setContentsMargins(10, 10, 10, 10)
         
         header = QLabel(self.t("main_GUI.internal_tab.header"))
-        header.setStyleSheet("font-weight: bold; font-size: 14px; color: white;")
+        header.setStyleSheet("font-weight: bold; font-size: 14px; color: palette(text);")
         canvas_reference.layout.addWidget(header)
 
         scroll = QScrollArea()
@@ -1868,8 +1793,8 @@ class GUI(QWidget):
         add_internal_var_btn = QPushButton(self.t("main_GUI.internal_tab.add_internal_variable"))
         add_internal_var_btn.setStyleSheet("""
             QPushButton {
-                background-color: #1F538D;
-                color: white;
+                background-color: palette(base);
+                color: palette(text);
                 padding: 8px;
                 border-radius: 4px;
             }
@@ -1880,8 +1805,8 @@ class GUI(QWidget):
         add_internal_dev_btn = QPushButton(self.t("main_GUI.internal_tab.add_internal_device"))
         add_internal_dev_btn.setStyleSheet("""
             QPushButton {
-                background-color: #1F538D;
-                color: white;
+                background-color: palette(base);
+                color: palette(text);
                 padding: 8px;
                 border-radius: 4px;
             }
@@ -1893,7 +1818,7 @@ class GUI(QWidget):
         canvas_reference.layout.addWidget(scroll)
 
         canvas_reference.widget.setStyleSheet("""
-            QWidget { background-color: #2B2B2B; }
+            QWidget { background-color: palette(window); }
         """)
 
         return canvas_reference.widget
@@ -1911,8 +1836,8 @@ class GUI(QWidget):
         self.sidebar_frame.setMaximumWidth(150)
         self.sidebar_frame.setStyleSheet("""
             QFrame {
-                background-color: #2B2B2B;
-                border-right: 1px solid #3A3A3A;
+                background-color: palette(window);
+                border-right: 1px solid palette(base);
             }
         """)
         
@@ -1935,7 +1860,7 @@ class GUI(QWidget):
         self.content_area = QStackedWidget()
         self.content_area.setStyleSheet("""
             QStackedWidget {
-                background-color: #1F1F1F;
+                background-color: palette(window);
             }
         """)
         
@@ -2032,15 +1957,15 @@ class GUI(QWidget):
         try:
             tab_button.setStyleSheet("""
                 QPushButton {
-                    background-color: #2B2B2B;
-                    color: #FFFFFF;
+                    background-color: palette(window);
+                    color: palette(text);
                     border: none;
                     padding: 12px;
                     text-align: left;
                 }
                 
                 QPushButton:hover {
-                    background-color: #3A3A3A;
+                    background-color: palette(highlight);
                 }
             """)
         except Exception as e:
@@ -2111,15 +2036,15 @@ class GUI(QWidget):
         content_widget.new_canvas_button = QPushButton(self.t("main_GUI.sidebar.new_canvas"))
         content_widget.new_canvas_button.setStyleSheet("""
             QPushButton {
-                background-color: #2B2B2B;
-                color: #FFFFFF;
+                background-color: palette(window);
+                color: palette(text);
                 border: none;
                 padding: 12px;
                 text-align: left;
                 font-weight: bold;
             }
             QPushButton:hover {
-                background-color: #3A3A3A;
+                background-color: palette(highlight);
             }       
         """)
         content_widget.new_canvas_button.clicked.connect(self._on_new_canvas_clicked)
@@ -2175,7 +2100,7 @@ class GUI(QWidget):
         content_widget.separator.setFrameShape(QFrame.Shape.HLine)
         content_widget.separator.setFrameShadow(QFrame.Shadow.Plain)
         content_widget.separator.setLineWidth(1)
-        content_widget.separator.setStyleSheet("background-color: #555555;")
+        content_widget.separator.setStyleSheet("background-color: palette(mid);")
         
         # Layout for container
         content_widget.layout = QVBoxLayout(content_widget.separator_container)
@@ -2211,10 +2136,10 @@ class GUI(QWidget):
                         try:
                             tb['button'].setStyleSheet("""
                                 QPushButton {
-                                    background-color: #1F538D;
-                                    color: #FFFFFF;
+                                    background-color: palette(highlight);
+                                    color: palette(highlighted-text);
                                     border: none;
-                                    border-left: 3px solid #4CAF50;
+                                    border-left: 3px solid palette(highlight);
                                     padding: 12px;
                                     text-align: left;
                                 }
@@ -2224,14 +2149,14 @@ class GUI(QWidget):
                     else:
                         tb['button'].setStyleSheet("""
                             QPushButton {
-                                background-color: #2B2B2B;
-                                color: #FFFFFF;
+                                background-color: palette(window);
+                                color: palette(text);
                                 border: none;
                                 padding: 12px;
                                 text-align: left;
                             }
                             QPushButton:hover {
-                                background-color: #3A3A3A;
+                                background-color: palette(highlight);
                             }
                         """)
                 if reference == "canvas":
@@ -2303,8 +2228,8 @@ class GUI(QWidget):
                 current_canvas.inspector_frame = QFrame()
                 current_canvas.inspector_frame.setStyleSheet("""
                     QFrame {
-                        background-color: 2B2B2B;
-                        border-left: 1px solid 3A3A3A;
+                        background-color: palette(window);
+                        border-left: 1px solid palette(base);
                     }
                 """)
                 current_canvas.inspector_layout = QVBoxLayout(current_canvas.inspector_frame)
@@ -3962,11 +3887,6 @@ class GUI(QWidget):
         except Exception as e:
             print(f"Compilation error: {e}")
             pass
-    
-    def get_current_time(self):
-        """Get current time for logging"""
-        from datetime import datetime
-        return datetime.now().strftime("%H:%M:%S")
 
     def on_save_file(self):
         """Save current project"""
