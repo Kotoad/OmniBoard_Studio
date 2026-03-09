@@ -44,7 +44,7 @@ state_manager = None
 translation_manager = None
 file_manager = None
 data_control = None
-
+add_block_command = None
 # ============================================================================
 # UTILITY FUNCTIONS
 # ============================================================================

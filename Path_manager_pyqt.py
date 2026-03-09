@@ -1,8 +1,9 @@
 from Imports import (Qt, QPoint, QLine, QPainter, QPen, QColor, QGraphicsPathItem,
                      QPointF, QPainterPath, QGraphicsEllipseItem, QGraphicsItem)
-from Imports import get_Utils
+from Imports import get_Utils, get_Commands
 
 Utils = get_Utils()
+AddPathCommand = get_Commands()[2]
 #MARK: - WaypointHandle
 class WaypointHandle(QGraphicsEllipseItem):
 
@@ -261,7 +262,21 @@ class PathManager:
                     # Create path graphics item
                     path_item = PathGraphicsItem(from_block, to_block, connection_id, self.canvas, circle_type, self.start_node['circle_type'], waypoints=self.preview_points)
                     print(f"    Created path item: {path_item}")
-                    self.canvas.scene.addItem(path_item)
+                    command = AddPathCommand(
+                        canvas=self.canvas,
+                        path_id=connection_id,
+                        path_data={
+                            'from': self.start_node['id'],
+                            'from_circle_type': self.start_node['circle_type'],
+                            'to': block_id,
+                            'to_circle_type': circle_type,
+                            'waypoints': self.preview_points,
+                            'canvas': self.canvas,
+                            'color': QColor(31, 83, 141),
+                            'item': path_item
+                        }
+                    )
+                    self.canvas.main_window.undo_stack.push(command)
                     
                     # Store in Utils and scene_paths
                     Utils.main_canvas['paths'][connection_id] = {

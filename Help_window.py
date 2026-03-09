@@ -311,13 +311,30 @@ class HelpWindow(QDialog):
             case "1":
                 #print("Filling content for tutorial 1")
                 current_dir = self.base_path
-                Blinking_LED_Diagram = os.path.join(current_dir, "resources", "images", "Blinking_LED", "blinking_led_diagram.png")
-                Blinking_LED_Diagram = os.path.abspath(Blinking_LED_Diagram)  # Convert to absolute path
-                Blinking_LED_Diagram = Blinking_LED_Diagram.replace("\\", "/")
-                Blinking_LED_Flowchart = os.path.join(current_dir, "resources", "images", "Blinking_LED", "blinking_led_flowchart.png")
-                Blinking_LED_Flowchart = os.path.abspath(Blinking_LED_Flowchart)
-                Blinking_LED_Flowchart = Blinking_LED_Flowchart.replace("\\", "/")
-
+                Power_Supply_Symbol_DC = current_dir / "resources/images/Tutorials/Tutorial_1/Power_Supply_Symbol_DC.png"
+                Power_Supply_Symbol_AC = current_dir / "resources/images/Tutorials/Tutorial_1/Power_Supply_Symbol_DC.png"
+                Pin_Connection_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Pin_Connection_Symbol.png"
+                Resistor_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Resistor_Symbol.png"
+                Capacitor_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Capacitor_Symbol.png"
+                Inductor_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Inductor_Symbol.png"
+                Diode_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Diode_Symbol.png"
+                LED_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/LED_Symbol.png"
+                Transistor_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Transistor_Symbol.png"
+                Ground_Symbol = current_dir / "resources/images/Tutorials/Tutorial_1/Ground_Symbol.png"
+                for path in [
+                    Power_Supply_Symbol_DC,
+                    Power_Supply_Symbol_AC,
+                    Pin_Connection_Symbol,
+                    Resistor_Symbol,
+                    Capacitor_Symbol,
+                    Inductor_Symbol,
+                    Diode_Symbol,
+                    LED_Symbol,
+                    Transistor_Symbol,
+                    Ground_Symbol
+                ]:
+                    path = path.resolve()  # Ensure we have an absolute path
+                    path = path.as_posix()
                 html_file_path = self.t("help_window.tutorials_tab.tutorials.tutorial_1.content")
  
                 full_path = current_dir / html_file_path
@@ -327,8 +344,16 @@ class HelpWindow(QDialog):
                         html_template = f.read()
                         html_content = html_template.format(
                             css=css,
-                            Blinking_LED_Diagram=Blinking_LED_Diagram,
-                            Blinking_LED_Flowchart=Blinking_LED_Flowchart
+                            Power_Supply_Symbol_DC=Power_Supply_Symbol_DC,
+                            Power_Supply_Symbol_AC=Power_Supply_Symbol_AC,
+                            Pin_Connection_Symbol=Pin_Connection_Symbol,
+                            Resistor_Symbol=Resistor_Symbol,
+                            Capacitor_Symbol=Capacitor_Symbol,
+                            Inductor_Symbol=Inductor_Symbol,
+                            Diode_Symbol=Diode_Symbol,
+                            LED_Symbol=LED_Symbol,
+                            Transistor_Symbol=Transistor_Symbol,
+                            Ground_Symbol=Ground_Symbol
                         )
                     # Now use html_content in your QTextEdit or wherever you need it
                     # For tutorial:
@@ -462,7 +487,6 @@ class HelpWindow(QDialog):
                 background-color: {window};
                 color: {text};
                 font-family: Arial, sans-serif;
-                line-height: 1.6;
             }}
             p {{
                 color: {text};

@@ -373,11 +373,8 @@
       "unknown_model": "Unknown model"
     },
     "restart_dialog": {
-      "title": "Language change",
-      "message_default": "Language changed successfully!\nApp will restart in 3 seconds...\n\nClick 'OK' to restart now.",
-      "message_countdown": "Language changed successfully!\nApp will restart in {seconds} seconds...\n\nClick 'OK' to restart now.",
-      "restart_now": "Restart Now",
-      "restart_later": "Restart Later"
+      "title": "Restart Application",
+      "message": "Some changes require restarting the application to take effect. Do you want to restart now?"
     },
     "auto_detect_dialog": {
       "process": "Detecting Raspberry Pi on network.",

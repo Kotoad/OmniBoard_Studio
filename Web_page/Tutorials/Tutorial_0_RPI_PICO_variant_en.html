@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniBoard Studio - Visual Programming Environment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased">
+    <nav class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
+        <a href="index.html" class="text-2xl font-bold text-blue-500 hover:text-blue-400 transition-colors">OmniBoard Studio</a>
+        <div class="space-x-6 text-sm font-medium">
+            <a href="#features" class="text-slate-300 hover:text-blue-400 transition-colors">Features</a>
+            <a href="../Tutorials.html" class="text-slate-300 hover:text-blue-400 transition-colors">Tutorials</a>
+            <a href="../FAQ.html" class="text-slate-300 hover:text-blue-400 transition-colors">FAQ</a>
+            <a href="../Download.html" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download App</a>
+        </div>
+    </nav>
+
+    <header class="max-w-4xl mx-auto px-6 py-16 text-center">
+        <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
+            Raspberry Pi Pico Setup
+        </h1>
+        <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
+            Learn how to flash the latest MicroPython firmware and prepare your board for OmniBoard Studio.
+        </p>
+    </header>
+
+    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16">
+        <section>
+            <h2 class="text-2xl font-bold text-blue-400 mb-6">Supported Raspberry Pi Pico Variants:</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="p-4 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium text-center">Raspberry Pi Pico</div>
+                <div class="p-4 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium text-center">Raspberry Pi Pico W*</div>
+                <div class="p-4 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium text-center">Raspberry Pi Pico WH*</div>
+                <div class="p-4 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium text-center">Raspberry Pi Pico 2</div>
+                <div class="p-4 bg-slate-800 border border-slate-700 rounded-lg text-slate-300 text-sm font-medium text-center">Raspberry Pi Pico 2 W*</div>
+            </div>
+        </section>
+        
+        <section>
+            <h2 class="text-2xl font-bold text-blue-400 mb-6">You will need:</h2>
+            <ul class="space-y-4 text-slate-300 bg-slate-800/50 p-6 rounded-xl border border-slate-700/50">
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-1">●</span>
+                    <span>A compatible Raspberry Pi Pico board (see list above)</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-1">●</span>
+                    <span>Micro USB cable for connecting the Pico to your computer</span>
+                </li>
+                <li class="flex items-start gap-3">
+                    <span class="text-blue-500 mt-1">●</span>
+                    <span>Computer with USB port and internet access</span>
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2 class="text-2xl font-bold text-blue-400 mb-6">Steps to set up your Raspberry Pi Pico:</h2>
+            <ul class="space-y-4">
+                <div class="flex gap-4 p-5 bg-slate-800 border border-slate-700 rounded-xl">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold border border-blue-500/30">1</div>
+                    <div class="text-slate-300 mt-1">Download the latest version of MicroPython for your RPI</div>
+                    <ul class="space-y-4 text-slate-300 bg-slate-800/50 p-6 rounded-xl border border-slate-700/50">
+                        <li class="flex items-start gap-3">
+                            <span class="text-blue-500 mt-1">●</span>
+                            <span>For Raspberry Pi Pico: <a href="https://micropython.org/download/RPI_PICO/" class="text-blue-400 hover:text-blue-300 underline">https://micropython.org/download/RPI_PICO/</a></span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-blue-500 mt-1">●</span>
+                            <span>For Raspberry Pi Pico W and WH: <a href="https://micropython.org/download/RPI_PICO_W/" class="text-blue-400 hover:text-blue-300 underline">https://micropython.org/download/RPI_PICO_W/</a></span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-blue-500 mt-1">●</span>
+                            <span>For Raspberry Pi Pico 2: <a href="https://micropython.org/download/RPI_PICO2/" class="text-blue-400 hover:text-blue-300 underline">https://micropython.org/download/RPI_PICO2/</a></span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <span class="text-blue-500 mt-1">●</span>
+                            <span>For Raspberry Pi Pico 2 W and WH: <a href="https://micropython.org/download/RPI_PICO2_W/" class="text-blue-400 hover:text-blue-300 underline">https://micropython.org/download/RPI_PICO2_W/</a></span>
+                        </li>
+                    </ul>
+                </div>
+                
+                <div class="flex gap-4 p-5 bg-slate-800 border border-slate-700 rounded-xl">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold border border-blue-500/30">2</div>
+                    <div class="text-slate-300 mt-1">Connect your Raspberry Pi Pico to your computer using the Micro USB cable while holding down the BOOTSEL button (the white button) on the Pico. This will put the Pico into USB mass storage mode.</div>
+                </div>
+                <div class="flex gap-4 p-5 bg-slate-800 border border-slate-700 rounded-xl">
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold border border-blue-500/30">3</div>
+                    <div class="text-slate-300 mt-1">Copy the downloaded MicroPython firmware file to the Pico's root directory (the Pico will appear as a USB drive).</div>
+                </div>
+            </ul>
+        </section>
+    </main>
+
+    <footer class="bg-slate-950 text-slate-500 py-10 border-t border-slate-800">
+        <div class="max-w-4xl mx-auto px-6 text-sm space-y-2">
+            <p>*W means what this RPI model has WiFi built-in.</p>
+            <p>*WH means what this RPI model has WiFi built-in and headers allready populated.</p>
+        </div>
+    </footer>
+
+</body>
+</html> 

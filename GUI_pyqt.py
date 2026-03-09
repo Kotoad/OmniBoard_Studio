@@ -25,7 +25,7 @@ from Imports import (
 from Imports import (
     get_Spawn_Blocks, get_Device_Settings_Mindow,
     get_Path_Manager, get_Blocks_Window, get_Utils,
-    get_Help_Window, get_Code_Editor_Window
+    get_Help_Window, get_Code_Editor_Window, get_Commands
 )
 Utils = get_Utils()
 
@@ -37,6 +37,8 @@ PathManager = get_Path_Manager()[0]
 PathGraphicsItem = get_Path_Manager()[1]
 blocksWindow = get_Blocks_Window()
 HelpWindow = get_Help_Window()
+RemoveBlockCommand = get_Commands()[1]
+RemovePathCommand = get_Commands()[3]
 
 #MARK: - Threads for background tasks
 class PromptPolicy(paramiko.MissingHostKeyPolicy):
@@ -1451,17 +1453,17 @@ class GridCanvas(QGraphicsView):
     
     def delete_block(self, block, block_id):
         """Delete a block and its connections"""
-        #print(f"Deleting block: {block_id}")
-        
-        if self.path_manager:
-            self.path_manager.remove_paths_for_block(block_id)
-        
-        self.remove_block(block_id)
-    
+        command = RemoveBlockCommand(self, block_id)
+        self.main_window.undo_stack.push(command)
+
     def delete_path(self, path):
         """Delete a connection path"""
         print(f"Deleting path: {path.path_id}")
-        self.remove_path(path.path_id)
+        command = RemovePathCommand(
+            canvas=self,
+            path_id=path.path_id
+        )
+        self.main_window.undo_stack.push(command)
 
 #MARK: - Main GUI
 class GUI(QWidget):

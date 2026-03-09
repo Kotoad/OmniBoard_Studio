@@ -269,13 +269,6 @@
       "no_description": "Žádný popis není k dispozici."
     }
   },
-  "code_view_window": {
-    "window_title": "Zobrazení generovaného kódu",
-    "code_label": "Generovaný kód:",
-    "file_empty": "Soubor není vytvořen. Chcete-li soubor vytvořit, nejprve zkompilujte kód.",
-    "file_not_found": "Soubor.py nenalezen",
-    "error_reading_file": "Chyba při čtení souboru: {error_type}: {error_message}"
-  },
   "code_editor_window": {
     "window_title": "Editor kódu",
     "save_button": "Uložit",
@@ -357,7 +350,6 @@
       "large": "Velký",
       "apply_settings": "Použít nastavení"
     },
-
     "rpi_settings_tab": {
       "title": "Nastavení Raspberry Pi",
       "connection_method": "Metoda připojení",
@@ -380,11 +372,8 @@
       "unknown_model": "Neznámý model"
     },
     "restart_dialog": {
-      "title": "Změna jazyka",
-      "message_default": "Jazyk byl úspěšně změněn!\nAplikace se restartuje za 3 sekundy...\n\nKlikněte na \"OK\" pro restartování nyní.",
-      "message_countdown": "Jazyk byl úspěšně změněn!\nAplikace se restartuje za {seconds} sekund...\n\nKlikněte na \"OK\" pro restartování nyní.",
-      "restart_now": "Restartovat nyní",
-      "restart_later": "Restartovat později"
+      "title": "Restartovat aplikaci",
+      "message": "Některé změny vyžadují restartování aplikace, aby se projevily. Chcete restartovat nyní?"
     },
     "auto_detect_dialog": {
       "process": "Detekuji Raspberry Pi v síti.",

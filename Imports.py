@@ -51,7 +51,7 @@ from PyQt6.QtGui import (
     QPainter, QPen, QColor, QBrush, QPalette, QMouseEvent, QKeySequence, QShortcut, QEventPoint,
     QRegularExpressionValidator, QFont, QPixmap, QImage, QStandardItem, QMovie, QTouchEvent,
     QPainterPath, QIcon, QStandardItemModel, QAction, QPixmap, QInputDevice, QCursor,
-    QIntValidator, QDoubleValidator
+    QIntValidator, QDoubleValidator, QUndoStack, QUndoCommand
 )
 from PyQt6.QtTest import QTest
 
@@ -134,3 +134,7 @@ def get_File_Manager():
     from FileManager import FileManager
     return FileManager
 
+def get_Commands():
+    """Lazy import Commands when needed"""
+    from commands import AddBlockCommand, RemoveBlockCommand, AddPathCommand, RemovePathCommand, MoveBlockCommand
+    return AddBlockCommand, RemoveBlockCommand, AddPathCommand, RemovePathCommand, MoveBlockCommand

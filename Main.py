@@ -2,10 +2,11 @@ from Imports import (QThread, pyqtSignal, QSplashScreen, QPixmap, QColor, QProgr
                      QTimer, QMessageBox, QApplication, QPalette, QObject, sys, time, QStackedWidget, QWidget,
                      json, os, threading, warnings, QProgressDialog, QMainWindow, QIcon, QVBoxLayout, QLabel,
                      QAction, QFont, QToolBar, QSize, QSizePolicy, QSlider, QShortcut, QKeySequence, QHBoxLayout,
-                     QPushButton, QScrollArea, QListWidget, QSplitter, QInputDialog, QLineEdit)
+                     QPushButton, QScrollArea, QListWidget, QSplitter, QInputDialog, QLineEdit, QUndoStack)
 import urllib.request, ssl, certifi, tempfile, traceback as tb, glob
 from Imports import (get_Utils, get_Code_Compiler, get_State_Manager, get_File_Manager, get_Data_Control, get_Translation_Manager,
-                     get_Graphic_Programing_Window, get_Code_Editor_Window, get_Device_Settings_Mindow, get_Help_Window, get_Blocks_Window)
+                     get_Graphic_Programing_Window, get_Code_Editor_Window, get_Device_Settings_Mindow, get_Help_Window, get_Blocks_Window,
+                     get_Commands)
 
 Utils = get_Utils()
 StateManager = get_State_Manager()
@@ -18,7 +19,6 @@ GraphicPrograminWindow = get_Graphic_Programing_Window()[0]
 DeviceSettingsWindow = get_Device_Settings_Mindow()
 BlocksWindow = get_Blocks_Window()
 HelpWindow = get_Help_Window()
-
 #MARK: - Loading Screen
 class LoaderThread(QThread):
     """
@@ -350,7 +350,7 @@ class MainWindow(QMainWindow):
 
         self.translation_manager = Utils.translation_manager
         self.t = self.translation_manager.translate
-
+        self.undo_stack = QUndoStack(self)
 
         
         self.reset_file()
@@ -383,6 +383,12 @@ class MainWindow(QMainWindow):
 
         new_shortcut = QShortcut(QKeySequence.StandardKey.New, self)
         new_shortcut.activated.connect(self.on_new_file)
+
+        undo_shortcut = QShortcut(QKeySequence.StandardKey.Undo, self)
+        undo_shortcut.activated.connect(self.undo_stack.undo)
+
+        redo_shortcut = QShortcut(QKeySequence.StandardKey.Redo, self)
+        redo_shortcut.activated.connect(self.undo_stack.redo)
 
     def setup_auto_save_timer(self):
         """Setup auto-save timer for every 5 minutes"""

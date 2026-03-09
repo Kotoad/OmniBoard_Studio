@@ -330,8 +330,8 @@ class DeviceSettingsWindow(QDialog):
         if theme_changed or size_changed and lang_changed == False:
             reply = QMessageBox().information(
                 self,
-                self.t("setting_window.reload_ui.title"),
-                self.t("setting_window.reload_ui.message"),
+                self.t("setting_window.restart_dialog.title"),
+                self.t("setting_window.restart_dialog.message"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:
@@ -339,8 +339,8 @@ class DeviceSettingsWindow(QDialog):
         elif theme_changed or size_changed and lang_changed:
             reply = QMessageBox().information(
                 self,
-                self.t("setting_window.reload_ui.title"),
-                self.t("setting_window.reload_ui.message"),
+                self.t("setting_window.restart_dialog.title"),
+                self.t("setting_window.restart_dialog.message"),
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
             if reply == QMessageBox.StandardButton.Yes:

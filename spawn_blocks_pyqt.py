@@ -10,8 +10,10 @@ QPainterPath, QFont, QStyledItemDelegate, QSortFilterProxyModel,
 QStandardItemModel, QListWidget, QEvent, ctypes, sys, time,
 QGraphicsPixmapItem, QGraphicsItem, QPointF, QCursor)
 import random
-from Imports import get_Utils
+from Imports import get_Utils, get_Commands
 Utils = get_Utils()
+AddBlockCommand = get_Commands()[0]
+MoveBlockCommand = get_Commands()[4]
 
 class BlockSignals(QObject):
     """Signal container for block interactions"""
@@ -38,6 +40,7 @@ class BlockGraphicsItem(QGraphicsObject):
         else:
             self.GUI = QApplication.instance().activeWindow()
         #print(f"GUI window in BlockGraphicsItem: {self.GUI}")
+        self._drag_start_pos = None  # For tracking drag start position
         self.border_color = QColor("black")
         self.block_id = block_id
         self.block_type = block_type
@@ -491,46 +494,23 @@ class BlockGraphicsItem(QGraphicsObject):
     #MARK: - Event Handling
     def connect_graphics_signals(self):
         """Connect graphics item circle click signals to event handler"""
-        print(f"        Self: {self}")
-        print(f"        canvas: {self.canvas}")
-        if self.canvas.reference == 'canvas':
-            print("   Connecting signals for main canvas block")
-            if self.block_id not in Utils.main_canvas['blocks']:
-                return
-            else:
-                print(f"   Found block in main canvas: {self.block_id}")
-                block_info = Utils.main_canvas['blocks'][self.block_id]
-        else:
-            print("   Connecting signals for function canvas block")
-            for f_id, f_info in Utils.functions.items():
-                if self.canvas == f_info.get('canvas'):
-                    if self.block_id not in f_info['blocks']:
-                        return
-                    else:
-                        print(f"   Found block in function {f_id}: {self.block_id}")
-                        block_info = f_info['blocks'][self.block_id]
-                        break
-        print(f"✓ Connecting signals for block: {self.block_id}")
-        block_graphics = block_info.get('widget')
-        print(f"   block_graphics: {block_graphics}")
-        if block_graphics and hasattr(block_graphics, 'signals'):
-            print(f"   block_graphics.signals: {block_graphics.signals}")
-            print(f"   canvas: {self.canvas if hasattr(self.canvas, 'blocks_events') else 'No canvas events'}")
-            if hasattr(self.canvas, 'blocks_events'):
-                print(f"   canvas.blocks_events: {self.canvas.blocks_events}")
-                events = self.canvas.blocks_events
-                try:
-                    block_graphics.signals.input_clicked.connect(events.on_input_clicked)
-                    block_graphics.signals.output_clicked.connect(events.on_output_clicked)
-                    if self.block_type == "If":
-                        block_graphics.signals.Add_condition.connect(events.on_add_condition)
-                        block_graphics.signals.Remove_condition.connect(events.on_remove_condition)
-                    elif self.block_type == "Networks":
-                        block_graphics.signals.Add_network.connect(events.on_add_network)
-                        block_graphics.signals.Remove_network.connect(events.on_remove_network)
-                    #print(f"   Signals connected for {self.block_id}")
-                except Exception as e:
-                    print(f"Error connecting signals for {self.block_id}: {e}")
+        if hasattr(self.canvas, 'blocks_events'):
+            events = self.canvas.blocks_events
+            try:
+                # Directly connect THIS instance's signals, bypassing the Utils dictionary entirely!
+                self.signals.input_clicked.connect(events.on_input_clicked)
+                self.signals.output_clicked.connect(events.on_output_clicked)
+                
+                if self.block_type == "If":
+                    self.signals.Add_condition.connect(events.on_add_condition)
+                    self.signals.Remove_condition.connect(events.on_remove_condition)
+                elif self.block_type == "Networks":
+                    self.signals.Add_network.connect(events.on_add_network)
+                    self.signals.Remove_network.connect(events.on_remove_network)
+                    
+                print(f"✓ Signals successfully connected for {self.block_id}")
+            except Exception as e:
+                print(f"Error connecting signals for {self.block_id}: {e}")
 
     def snap_to_grid(self, x, y):
         #Snap coordinates to the nearest grid intersection
@@ -615,6 +595,8 @@ class BlockGraphicsItem(QGraphicsObject):
         local_pos = event.pos()
         clicked = self.where_clicked(local_pos)
         
+        self._drag_start_pos = self.pos()  # Store initial position for potential move
+
         print(f"Mouse press at {local_pos}, detected circle: {clicked}")
         
         if event.button() == Qt.MouseButton.LeftButton:
@@ -657,6 +639,11 @@ class BlockGraphicsItem(QGraphicsObject):
     def mouseReleaseEvent(self, event):
         """Handle block deselection"""
         self.setSelected(False)
+
+        if hasattr(self, '_drag_start_pos') and self._drag_start_pos != self.pos():
+            command = MoveBlockCommand(self, self._drag_start_pos, self.pos())
+            self.GUI.main_window.undo_stack.push(command)
+
         print("Current state before release:", self.state_manager.canvas_state.current_state())
         if self.state_manager.canvas_state.current_state() == 'MOVING_ITEM':
             print("Setting state to IDLE after move")
@@ -877,15 +864,26 @@ class spawning_blocks:
             return
 
         if self.placing_active and self.ghost_block:
-            # 1. Finalize visual state
-            self.ghost_block.setOpacity(1.0)
-            self.ghost_block.setZValue(0) # Reset Z-index
-            
             # 2. Update Data in Utils (Sync position)
             # The block was added to Utils in start(), but its position has changed.
             final_pos = self.ghost_block.pos()
             block_id = self.ghost_block.block_id
+
+            self.parent.remove_block(block_id)
+            self.ghost_block = None
             
+            print(f"self.parent: {self.parent} type: {type(self.parent)}, self.type: {self.type} type {type(self.type)}, final_pos: ({final_pos.x()} type {type(final_pos.x())}, {final_pos.y()} type {type(final_pos.y())}), block_id: {block_id} type {type(block_id)}, name: {self.name} type {type(self.name)}")
+        
+            command = AddBlockCommand(
+                canvas=self.parent,
+                block_type=self.type,
+                x=final_pos.x(),
+                y=final_pos.y(),
+                block_id=block_id,
+                name=self.name
+            )
+            self.parent.GUI.main_window.undo_stack.push(command)
+
             if self.parent.reference == 'canvas':
                  if block_id in Utils.main_canvas['blocks']:
                      Utils.main_canvas['blocks'][block_id]['x'] = final_pos.x()
