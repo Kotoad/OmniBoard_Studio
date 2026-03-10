@@ -5,18 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OmniBoard Studio - Basic Electronics & Circuit Diagrams</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('phc_Mluykd4ZFp3kGqZaKOW5ZVppq7uvZhNzrGf2h9ZaRrQ', {
+            api_host: 'https://eu.i.posthog.com',
+            defaults: '2026-01-30'
+        })
+    </script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased">
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <nav class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <a href="../../index.html" class="text-2xl font-bold text-blue-500 hover:text-blue-400 transition-colors">OmniBoard Studio</a>
-        <div class="space-x-6 text-sm font-medium">
-            <a href="../../index.html#features" class="text-slate-300 hover:text-blue-400 transition-colors">Features</a>
-            <a href="../Tutorials.html" class="text-slate-300 hover:text-blue-400 transition-colors">Tutorials</a>
-            <a href="../FAQ.html" class="text-slate-300 hover:text-blue-400 transition-colors">FAQ</a>
-            <a href="../Download.html" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download App</a>
-        </div>
-    </nav>
+    <?php include '../Navbar.php'; ?>
 
     <header class="max-w-4xl mx-auto px-6 py-16 text-center">
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
@@ -27,7 +26,7 @@
         </p>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16">
+    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16 flex-grow">
         <section>
             <h2 class="text-2xl font-bold text-blue-400 mb-6">Electrical and Magnetic Quantities</h2>
             <p class="text-slate-300 mb-4">Before diving into building circuits, it's important to understand some fundamental electrical and magnetic quantities that are commonly used in electronics. These quantities help us describe and analyze the behavior of electrical circuits and components.</p>
@@ -146,7 +145,7 @@
                         In simple terms, it can be thought of as the "zero" point in a circuit, where all voltages are measured relative to it and it provides a path for current to return to the source.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Ground_Symbol.png" alt="Ground Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Ground_Symbol.png" alt="Ground Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Ground Symbol</figcaption>
                     </figure>
                 </li>
@@ -156,11 +155,11 @@
                         In simple terms, it can be thought of as the "heart" of a circuit, where it provides the energy needed for the circuit to function.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Power_Supply_Symbol_DC.png" alt="Power Supply Symbol DC" class="max-w-full h-auto">
+                        <img src="Basic_therms/Power_Supply_Symbol_DC.png" alt="Power Supply Symbol DC" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Power Supply Symbol (DC)</figcaption>
                     </figure>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Power_Supply_Symbol_AC.png" alt="Power Supply Symbol AC" class="max-w-full h-auto">
+                        <img src="Basic_therms/Power_Supply_Symbol_AC.png" alt="Power Supply Symbol AC" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Power Supply Symbol (AC)</figcaption>
                     </figure>
                 </li>
@@ -168,7 +167,7 @@
                     <span class="text-blue-500 mt-1">Pin symbol</span>
                     <span> A symbol representing a connection point on a your RPI by number</span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Pin_Connection_Symbol.png" alt="Pin Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Pin_Connection_Symbol.png" alt="Pin Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Pin Symbol</figcaption>
                     </figure>
                 </li>
@@ -178,7 +177,7 @@
                         In simple terms, it can be thought of as the "brake" of a circuit, where it limits the flow of electricity to protect other components and control the behavior of the circuit.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Resistor_Symbol.png" alt="Resistor Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Resistor_Symbol.png" alt="Resistor Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Resistor Symbol</figcaption>
                     </figure>
                 </li>
@@ -188,7 +187,7 @@
                         In simple terms, it can be thought of as the "battery" of a circuit, where it temporarily stores electrical energy and releases it when needed to smooth out voltage fluctuations or provide power during brief interruptions.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Capacitor_Symbol.png" alt="Capacitor Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Capacitor_Symbol.png" alt="Capacitor Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Capacitor Symbol</figcaption>
                     </figure>
                 </li>
@@ -198,7 +197,7 @@
                         In simple terms, it can be thought of as the "coil" of a circuit, where it creates a magnetic field that can store energy and oppose changes in current flow, making it useful for filtering and energy storage applications.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Inductor_Symbol.png" alt="Inductor Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Inductor_Symbol.png" alt="Inductor Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Inductor Symbol</figcaption>
                     </figure>
                 </li>
@@ -208,7 +207,7 @@
                         In simple terms, it can be thought of as the "one-way valve" of a circuit, where it permits the flow of electricity in one direction while blocking it in the opposite direction, making it essential for controlling current flow and protecting components from reverse voltage.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Diode_Symbol.png" alt="Diode Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Diode_Symbol.png" alt="Diode Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Diode Symbol</figcaption>
                     </figure>
                 </li>
@@ -219,7 +218,7 @@
                         In simple terms, it can be thought of as the "light bulb" of a circuit, where it produces light when electricity flows through it, making it useful for visual indicators and displays.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/LED_Symbol.png" alt="LED Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/LED_Symbol.png" alt="LED Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">LED Symbol</figcaption>
                     </figure>
                 </li>
@@ -229,7 +228,7 @@
                         In simple terms, it can be thought of as the "amplifier" or "switch" of a circuit, where it can control the flow of electricity based on an input signal, making it fundamental for amplification and digital logic applications.
                     </span>
                     <figure class="ml-4">
-                        <img src="../../resources/images/Tutorials/Tutorial_1/Transistor_Symbol.png" alt="Transistor Symbol" class="max-w-full h-auto">
+                        <img src="Basic_therms/Transistor_Symbol.png" alt="Transistor Symbol" class="max-w-full h-auto">
                         <figcaption class="text-xs text-slate-400 mt-1">Transistor Symbol</figcaption>
                     </figure>
                 </li>
@@ -237,5 +236,8 @@
             </ul>
         </section>
     </main>
+
+    <?php include '../Footer.php'; ?>
+
 </body>
 </html>

@@ -6,16 +6,9 @@
     <title>OmniBoard Studio - Visual Programming Environment</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased">
-    <nav class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <a href="../../index.html" class="text-2xl font-bold text-blue-500 hover:text-blue-400 transition-colors">OmniBoard Studio</a>
-        <div class="space-x-6 text-sm font-medium">
-            <a href="../../index.html#features" class="text-slate-300 hover:text-blue-400 transition-colors">Features</a>
-            <a href="../Tutorials.html" class="text-slate-300 hover:text-blue-400 transition-colors">Tutorials</a>
-            <a href="../FAQ.html" class="text-slate-300 hover:text-blue-400 transition-colors">FAQ</a>
-            <a href="../Download.html" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download App</a>
-        </div>
-    </nav>
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
+    
+    <?php include '../Navbar.php'; ?>
 
     <header class="max-w-4xl mx-auto px-6 py-16 text-center">
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
@@ -26,7 +19,7 @@
         </p>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16">
+    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16 flex-col">
         <section>
             <h2 class="text-2xl font-bold text-blue-400 mb-6">Supported Raspberry Pi Pico Variants:</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -94,12 +87,7 @@
         </section>
     </main>
 
-    <footer class="bg-slate-950 text-slate-500 py-10 border-t border-slate-800">
-        <div class="max-w-4xl mx-auto px-6 text-sm space-y-2">
-            <p>*W means what this RPI model has WiFi built-in.</p>
-            <p>*WH means what this RPI model has WiFi built-in and headers allready populated.</p>
-        </div>
-    </footer>
+    <?php include '../Footer.php'; ?>
 
 </body>
 </html> 

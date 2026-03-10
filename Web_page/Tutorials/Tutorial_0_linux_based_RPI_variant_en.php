@@ -5,18 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OmniBoard Studio - Visual Programming Environment</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]),t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host.replace(".i.posthog.com","-assets.i.posthog.com")+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+".people (stub)"},o="init capture register register_once register_for_session unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group identify setPersonProperties setPersonPropertiesForFlags resetPersonPropertiesForFlags setGroupPropertiesForFlags resetGroupPropertiesForFlags resetGroups onFeatureFlags addFeatureFlagsHandler onSessionId getSurveys getActiveMatchingSurveys renderSurvey canRenderSurvey getNextSurveyStep".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+        posthog.init('phc_Mluykd4ZFp3kGqZaKOW5ZVppq7uvZhNzrGf2h9ZaRrQ', {
+            api_host: 'https://eu.i.posthog.com',
+            defaults: '2026-01-30'
+        })
+    </script>
 </head>
-<body class="bg-slate-900 text-slate-100 font-sans antialiased">
+<body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <nav class="bg-slate-900/95 backdrop-blur-sm border-b border-slate-800 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
-        <a href="../../index.html" class="text-2xl font-bold text-blue-500 hover:text-blue-400 transition-colors">OmniBoard Studio</a>
-        <div class="space-x-6 text-sm font-medium">
-            <a href="../../index.html#features" class="text-slate-300 hover:text-blue-400 transition-colors">Features</a>
-            <a href="../Tutorials.html" class="text-slate-300 hover:text-blue-400 transition-colors">Tutorials</a>
-            <a href="../FAQ.html" class="text-slate-300 hover:text-blue-400 transition-colors">FAQ</a>
-            <a href="../Download.html" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download App</a>
-        </div>
-    </nav>
+    <?php include '../Navbar.php'; ?>
 
     <header class="max-w-4xl mx-auto px-6 py-16 text-center border-b border-slate-800">
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
@@ -27,7 +26,7 @@
         </p>
     </header>
 
-    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16">
+    <main class="max-w-4xl mx-auto px-6 py-12 space-y-16 flex-grow">
         
         <section>
             <h2 class="text-2xl font-bold text-blue-400 mb-6">RPI models:</h2>
@@ -170,11 +169,7 @@
         </section>
     </main>
 
-    <footer class="bg-slate-950 text-slate-500 py-10 border-t border-slate-800">
-        <div class="max-w-4xl mx-auto px-6 text-sm space-y-2">
-            <p>&copy; 2026 OmniBoard Studio. All rights reserved.</p>
-        </div>
-    </footer>
+    <?php include '../Footer.php'; ?>
 
 </body>
 </html>
