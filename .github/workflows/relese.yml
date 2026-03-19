@@ -24,40 +24,45 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      # version.txt must contain a single line like: v1.2.3
       - name: Bump patch version
         id: bump
         run: |
           OLD=$(cat version.txt)
-          # Strip leading 'v', split on dots
-          IFS='.' read -r MAJOR MINOR PATCH <<< "${OLD#v}"
+          # Strip leading 'v' or 'V', split on dots
+          CLEAN_OLD=$(echo $OLD | sed 's/^[vV]//')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CLEAN_OLD"
+          
+          # Default to 0 if PATCH is empty
+          PATCH=${PATCH:-0}
           PATCH=$((PATCH + 1))
-          NEW="v${MAJOR}.${MINOR}.${PATCH}"
+          
+          # Match the V-prefix formatting used in your files
+          NEW="V${MAJOR}.${MINOR}.${PATCH}"
           echo "$NEW" > version.txt
           echo "new_version=$NEW" >> $GITHUB_OUTPUT
           echo "Bumped $OLD → $NEW"
 
-      # Patch the app config JSON so CURRENT_VERSION matches
-      # Adjust the path/key if your config file is named differently
-      - name: Update app config version
+      - name: Update files and clear passwords
         run: |
           VERSION=${{ steps.bump.outputs.new_version }}
-          # Replaces "CURRENT_VERSION": "vX.Y.Z" in your settings JSON
-          find . -name "*.json" | xargs grep -l "CURRENT_VERSION" | while read f; do
-            sed -i "s/\"CURRENT_VERSION\": \"[^\"]*\"/\"CURRENT_VERSION\": \"$VERSION\"/" "$f"
-            echo "Patched $f"
-          done
+          
+          # Update Utils.py (targets single quotes around the key)
+          sed -i "s/'CURRENT_VERSION': *\"[^\"]*\"/'CURRENT_VERSION': \"$VERSION\"/" Utils.py
+          
+          # Update version.php (targets PHP array syntax)
+          sed -i "s/\"tag_name\" *=> *\"[^\"]*\"/\"tag_name\" => \"$VERSION\"/" version.php
+          
+          # Clear password in app_settings.json
+          sed -i 's/"rpi_password": *"[^"]*"/"rpi_password": ""/' app_settings.json
 
-      - name: Commit version bump
+      - name: Commit version bump and sanitized config
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add version.txt
-          git add -A "*.json"
-          git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }} [skip ci]"
+          git add version.txt Utils.py version.php app_settings.json
+          git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }} and sanitize config [skip ci]"
           git push
 
-          
   # ─────────────────────────────────────────────
   # 2. Build Windows — EXE + Inno Setup installer
   # ─────────────────────────────────────────────
