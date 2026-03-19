@@ -182,20 +182,13 @@ jobs:
         with:
           path: artifacts/
 
-      # Active24 standard FTP — set these secrets in your repo:
-      # FTP_SERVER   → e.g. ftp.omniboardstudio.cz
-      # FTP_USER     → your Active24 FTP username
-      # FTP_PASSWORD → your Active24 FTP password
-      # Flatten artifacts into a single staging dir so local-dir points exactly
-      # at what we want — avoids the invalid 'include' parameter entirely
       - name: Stage files for FTP upload
         run: |
-          mkdir -p ftp_downloads ftp_root
+          mkdir -p ftp_downloads
           cp artifacts/windows-build/OmniBoard_Studio_Windows.zip   ftp_downloads/
           cp artifacts/windows-build/OmniBoard_Online_Installer.exe ftp_downloads/
           cp artifacts/linux-build/OmniBoard_Studio_Linux.tar.gz    ftp_downloads/
-          cp install.sh                                              ftp_downloads/
-          cp Web_page/API/version.php                                ftp_API/
+          cp install.sh                                             ftp_downloads/ || true
 
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y lftp
@@ -210,12 +203,14 @@ jobs:
           mirror -R ftp_downloads/ /downloads/;
           "
 
-      - name: Upload version.php via lftp (FTPS)
+      - name: Upload API files via lftp (FTPS)
         run: |
           lftp -c "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ssl:verify-certificate no;
           open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
-          mirror -R ftp_root/ /;
+          mkdir -p /API;
+          cd /API;
+          put Web_page/API/version.php;
           "
