@@ -224,22 +224,25 @@ jobs:
           cp install.sh                                              ftp_downloads/
           cp version.php                                             ftp_root/
 
-      - name: Upload binaries via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /downloads/
-          local-dir: ftp_downloads/
-          protocol: ftps
+      - name: Install lftp
+        run: sudo apt-get update -q && sudo apt-get install -y lftp
 
-      - name: Upload version.php via FTPS
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USER }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          server-dir: /
-          local-dir: ftp_root/
-          protocol: ftps
+      - name: Upload binaries via lftp (FTPS)
+        run: |
+          lftp -c "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ssl:verify-certificate no;
+          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
+          mirror -R ftp_downloads/ /downloads/;
+          "
+
+      - name: Upload version.php via lftp (FTPS)
+        run: |
+          lftp -c "
+          set ftp:ssl-force true;
+          set ftp:ssl-protect-data true;
+          set ssl:verify-certificate no;
+          open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
+          mirror -R ftp_root/ /;
+          "
