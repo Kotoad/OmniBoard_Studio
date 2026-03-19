@@ -1,7 +1,7 @@
 {
   "rpi_model": "RPI 4 Model B",
   "rpi_model_index": 6,
-  "rpi_host": "172.20.10.3",
+  "rpi_host": "",
   "rpi_user": "kryst",
   "rpi_password": "",
   "language": "en",
