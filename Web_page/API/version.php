@@ -1,7 +1,7 @@
 <?php
 header('Content-Type: application/json');
 echo json_encode([
-    "tag_name" => "V0.1.9",
+    "tag_name" => "V0.1.0",
     "assets" => [   
         [
             "name" => "OmniBoard_Online_Installer.exe",

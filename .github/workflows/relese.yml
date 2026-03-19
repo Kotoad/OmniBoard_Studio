@@ -182,28 +182,6 @@ jobs:
         with:
           path: artifacts/
 
-      - name: Write version.php
-        run: |
-          VERSION=${{ needs.bump-version.outputs.new_version }}
-          cat > version.php <<EOF
-          <?php
-          header('Content-Type: application/json');
-          header('Access-Control-Allow-Origin: *');
-          echo json_encode([
-              "tag_name"   => "$VERSION",
-              "assets" => [
-                  [
-                      "name"         => "OmniBoard_Studio_Installer.exe",
-                      "download_url" => "https://omniboardstudio.cz/downloads/OmniBoard_Online_Installer.exe"
-                  ],
-                  [
-                      "name"         => "OmniBoard_Studio_Linux.tar.gz",
-                      "download_url" => "https://omniboardstudio.cz/downloads/OmniBoard_Studio_Linux.tar.gz"
-                  ]
-              ]
-          ]);
-          EOF
-
       # Active24 standard FTP — set these secrets in your repo:
       # FTP_SERVER   → e.g. ftp.omniboardstudio.cz
       # FTP_USER     → your Active24 FTP username
@@ -217,7 +195,7 @@ jobs:
           cp artifacts/windows-build/OmniBoard_Online_Installer.exe ftp_downloads/
           cp artifacts/linux-build/OmniBoard_Studio_Linux.tar.gz    ftp_downloads/
           cp install.sh                                              ftp_downloads/
-          cp version.php                                             ftp_root/
+          cp Web_page/API/version.php                                ftp_root/API/
 
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y lftp
