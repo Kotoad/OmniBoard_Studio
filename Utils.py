@@ -34,7 +34,7 @@ config = {
     'grid_size': 25,  # Snap-to-grid pixel size
     'pico_port': None,  # Serial port for Pico W (auto-detected)
     'opend_project': None,  # Currently opened project name
-    'CURRENT_VERSION': "V0.14",
+    'CURRENT_VERSION': "V0.1.9",
 }
 
 compiler = None
