@@ -978,7 +978,7 @@ class MainWindow(QMainWindow):
     def apply_update(self, save_path):
         from updater import perform_update
         perform_update(save_path)
-        os._exit(0)
+        QApplication.quit()  # Close the app to allow the updater to replace files
 
     #MARK: - Cleanup on Close
     def closeEvent(self, event):
