@@ -148,16 +148,11 @@ jobs:
         run: pip install PyQt6 PyQt6-QScintilla paramiko cryptography pyserial mpremote pyinstaller telnetlib3 certifi
         # pip install -r requirements.txt
 
-      - name: Build binary with PyInstaller
+      - name: 🏗️ Run Build Script
+        env:
+            PYTHONIOENCODING: utf8
         run: |
-          pyinstaller \
-            --noconfirm \
-            --onedir \
-            --windowed \
-            --name "OmniBoard Studio" \
-            --icon "resources/images/Appicon.ico" \
-            --add-data "resources:resources" \
-            Main.py
+            python build_exe.py
 
       - name: Package as tar.gz
         run: |
