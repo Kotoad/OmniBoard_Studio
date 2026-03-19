@@ -1,11 +1,13 @@
 name: Build & Release
 
 on:
-  push:
-    branches: [main]
-    paths-ignore:
-      - '**.md'
-      - 'Web_page/**'
+  workflow_dispatch:
+    inputs:
+      # Optional: allow manual triggering with a specific version
+      version:
+        description: 'Release version tag (e.g., v0.12). If left blank, the workflow will auto-bump the patch version.'
+        required: false
+        type: string
 
 jobs:
   # ─────────────────────────────────────────────
