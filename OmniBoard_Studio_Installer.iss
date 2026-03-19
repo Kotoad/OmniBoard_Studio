@@ -21,11 +21,7 @@ Name: "{group}\Uninstall OmniBoard Studio"; Filename: "{uninstallexe}"
 Name: "{autodesktop}\OmniBoard Studio"; Filename: "{app}\Omniboard Studio.exe"; WorkingDir: "{app}"; Tasks: desctopicon
 
 [Run]
-; 1. Normal Installation (Interactive)
-Filename: "{app}\OmniBoard Studio.exe"; Description: "Launch OmniBoard Studio"; Flags: nowait postinstall skipifsilent
-
-; 2. Update Installation (Silent)
-Filename: "{app}\OmniBoard Studio.exe"; Flags: nowait skipifnotsilent
+Filename: "{app}\Omniboard Studio.exe"; Description: "Launch OmniBoard Studio"; Flags: nowait postinstall skipifsilent
 
 [UninstallDelete]
 Type: filesandordirs; Name: "{app}"
