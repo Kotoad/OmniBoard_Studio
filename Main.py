@@ -143,15 +143,20 @@ class NativeSplash(QSplashScreen):
 #MARK: - Update Checker
 def check_for_updates():
     try:
-        url = "https://omniboadstudio.cz/API/version.php"
+        url = "https://www.omniboardstudio.cz/API/version.php"
         req = urllib.request.Request(url, headers={'User-Agent': 'OmniBoard-Updater'})
         context = ssl.create_default_context(cafile=certifi.where())
         with urllib.request.urlopen(req, timeout=5, context=context) as response:
-            data = json.loads(response.read().decode())
-            if isinstance(data, list) and len(data) > 0:
-                latest_release = data[0]
-                latest_version = latest_release.get("tag_name", "")
-                assets = latest_release.get("assets", [])
+            print(f"Update check HTTP response code: {response.status}")
+            raw_response = response.read().decode()
+            print(f"Raw server response: '{raw_response}'") # Look at this output to see what is breaking the parser
+            data = json.loads(raw_response)
+            print(f"Parsed JSON data: {data}, type: {type(data)}")
+            if isinstance(data, dict):
+                print(f"Latest release data: {data}")
+                latest_version = data.get("tag_name", "")
+                assets = data.get("assets", [])
+                print(f"Latest version: {latest_version}, Assets: {assets}")
                 if latest_version:
                     has_update = (latest_version != Utils.config['CURRENT_VERSION'])
                     return has_update, latest_version, assets, "Success"
@@ -160,6 +165,7 @@ def check_for_updates():
         return False, None, None, "Network error"
     except Exception as e:
         print(f"Update check failed: {e}")
+        #print(f"has_update = {has_update}, latest_version = {latest_version}, assets = {assets}, status = {str(e)}, current_version = {Utils.config['CURRENT_VERSION']}")
         return False, None, None, str(e)
     
     return False, None, None, "No releases found"
