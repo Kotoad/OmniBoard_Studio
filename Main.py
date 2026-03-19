@@ -158,8 +158,14 @@ def check_for_updates():
                 assets = data.get("assets", [])
                 print(f"Latest version: {latest_version}, Assets: {assets}")
                 if latest_version:
-                    has_update = (latest_version != Utils.config['CURRENT_VERSION'])
-                    return has_update, latest_version, assets, "Success"
+                    main_vesion, sub_version, patch_version = Utils.config['CURRENT_VERSION'].split(".")
+                    latest_main, latest_sub, latest_patch = latest_version.split(".")
+                    if (int(latest_main), int(latest_sub), int(latest_patch)) > (int(main_vesion), int(sub_version), int(patch_version)):
+                        print("Update available!")
+                        return True, latest_version, assets, "Update available"
+                    else:
+                        print("No update available.")
+                        return False, latest_version, assets, "Up to date"
     except urllib.error.URLError as e:
         print(f"Update check failed (URL error): {e}")
         return False, None, None, "Network error"
