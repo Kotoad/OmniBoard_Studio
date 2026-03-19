@@ -21,7 +21,7 @@
                     <div class="p-6 border border-slate-700 rounded-xl shadow-sm bg-slate-800 text-center">
                         <h2 class="text-2xl font-semibold mb-4 text-blue-400">Windows</h2>
                         <p class="text-slate-400 mb-6">Download the Windows installer to get started quickly.</p>
-                        <a href="https://omniboardstudio.cz/downloads/OmniBoard_Studio_Installer.exe" download
+                        <a href="https://omniboardstudio.cz/downloads/OmniBoard_Online_Installer.exe" download
                             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download
                             for Windows</a>
                     </div>
