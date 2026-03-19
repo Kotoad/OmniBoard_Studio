@@ -17,8 +17,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    outputs:
-      new_version: ${{ steps.bump.outputs.new_version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -27,11 +25,11 @@ jobs:
       - name: Update version
         id: bump
         run: |
-          echo "CURRENT_VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+          echo "CURRENT_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
 
       - name: Update files and clear passwords
         run: |
-          VERSION=${{ steps.bump.outputs.new_version }}
+          VERSION=${{ inputs.version }}
           
           # Update Utils.py (targets single quotes around the key)
           sed -i "s/'CURRENT_VERSION': *\"[^\"]*\"/'CURRENT_VERSION': \"$VERSION\"/" Utils.py
@@ -42,12 +40,15 @@ jobs:
           # Clear password in app_settings.json
           sed -i 's/"rpi_password": *"[^"]*"/"rpi_password": ""/' app_settings.json
 
+          # Clear host in app_settings.json
+          sed -i 's/"rpi_host": *"[^"]*"/"rpi_host": ""/' app_settings.json
+
       - name: Commit version bump and sanitized config
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add version.txt Utils.py Web_page/API/version.php app_settings.json
-          git commit -m "chore: bump version to ${{ steps.bump.outputs.new_version }} and sanitize config [skip ci]"
+          git commit -m "chore: bump version to ${{ inputs.version }} and sanitize config [skip ci]"
           git push
 
   # ─────────────────────────────────────────────
