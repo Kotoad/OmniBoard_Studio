@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<?php $page_title = "Raspberry Pi Pico Setup - OmniBoard Studio"; include '../Head';?>
+<?php $page_title = "Raspberry Pi Pico Setup - OmniBoard Studio"; include '../Head.php';?>
 
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <?php include '../Navbar'; ?>
+    <?php include '../Navbar.php'; ?>
 
     <header class="max-w-4xl mx-auto px-6 py-16 text-center">
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
@@ -115,7 +115,7 @@
         </section>
     </main>
 
-    <?php include '../Footer'; ?>
+    <?php include '../Footer.php'; ?>
 
 </body>
 

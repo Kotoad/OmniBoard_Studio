@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<?php $page_title = "OmniBoard Studio - Visual Programming for Microcontrollers and Microcomputers"; include 'Head';?>
+<?php $page_title = "OmniBoard Studio - Visual Programming for Microcontrollers and Microcomputers"; include 'Head.php';?>
 
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <?php include 'Navbar'; ?>
+    <?php include 'Navbar.php'; ?>
 
     <header class="max-w-5xl mx-auto px-6 py-20 text-center">
         <h1 class="text-5xl font-extrabold tracking-tight text-white mb-6">
@@ -16,11 +16,11 @@
             built-in code editing for Raspberry Pi Pico and more.
         </p>
         <div class="flex justify-center gap-4">
-            <a href="/Download"
+            <a href="/Download.php"
                 class="bg-blue-600 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-blue-500 shadow-sm transition-all">
                 Get Started
             </a>
-            <a href="/Tutorials"
+            <a href="/Tutorials.php"
                 class="bg-slate-800 border border-slate-700 text-slate-200 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-slate-700 transition-all">
                 Read Documentation
             </a>
@@ -70,7 +70,7 @@
         </section>
     </main>
 
-    <?php include 'Footer'; ?>
+    <?php include 'Footer.php'; ?>
 
 </body>
 

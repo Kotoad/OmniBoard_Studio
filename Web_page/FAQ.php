@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 
-<?php $page_title = "Frequently Asked Questions - OmniBoard Studio"; include 'Head';?>
+<?php $page_title = "Frequently Asked Questions - OmniBoard Studio"; include 'Head.php';?>
 
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
-    <?php include 'Navbar'; ?>
+    <?php include 'Navbar.php'; ?>
 
     <header class="max-w-5xl mx-auto px-6 py-20 text-center">
         <h1 class="text-4xl font-bold mb-6 text-white">Frequently Asked Questions</h1>
@@ -52,7 +52,7 @@
         </section>
     </main>
 
-    <?php include 'Footer'; ?>
+    <?php include 'Footer.php'; ?>
 
 </body>
 
