@@ -3,6 +3,9 @@
 //  OmniBoard Studio – Google OAuth callback
 // ─────────────────────────────────────────────
 
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
 
 require_once __DIR__ . '/../Admin/config.php';
@@ -76,11 +79,23 @@ if (isset($users[$primary_email])) {
 _save_users($users);
 
 // ── Set session and redirect ─────────────────────────────────────────────────
-$_SESSION['user_email']    = $primary_email;
-$_SESSION['oauth_success'] = 'Signed in successfully via Google.';
-header('Location: /');
-exit;
+echo "<h3>OAuth Success, but stopping here to debug file saving:</h3>";
+echo "<b>DATA_DIR literal path:</b> " . DATA_DIR . "<br>";
+echo "<b>DATA_DIR resolved path:</b> " . realpath(DATA_DIR) . "<br>";
+echo "<b>Does directory exist?</b> " . (is_dir(DATA_DIR) ? 'Yes' : 'No') . "<br>";
+echo "<b>Is directory writable?</b> " . (is_writable(DATA_DIR) ? 'Yes' : 'No') . "<br>";
+echo "<b>Does users.json exist?</b> " . (file_exists(DATA_DIR . 'users.json') ? 'Yes' : 'No') . "<br>";
+if (file_exists(DATA_DIR . 'users.json')) {
+    echo "<b>Is users.json writable?</b> " . (is_writable(DATA_DIR . 'users.json') ? 'Yes' : 'No') . "<br>";
+}
+echo "<br><b>User data being saved:</b><br><pre>";
+print_r($users);
+echo "</pre>";
 
+// Comment out the redirect so you can see this page
+$_SESSION['user_email']    = $primary_email;
+// header('Location: /');
+exit;
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function _google_post(string $url, array $fields): array
 {
@@ -123,10 +138,20 @@ function _load_users(): array
 function _save_users(array $users): void
 {
     if (!is_dir(DATA_DIR)) {
-        mkdir(DATA_DIR, 0755, true);
+        if (!mkdir(DATA_DIR, 0777, true)) {
+            die("Fatal Error: Cannot create the directory: " . DATA_DIR . " - Check permissions.");
+        }
     }
+    
     $file = DATA_DIR . 'users.json';
     $tmp  = $file . '.tmp';
-    file_put_contents($tmp, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
-    rename($tmp, $file);
+    
+    $writeResult = file_put_contents($tmp, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+    if ($writeResult === false) {
+        die("Fatal Error: Cannot write to temporary file: " . $tmp . " - Check permissions.");
+    }
+    
+    if (!rename($tmp, $file)) {
+        die("Fatal Error: Cannot rename " . $tmp . " to " . $file . " - Check permissions.");
+    }
 }
