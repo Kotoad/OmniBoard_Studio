@@ -243,11 +243,16 @@ arsort($starts_by_version);
 // ── Users by source ───────────────────────────────────────────────────────────
 $users_by_source = ['github' => 0, 'google' => 0, 'other' => 0];
 foreach ($users as $u) {
-    $src = $u['source'] ?? 'other';
-    if (isset($users_by_source[$src])) {
-        $users_by_source[$src]++;
+    if (!empty($u['providers'])) {
+        if (isset($u['providers']['github'])) $users_by_source['github']++;
+        if (isset($u['providers']['google'])) $users_by_source['google']++;
     } else {
-        $users_by_source['other']++;
+        $src = $u['source'] ?? 'other';
+        if (isset($users_by_source[$src])) {
+            $users_by_source[$src]++;
+        } else {
+            $users_by_source['other']++;
+        }
     }
 }
 
@@ -795,15 +800,26 @@ if ($ph_res && isset($ph_res[0]['data'])) {
                     <tr class="hover:bg-slate-700/30 transition-colors">
                         <td class="px-4 py-3 text-slate-200"><?= htmlspecialchars($u['email'] ?? '–') ?></td>
                         <td class="px-4 py-3">
-                            <?php $src = $u['source'] ?? 'other';
-                            $src_cls = $src === 'github' ? 'bg-slate-700 text-slate-200' : ($src === 'google' ? 'bg-blue-900/40 text-blue-300' : 'bg-slate-700 text-slate-400');
+                            <?php 
+                            $providers = $u['providers'] ?? [];
+                            if (empty($providers)) {
+                                $src = $u['source'] ?? 'other';
+                                $src_cls = $src === 'github' ? 'bg-slate-700 text-slate-200' : ($src === 'google' ? 'bg-blue-900/40 text-blue-300' : 'bg-slate-700 text-slate-400');
+                                echo '<span class="text-xs px-2 py-0.5 rounded ' . $src_cls . '">' . htmlspecialchars(ucfirst($src)) . '</span>';
+                            } else {
+                                foreach (array_keys($providers) as $prov) {
+                                    $src_cls = $prov === 'github' ? 'bg-slate-700 text-slate-200' : ($prov === 'google' ? 'bg-blue-900/40 text-blue-300' : 'bg-slate-700 text-slate-400');
+                                    echo '<span class="text-xs px-2 py-0.5 rounded mr-1 mb-1 inline-block ' . $src_cls . '">' . htmlspecialchars(ucfirst($prov)) . '</span>';
+                                }
+                            }
                             ?>
-                            <span class="text-xs px-2 py-0.5 rounded <?= $src_cls ?>"><?= htmlspecialchars(ucfirst($src)) ?></span>
                         </td>
                         <td class="px-4 py-3 text-slate-300">
-                            <?php if (!empty($u['github_username'])): ?>
-                            <a href="https://github.com/<?= htmlspecialchars($u['github_username']) ?>"
-                               target="_blank" class="hover:text-blue-400"><?= htmlspecialchars($u['github_username']) ?></a>
+                            <?php 
+                            $gh_username = $u['providers']['github']['github_username'] ?? $u['github_username'] ?? '';
+                            if (!empty($gh_username)): ?>
+                            <a href="https://github.com/<?= htmlspecialchars($gh_username) ?>"
+                               target="_blank" class="hover:text-blue-400"><?= htmlspecialchars($gh_username) ?></a>
                             <?php else: ?>
                             <span class="text-slate-600">–</span>
                             <?php endif; ?>

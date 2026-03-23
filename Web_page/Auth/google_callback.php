@@ -63,42 +63,45 @@ $primary_email = strtolower($user_info['email']);
 $users = _load_users();
 $now   = date('c');
 
-if (isset($users[$primary_email])) {
-    $users[$primary_email]['last_login']  = $now;
-    $users[$primary_email]['avatar_url']  = $user_info['picture'] ?? '';
-    $users[$primary_email]['source']      = 'google';
-    $users[$primary_email]['google_name'] = $user_info['name'] ?? '';
-} else {
-    $users[$primary_email] = [
-        'email'           => $primary_email,
-        'github_username' => '',
-        'avatar_url'      => $user_info['picture'] ?? '',
-        'google_name'     => $user_info['name'] ?? '',
-        'registered_at'   => $now,
-        'last_login'      => $now,
-        'source'          => 'google',
+// Identify the account: Use active session if linking, otherwise use Google email
+$account_key = $_SESSION['user_email'] ?? $primary_email;
+
+if (!isset($users[$account_key])) {
+    // Brand new user registration
+    $users[$account_key] = [
+        'email'         => $account_key,
+        'registered_at' => $now,
+        'last_login'    => $now,
+        'providers'     => []
     ];
+} else {
+    // Existing user login
+    $users[$account_key]['last_login'] = $now;
 }
+
+// Ensure the providers array exists (for migrating older accounts)
+if (!isset($users[$account_key]['providers'])) {
+    $users[$account_key]['providers'] = [];
+}
+
+// Save specific Google data into the providers sub-array
+$users[$account_key]['providers']['google'] = [
+    'email'       => $primary_email,
+    'google_name' => $user_info['name'] ?? '',
+    'avatar_url'  => $user_info['picture'] ?? '',
+    'linked_at'   => $users[$account_key]['providers']['google']['linked_at'] ?? $now
+];
+
+// Maintain top-level fields for Admin dashboard backwards compatibility
+$users[$account_key]['source'] = 'multiple'; 
+$users[$account_key]['google_name'] = $user_info['name'] ?? '';
+$users[$account_key]['avatar_url'] = $user_info['picture'] ?? '';
 
 _save_users($users);
 
-// ── Set session and redirect ─────────────────────────────────────────────────
-echo "<h3>OAuth Success, but stopping here to debug file saving:</h3>";
-echo "<b>DATA_DIR literal path:</b> " . DATA_DIR . "<br>";
-echo "<b>DATA_DIR resolved path:</b> " . realpath(DATA_DIR) . "<br>";
-echo "<b>Does directory exist?</b> " . (is_dir(DATA_DIR) ? 'Yes' : 'No') . "<br>";
-echo "<b>Is directory writable?</b> " . (is_writable(DATA_DIR) ? 'Yes' : 'No') . "<br>";
-echo "<b>Does users.json exist?</b> " . (file_exists(DATA_DIR . 'users.json') ? 'Yes' : 'No') . "<br>";
-if (file_exists(DATA_DIR . 'users.json')) {
-    echo "<b>Is users.json writable?</b> " . (is_writable(DATA_DIR . 'users.json') ? 'Yes' : 'No') . "<br>";
-}
-echo "<br><b>User data being saved:</b><br><pre>";
-print_r($users);
-echo "</pre>";
-
-// Comment out the redirect so you can see this page
-$_SESSION['user_email']    = $primary_email;
-// header('Location: /');
+// Set session and redirect to the new Settings page
+$_SESSION['user_email'] = $account_key;
+header('Location: /Auth/settings.php');
 exit;
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function _google_post(string $url, array $fields): array

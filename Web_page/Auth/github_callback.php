@@ -76,28 +76,43 @@ if ($primary_email === '') {
 $users = _load_users();
 $now   = date('c');
 
-if (isset($users[$primary_email])) {
-    $users[$primary_email]['last_login']       = $now;
-    $users[$primary_email]['github_username']  = $user['login'];
-    $users[$primary_email]['avatar_url']       = $user['avatar_url'] ?? '';
-    $users[$primary_email]['source']           = 'github';
-} else {
-    $users[$primary_email] = [
-        'email'           => $primary_email,
-        'github_username' => $user['login'],
-        'avatar_url'      => $user['avatar_url'] ?? '',
-        'registered_at'   => $now,
-        'last_login'      => $now,
-        'source'          => 'github',
+// Identify the account: Use active session if linking, otherwise use GitHub email
+$account_key = $_SESSION['user_email'] ?? $primary_email;
+
+if (!isset($users[$account_key])) {
+    $users[$account_key] = [
+        'email'         => $account_key,
+        'registered_at' => $now,
+        'last_login'    => $now,
+        'providers'     => []
     ];
+} else {
+    $users[$account_key]['last_login'] = $now;
 }
+
+// Ensure the providers array exists (for migrating older accounts)
+if (!isset($users[$account_key]['providers'])) {
+    $users[$account_key]['providers'] = [];
+}
+
+// Save specific GitHub data
+$users[$account_key]['providers']['github'] = [
+    'email'           => $primary_email,
+    'github_username' => $user_info['login'] ?? '',
+    'avatar_url'      => $user_info['avatar_url'] ?? '',
+    'linked_at'       => $users[$account_key]['providers']['github']['linked_at'] ?? $now
+];
+
+// Maintain top-level fields for Admin dashboard backwards compatibility
+$users[$account_key]['source'] = 'multiple';
+$users[$account_key]['github_username'] = $user_info['login'] ?? '';
+$users[$account_key]['avatar_url'] = $user_info['avatar_url'] ?? '';
 
 _save_users($users);
 
-// ── Set session and redirect ─────────────────────────────────────────────────
-$_SESSION['user_email']  = $primary_email;
-$_SESSION['oauth_success'] = 'Signed in successfully via GitHub.';
-header('Location: /');
+// Set session and redirect to the new Settings page
+$_SESSION['user_email'] = $account_key;
+header('Location: /Auth/settings.php');
 exit;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
