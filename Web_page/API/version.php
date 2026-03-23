@@ -63,17 +63,28 @@ if ($version !== '' || $platform !== '' || $anonymous_id !== '') {
     }
 }
 
-// ── Return the static release manifest ──────────────────────────────────────
-echo json_encode([
-    'tag_name' => 'v0.22.15',
-    'assets'   => [
-        [
-            'name'         => 'OmniBoard_Online_Installer.exe',
-            'download_url' => 'https://omniboardstudio.cz/downloads/OmniBoard_Online_Installer.exe',
+// ── Return the dynamic release manifest ──────────────────────────────────────
+$releases_file = DATA_DIR . 'releases.json';
+$releases = file_exists($releases_file) ? json_decode(file_get_contents($releases_file), true) : [];
+
+if (!empty($releases)) {
+    $latest = $releases[0];
+    // Create absolute URLs if relative paths are used in the JSON
+    $domain = "https://omniboardstudio.cz"; 
+    echo json_encode([
+        'tag_name' => $latest['version'],
+        'assets'   => [
+            [
+                'name'         => 'OmniBoard_Online_Installer.exe',
+                'download_url' => $domain . $latest['windows_file'],
+            ],
+            [
+                'name'         => 'OmniBoard_Studio_Linux.tar.gz',
+                'download_url' => $domain . $latest['linux_file'],
+            ],
         ],
-        [
-            'name'         => 'OmniBoard_Studio_Linux.tar.gz',
-            'download_url' => 'https://omniboardstudio.cz/downloads/OmniBoard_Studio_Linux.tar.gz',
-        ],
-    ],
-]);
+    ]);
+} else {
+    // Fallback if JSON is missing
+    echo json_encode(['error' => 'No releases found on server']);
+}

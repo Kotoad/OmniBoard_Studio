@@ -168,6 +168,7 @@ function load_json_file(string $path): array
 
 $app_starts = load_json_file(DATA_DIR . 'app_starts.json');
 $users_map  = load_json_file(DATA_DIR . 'users.json');
+$local_releases = load_json_file(DATA_DIR . 'releases.json');
 $users      = array_values($users_map);
 
 // Sort app_starts descending by timestamp
@@ -536,98 +537,77 @@ if ($ph_res && isset($ph_res[0]['data'])) {
 
 <!-- ════════════════════  RELEASES  ════════════════════ -->
 <div id="tab-releases" class="tab-content hidden">
-    <h2 class="text-2xl font-bold mb-6 text-white">Releases</h2>
+    <h2 class="text-2xl font-bold mb-6 text-white">Local Server Releases</h2>
 
-    <!-- Live version card -->
+    <?php 
+    $latest = !empty($local_releases) ? $local_releases[0] : null; 
+    if ($latest): 
+    ?>
     <div class="bg-blue-900/20 border border-blue-700 rounded-xl px-6 py-4 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
             <p class="text-blue-300 text-sm uppercase tracking-widest mb-1">Current Live Version</p>
-            <p class="text-white text-3xl font-bold"><?= $config['CURRENT_VERSION'] ?></p>
+            <p class="text-white text-3xl font-bold"><?= htmlspecialchars($latest['version']) ?></p>
+            <p class="text-slate-400 text-sm mt-1">Released: <?= htmlspecialchars($latest['date']) ?></p>
         </div>
         <div class="flex flex-col gap-2 text-sm">
-            <a href="https://omniboardstudio.cz/downloads/OmniBoard_Online_Installer.exe"
+            <a href="<?= htmlspecialchars($latest['windows_file']) ?>"
                class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors text-center">Windows .exe</a>
-            <a href="https://omniboardstudio.cz/downloads/OmniBoard_Studio_Linux.tar.gz"
+            <a href="<?= htmlspecialchars($latest['linux_file']) ?>"
                class="bg-slate-700 hover:bg-slate-600 text-slate-100 px-4 py-2 rounded-lg transition-colors text-center">Linux .tar.gz</a>
         </div>
     </div>
+    <?php endif; ?>
 
-    <!-- Scarf.sh info -->
-    <div class="bg-slate-800 border border-slate-700 rounded-xl px-6 py-4 mb-6">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <p class="font-semibold text-slate-100 mb-1">Scarf.sh Download Tracking</p>
-                <p class="text-slate-400 text-sm">Downloads are routed through <code class="text-slate-300">omniboard.gateway.scarf.sh</code> for analytics.</p>
-            </div>
-            <a href="https://scarf.sh/home/omniboard" target="_blank"
-               class="bg-purple-700 hover:bg-purple-600 text-white px-4 py-2 rounded-lg text-sm transition-colors whitespace-nowrap">
-                Open Scarf Dashboard &rarr;
-            </a>
-        </div>
-        <div class="mt-3 flex flex-wrap gap-2 text-xs">
-            <span class="bg-slate-700 text-slate-300 px-3 py-1 rounded font-mono">Windows: omniboard.gateway.scarf.sh/latest/OmniBoard_Online_Installer.exe</span>
-            <span class="bg-slate-700 text-slate-300 px-3 py-1 rounded font-mono">Linux: omniboard.gateway.scarf.sh/latest/install.sh</span>
-        </div>
-    </div>
-
-    <!-- Tags table -->
     <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
-            <h3 class="font-semibold text-slate-100">All Git Tags / Versions</h3>
-            <a href="https://github.com/<?= GITHUB_REPO ?>/releases" target="_blank"
-               class="text-sm text-blue-400 hover:text-blue-300">View on GitHub &rarr;</a>
+            <h3 class="font-semibold text-slate-100">All Hosted Versions</h3>
+            <span class="text-xs text-slate-400 font-mono">Source: data/releases.json</span>
         </div>
-        <?php if ($gh_tags === false): ?>
-        <p class="px-6 py-4 text-red-400 text-sm">Failed to fetch tags from GitHub API.</p>
-        <?php elseif (empty($gh_tags)): ?>
-        <p class="px-6 py-4 text-slate-400 text-sm">No tags found.</p>
+        
+        <?php if (empty($local_releases)): ?>
+        <p class="px-6 py-4 text-slate-400 text-sm">No versions found in releases.json.</p>
         <?php else: ?>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="text-slate-400 text-xs uppercase tracking-wider bg-slate-900/50">
                     <tr>
                         <th class="px-4 py-3 text-left">Version</th>
-                        <th class="px-4 py-3 text-left">Commit SHA</th>
+                        <th class="px-4 py-3 text-left">Date</th>
                         <th class="px-4 py-3 text-left">Windows</th>
                         <th class="px-4 py-3 text-left">Linux</th>
                         <th class="px-4 py-3 text-left">Notes</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-700/50">
-                    <?php foreach ($gh_tags as $i => $tag):
-                        $name = $tag['name'] ?? '–';
-                        $sha  = substr($tag['commit']['sha'] ?? '–', 0, 7);
+                    <?php foreach ($local_releases as $i => $release):
                         $is_latest = ($i === 0);
                     ?>
                     <tr class="hover:bg-slate-700/30 transition-colors">
                         <td class="px-4 py-3">
-                            <span class="font-semibold text-slate-100"><?= htmlspecialchars($name) ?></span>
+                            <span class="font-semibold text-slate-100"><?= htmlspecialchars($release['version']) ?></span>
                             <?php if ($is_latest): ?>
                             <span class="ml-2 bg-blue-700 text-blue-100 text-xs px-1.5 py-0.5 rounded">latest</span>
                             <?php endif; ?>
                         </td>
-                        <td class="px-4 py-3 font-mono text-slate-400 text-xs">
-                            <a href="https://github.com/<?= GITHUB_REPO ?>/commit/<?= $tag['commit']['sha'] ?? '' ?>"
-                               target="_blank" class="hover:text-blue-400"><?= htmlspecialchars($sha) ?></a>
+                        <td class="px-4 py-3 text-slate-400 text-xs">
+                            <?= htmlspecialchars($release['date']) ?>
                         </td>
                         <td class="px-4 py-3">
-                            <?php if ($is_latest): ?>
-                            <a href="https://omniboardstudio.cz/downloads/OmniBoard_Online_Installer.exe"
-                               class="text-blue-400 hover:text-blue-300 text-xs">.exe</a>
+                            <?php if (!empty($release['windows_file'])): ?>
+                            <a href="<?= htmlspecialchars($release['windows_file']) ?>" class="text-blue-400 hover:text-blue-300 text-xs">.exe</a>
                             <?php else: ?>
                             <span class="text-slate-600 text-xs">–</span>
                             <?php endif; ?>
                         </td>
                         <td class="px-4 py-3">
-                            <?php if ($is_latest): ?>
-                            <a href="https://omniboardstudio.cz/downloads/OmniBoard_Studio_Linux.tar.gz"
-                               class="text-blue-400 hover:text-blue-300 text-xs">.tar.gz</a>
+                            <?php if (!empty($release['linux_file'])): ?>
+                            <a href="<?= htmlspecialchars($release['linux_file']) ?>" class="text-blue-400 hover:text-blue-300 text-xs">.tar.gz</a>
                             <?php else: ?>
                             <span class="text-slate-600 text-xs">–</span>
                             <?php endif; ?>
                         </td>
-                        <td class="px-4 py-3 text-slate-500 text-xs">
-                            <?= $is_latest ? 'Served from omniboardstudio.cz/downloads/' : 'Archive; no hosted binary' ?>
+                        <td class="px-4 py-3 text-slate-400 text-xs truncate max-w-xs">
+                            <?= htmlspecialchars($release['notes'] ?? '') ?>
                         </td>
                     </tr>
                     <?php endforeach; ?>

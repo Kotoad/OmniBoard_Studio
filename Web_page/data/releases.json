@@ -1,0 +1,16 @@
+[
+    {
+        "version": "v0.22.15",
+        "date": "2024-05-20",
+        "windows_file": "/downloads/v0.22.15/OmniBoard_Online_Installer.exe",
+        "linux_file": "/downloads/v0.22.15/OmniBoard_Studio_Linux.tar.gz",
+        "notes": "Latest stable release."
+    },
+    {
+        "version": "v0.22.14",
+        "date": "2024-04-15",
+        "windows_file": "/downloads/v0.22.14/OmniBoard_Online_Installer.exe",
+        "linux_file": "/downloads/v0.22.14/OmniBoard_Studio_Linux.tar.gz",
+        "notes": "Bug fixes for the editor."
+    }
+]

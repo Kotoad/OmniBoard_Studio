@@ -3,15 +3,19 @@ name: Build & Release
 on:
   workflow_dispatch:
     inputs:
-      # Optional: allow manual triggering with a specific version
       version:
         description: 'Release version tag (e.g., v0.12.0).'
         required: true
         type: string
+      notes:
+        description: 'Release notes (displays on the download page).'
+        required: false
+        default: 'Latest stable release.'
+        type: string
 
 jobs:
   # ─────────────────────────────────────────────
-  # 1. Update version and commit it back to the repo
+  # 1. Update version, JSON manifest, and commit
   # ─────────────────────────────────────────────
   update-version:
     runs-on: ubuntu-latest
@@ -22,36 +26,47 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Update version
-        id: bump
+      - name: Update files, JSON manifest, and clear passwords
         run: |
-          echo "CURRENT_VERSION=${{ inputs.version }}" >> $GITHUB_ENV
-
-      - name: Update files and clear passwords
-        run: |
-          VERSION=${{ inputs.version }}
+          VERSION="${{ inputs.version }}"
+          NOTES="${{ inputs.notes }}"
+          DATE=$(date +'%Y-%m-%d')
           
-          # Update Utils.py (targets single quotes around the key)
+          # Update Utils.py
           sed -i "s/'CURRENT_VERSION': *\"[^\"]*\"/'CURRENT_VERSION': \"$VERSION\"/" Utils.py
           
-          # Update Web_page/API/version.php (targets PHP array syntax)
+          # Update Web_page/API/version.php
           sed -i "s/\"tag_name\" *=> *\"[^\"]*\"/\"tag_name\" => \"$VERSION\"/" Web_page/API/version.php
           
-          # Clear password in app_settings.json
+          # Clear passwords in app_settings.json
           sed -i 's/"rpi_password": *"[^"]*"/"rpi_password": ""/' app_settings.json
-
-          # Clear host in app_settings.json
           sed -i 's/"rpi_host": *"[^"]*"/"rpi_host": ""/' app_settings.json
+          sed -i 's/"rpi_user": *"[^"]*"/"rpi_user": ""/' app_settings.json
 
-          # Clear username in app_settings.json
-            sed -i 's/"rpi_user": *"[^"]*"/"rpi_user": ""/' app_settings.json
+          # --- NEW: Automate releases.json ---
+          mkdir -p Web_page/data
+          if [ ! -f Web_page/data/releases.json ]; then
+            echo "[]" > Web_page/data/releases.json
+          fi
+
+          # Create a new JSON object for this release
+          NEW_RELEASE=$(jq -n \
+            --arg v "$VERSION" \
+            --arg d "$DATE" \
+            --arg wf "/downloads/$VERSION/OmniBoard_Online_Installer.exe" \
+            --arg lf "/downloads/$VERSION/OmniBoard_Studio_Linux.tar.gz" \
+            --arg n "$NOTES" \
+            '{version: $v, date: $d, windows_file: $wf, linux_file: $lf, notes: $n}')
+
+          # Prepend the new release to the top of the releases.json array
+          jq --argjson new "$NEW_RELEASE" '. | [$new] + .' Web_page/data/releases.json > tmp.json && mv tmp.json Web_page/data/releases.json
 
       - name: Commit version bump and sanitized config
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add version.txt Utils.py Web_page/API/version.php
-          git commit -m "chore: bump version to ${{ inputs.version }} and sanitize config [skip ci]"
+          git add version.txt Utils.py Web_page/API/version.php Web_page/data/releases.json
+          git commit -m "chore: bump version to ${{ inputs.version }} and add to releases.json [skip ci]"
           git push
 
   # ─────────────────────────────────────────────
@@ -62,7 +77,6 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-        # Pull the version-bump commit
         with:
           ref: main
 
@@ -74,8 +88,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install PyQt6 PyQt6-QScintilla paramiko cryptography pyserial mpremote pyinstaller telnetlib3 certifi
-          # Add any other deps your app needs:
-          # pip install -r requirements.txt
 
       - name: 🏗️ Run Build Script
         env:
@@ -85,25 +97,22 @@ jobs:
 
       - name: Zip the app folder
         run: |
-          $version = Get-Content version.txt
           Compress-Archive `
             -Path "dist\OmniBoard Studio\*" `
             -DestinationPath "OmniBoard_Studio_Windows.zip"
 
       - name: Patch download URL in ISS
-        # Point the installer at your server instead of GitHub
         run: |
-          $version = Get-Content version.txt
+          # Point the installer to the NEW versioned folder URL
           (Get-Content OmniBoard_Studio_Installer.iss) `
             -replace 'https://github\.com/[^'']+/OmniBoard_Studio_Windows\.zip', `
-                     "https://omniboardstudio.cz/downloads/OmniBoard_Studio_Windows.zip" `
+                     "https://omniboardstudio.cz/downloads/${{ inputs.version }}/OmniBoard_Studio_Windows.zip" `
             | Set-Content OmniBoard_Studio_Installer.iss
 
       - name: Compile Inno Setup installer
         run: |
           choco install innosetup --no-progress -y
           iscc OmniBoard_Studio_Installer.iss
-          # Output: OmniBoard_Online_Installer.exe (as set in OutputBaseFilename)
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -128,7 +137,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install system deps (Qt needs these on headless runners)
+      - name: Install system deps
         run: |
           sudo apt-get update -q
           sudo apt-get install -y libglib2.0-0 libgl1 libxkbcommon-x11-0 \
@@ -137,7 +146,6 @@ jobs:
 
       - name: Install Python dependencies
         run: pip install PyQt6 PyQt6-QScintilla paramiko cryptography pyserial mpremote pyinstaller telnetlib3 certifi
-        # pip install -r requirements.txt
 
       - name: 🏗️ Run Build Script
         env:
@@ -147,7 +155,6 @@ jobs:
 
       - name: Package as tar.gz
         run: |
-          VERSION=$(cat version.txt)
           tar -czf OmniBoard_Studio_Linux.tar.gz \
             -C "dist" "OmniBoard Studio"
 
@@ -158,7 +165,7 @@ jobs:
           path: OmniBoard_Studio_Linux.tar.gz
 
   # ─────────────────────────────────────────────
-  # 4. Upload everything to FTP + update version.php
+  # 4. Upload everything to FTP
   # ─────────────────────────────────────────────
   deploy:
     needs: [update-version, build-windows, build-linux]
@@ -200,12 +207,14 @@ jobs:
 
       - name: Upload binaries via lftp (FTPS)
         run: |
+          # Note the NEW path: /downloads/${{ inputs.version }}/
           lftp -c "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ssl:verify-certificate no;
           open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
-          mirror -R ftp_downloads/ /downloads/;
+          mkdir -p /downloads/${{ inputs.version }};
+          mirror -R ftp_downloads/ /downloads/${{ inputs.version }}/;
           "
 
       - name: Upload API files via lftp (FTPS)
@@ -221,7 +230,7 @@ jobs:
           put Web_page/API/track.php;
           "
 
-      - name: Upload Admin & Auth files via lftp (FTPS)
+      - name: Upload Admin, Auth & Data files via lftp (FTPS)
         run: |
           lftp -c "
           set ftp:ssl-force true;
@@ -235,5 +244,6 @@ jobs:
           mirror -R Web_page/Auth/ /Auth/;
           mkdir -p /data;
           put Web_page/data/.htaccess -o /data/.htaccess;
+          put Web_page/data/releases.json -o /data/releases.json;
           put Web_page/.htaccess;
           "
