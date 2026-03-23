@@ -21,12 +21,15 @@ if (empty($_GET['code'])) {
     exit;
 }
 
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+$redirect_uri = $protocol . '://' . $_SERVER['HTTP_HOST'] . '/Auth/google_callback.php';
+
 // ── Exchange code for access token ───────────────────────────────────────────
 $token_data = _google_post('https://oauth2.googleapis.com/token', [
     'code'          => $_GET['code'],
     'client_id'     => GOOGLE_CLIENT_ID,
     'client_secret' => GOOGLE_CLIENT_SECRET,
-    'redirect_uri'  => 'https://omniboardstudio.cz/Auth/google_callback.php',
+    'redirect_uri'  => $redirect_uri,
     'grant_type'    => 'authorization_code',
 ]);
 
