@@ -179,8 +179,8 @@ jobs:
           echo "GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}" >> .env
           echo "GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}" >> .env
           echo "ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}" >> .env
-          echo "ADMIN_PASSWORD_HASH=${{ secrets.ADMIN_PASSWORD_HASH }}" >> .env
-          echo "IP_HASH_SALT=${{ secrets.IP_HASH_SALT }}" >> .env
+          echo 'ADMIN_PASSWORD_HASH=${{ secrets.ADMIN_PASSWORD_HASH }}' >> .env
+          echo 'IP_HASH_SALT=${{ secrets.IP_HASH_SALT }}'' >> .env
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
