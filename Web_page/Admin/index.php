@@ -7,29 +7,6 @@ session_start();
 
 require_once __DIR__ . '/config.php';
 
-echo "<div style='background:black; color:lime; padding:20px; font-family:monospace; position:relative; z-index:9999;'>";
-echo "<h3>.ENV Debugger</h3>";
-$envPath = __DIR__ . '/.env';
-echo "1. Does .env file exist? " . (file_exists($envPath) ? "YES" : "NO") . "<br><br>";
-
-echo "2. Checking Constants:<br>";
-echo "POSTHOG_PROJECT_ID: " . (POSTHOG_PROJECT_ID === '' ? "EMPTY (Failed)" : "LOADED") . "<br>";
-echo "GITHUB_TOKEN: " . (GITHUB_TOKEN === '' ? "EMPTY (Failed)" : "LOADED") . "<br><br>";
-
-echo "3. Attempting to read .env file directly:<br>";
-if (file_exists($envPath)) {
-    $content = file_get_contents($envPath);
-    echo "<pre style='background:#222; padding:10px; border-radius:5px; color:lime;'>$content</pre><br>";
-} else {
-    echo "Cannot read .env file directly. File does not exist.<br><br>";
-}
-
-echo "3. Loaded Environment Keys (Should show your secret names below):<br>";
-print_r(array_keys($_ENV));
-echo "</div>";
-die(); // Stops the rest of the page from loading
-// --- TEMPORARY DEBUG CODE END ---
-
 // ── Session timeout ───────────────────────────────────────────────────────────
 if (isset($_SESSION['admin_logged_in'])) {
     if (time() - ($_SESSION['admin_last_activity'] ?? 0) > ADMIN_SESSION_LIFETIME) {
