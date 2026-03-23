@@ -1,5 +1,16 @@
 <?php
 // Web_page/Auth/login.php
+
+// 1. Force the canonical domain (Must match your GitHub/Google Callback exactly)
+$canonical_domain = 'omniboardstudio.cz'; // Change to 'www.omniboardstudio.cz' if you prefer WWW
+
+if ($_SERVER['HTTP_HOST'] !== 'localhost' && $_SERVER['HTTP_HOST'] !== $canonical_domain) {
+    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
+    header('Location: ' . $protocol . '://' . $canonical_domain . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
+// 2. Now it is safe to start the session
 session_start();
 require_once __DIR__ . '/../Admin/config.php';
 
@@ -16,7 +27,6 @@ if ($provider === 'github') {
     header('Location: ' . $url);
     exit;
 } elseif ($provider === 'google') {
-    // Dynamically get your current domain (works for localhost or live site)
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $redirect_uri = $protocol . '://' . $_SERVER['HTTP_HOST'] . '/Auth/google_callback.php';
 

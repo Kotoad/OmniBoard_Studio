@@ -8,20 +8,24 @@ error_reporting(E_ALL);
 
 session_start();
 
+echo "<h3>Session Debug</h3>";
+echo "Session ID: " . session_id() . "<br>";
+echo "Cookies received by server:<br><pre>";
+print_r($_COOKIE);
+echo "</pre><hr>";
+
 require_once __DIR__ . '/../Admin/config.php';
 
 // ── Validate state ───────────────────────────────────────────────────────────
 if (empty($_GET['state']) || $_GET['state'] !== ($_SESSION['oauth_state'] ?? '')) {
-    $_SESSION['oauth_error'] = 'OAuth state mismatch. Please try again.';
-    header('Location: /');
-    exit;
+    $received = $_GET['state'] ?? 'None';
+    $expected = $_SESSION['oauth_state'] ?? 'None';
+    die("OAuth state mismatch. Received state: " . htmlspecialchars($received) . " | Expected: " . htmlspecialchars($expected));
 }
 unset($_SESSION['oauth_state']);
 
 if (empty($_GET['code'])) {
-    $_SESSION['oauth_error'] = 'Google OAuth did not return an authorisation code.';
-    header('Location: /');
-    exit;
+    die('Google OAuth did not return an authorisation code.');
 }
 
 $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
@@ -37,9 +41,9 @@ $token_data = _google_post('https://oauth2.googleapis.com/token', [
 ]);
 
 if (empty($token_data['access_token'])) {
-    $_SESSION['oauth_error'] = 'Failed to obtain Google access token.';
-    header('Location: /');
-    exit;
+    echo "<h3>Failed to obtain Google access token. Raw response:</h3><pre>";
+    print_r($token_data);
+    die("</pre>");
 }
 
 $access_token = $token_data['access_token'];
@@ -48,9 +52,9 @@ $access_token = $token_data['access_token'];
 $user_info = _google_get('https://www.googleapis.com/oauth2/v2/userinfo', $access_token);
 
 if (empty($user_info['email']) || empty($user_info['verified_email'])) {
-    $_SESSION['oauth_error'] = 'No verified email address found on your Google account.';
-    header('Location: /');
-    exit;
+    echo "<h3>No verified email address found. Raw user info:</h3><pre>";
+    print_r($user_info);
+    die("</pre>");
 }
 
 $primary_email = strtolower($user_info['email']);
