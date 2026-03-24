@@ -53,19 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['unlink_provider'])) {
     exit;
 }
 
-// Handle Language Change
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['change_language'])) {
-    $new_lang = $_POST['language'];
-    if (in_array($new_lang, ['cz', 'en'])) {
-        $_SESSION['lang'] = $new_lang;
-        $users[$email]['language'] = $new_lang;
-        _save_users($users);
-        $_SESSION['flash_message'] = "Language preferences updated.";
-    }
-    header('Location: /Auth/settings.php');
-    exit;
-}
-
 // Retrieve flash messages for display
 $message = $_SESSION['flash_message'] ?? '';
 $error = $_SESSION['flash_error'] ?? '';
@@ -75,9 +62,7 @@ $providers = $user['providers'] ?? [];
 $has_github = isset($providers['github']);
 $has_google = isset($providers['google']);
 
-$current_lang = $_SESSION['lang'] ?? ($user['language'] ?? 'en');
-
-$page_title = $texts['settings_page_title']; // e.g. "Account Settings"
+$page_title = "Account Settings - OmniBoard Studio";
 // Ensure the path to Head.php is correct based on your folder structure
 include __DIR__ . '/../Head.php'; 
 ?>
@@ -88,7 +73,7 @@ include __DIR__ . '/../Head.php';
 
     <main class="w-full py-12 flex-grow">
         <div class="max-w-3xl mx-auto px-6">
-            <h1 class="text-3xl font-bold mb-8 text-white"><?= htmlspecialchars($texts['settings_page_title']) ?></h1>
+            <h1 class="text-3xl font-bold mb-8 text-white">Account Settings</h1>
 
             <?php if ($message): ?>
                 <div class="bg-green-900/40 border border-green-700 text-green-300 px-4 py-3 rounded-lg mb-6">
@@ -112,7 +97,7 @@ include __DIR__ . '/../Head.php';
                         </div>
                     <?php endif; ?>
                     <div>
-                        <h2 class="text-xl font-semibold text-slate-100"><?= htmlspecialchars($user['name'] ?? $email) ?></h2>
+                        <h2 class="text-xl font-semibold text-slate-100">Primary Account</h2>
                         <p class="text-slate-400 text-sm"><?= htmlspecialchars($email) ?></p>
                     </div>
                 </div>
@@ -121,36 +106,16 @@ include __DIR__ . '/../Head.php';
                 </div>
             </div>
 
-            <h3 class="text-xl font-semibold mb-4 text-slate-200"><?= htmlspecialchars($texts['settings_preferences_title']) ?></h3>
-            <div class="space-y-4 mb-8">
-                <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
-                    <div>
-                        <p class="font-semibold text-slate-200">Language / Jazyk</p>
-                        <p class="text-sm text-slate-400"><?= htmlspecialchars($texts['settings_language_description']) ?></p>
-                    </div>
-                    <div>
-                        <form method="POST" class="flex items-center gap-3">
-                            <input type="hidden" name="change_language" value="1">
-                            <select name="language" class="bg-slate-900 border border-slate-600 text-slate-200 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
-                                <option value="cz" <?= $current_lang === 'cz' ? 'selected' : '' ?>>Čeština</option>
-                                <option value="en" <?= $current_lang === 'en' ? 'selected' : '' ?>>English</option>
-                            </select>
-                            <button type="submit" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded transition-colors text-sm font-medium">Save</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <h3 class="text-xl font-semibold mb-4 text-slate-200"><?= htmlspecialchars($texts['settings_connected_login_methods_title']) ?></h3>
+            <h3 class="text-xl font-semibold mb-4 text-slate-200">Connected Login Methods</h3>
             <div class="space-y-4">
                 
                 <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 flex items-center justify-between">
                     <div>
                         <p class="font-semibold text-slate-200">Google</p>
                         <?php if ($has_google): ?>
-                            <p class="text-sm text-slate-400"><?= htmlspecialchars($texts['settings_provider_connected']) ?> <?= htmlspecialchars($providers['google']['email']) ?></p>
+                            <p class="text-sm text-slate-400">Connected as <?= htmlspecialchars($providers['google']['email']) ?></p>
                         <?php else: ?>
-                            <p class="text-sm text-slate-500"><?= htmlspecialchars($texts['settings_provider_not_connected']) ?></p>
+                            <p class="text-sm text-slate-500">Not connected</p>
                         <?php endif; ?>
                     </div>
                     <div>
@@ -169,9 +134,9 @@ include __DIR__ . '/../Head.php';
                     <div>
                         <p class="font-semibold text-slate-200">GitHub</p>
                         <?php if ($has_github): ?>
-                            <p class="text-sm text-slate-400"><?= htmlspecialchars($texts['settings_provider_connected']) ?> <?= htmlspecialchars($providers['github']['github_username'] ?? $providers['github']['email']) ?></p>
+                            <p class="text-sm text-slate-400">Connected as <?= htmlspecialchars($providers['github']['github_username'] ?? $providers['github']['email']) ?></p>
                         <?php else: ?>
-                            <p class="text-sm text-slate-500"><?= htmlspecialchars($texts['settings_provider_not_connected']) ?></p>
+                            <p class="text-sm text-slate-500">Not connected</p>
                         <?php endif; ?>
                     </div>
                     <div>

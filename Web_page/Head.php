@@ -1,22 +1,3 @@
-<?php
-session_start();
-
-$default_lang = 'cz';
-$allowed_langs = ['cz', 'en'];
-
-// Změna jazyka přes URL parametr (např. web.php?lang=en)
-if (isset($_GET['lang']) && in_array($_GET['lang'], $allowed_langs)) {
-    $_SESSION['lang'] = $_GET['lang'];
-}
-
-// Získání aktuálního jazyka z relace, jinak výchozí
-$current_lang = $_SESSION['lang'] ?? $default_lang;
-
-// Načtení příslušného JSON slovníku do asociativního pole
-$json_data = file_get_contents(__DIR__ . "/Translations/{$current_lang}.json");
-$texts = json_decode($json_data, true);
-?>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">

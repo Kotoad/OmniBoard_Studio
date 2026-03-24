@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars($current_lang); ?>">
+<html lang="en">
 
 <?php 
-$page_title = $texts['download_title'] ?? 'Download OmniBoard Studio - Visual Programming Environment'; 
+$page_title = "Download OmniBoard Studio - Visual Programming Environment"; 
 include 'Head.php';
 
 // Load local releases
@@ -17,45 +17,45 @@ $previous_releases = count($releases) > 1 ? array_slice($releases, 1) : [];
     <?php include 'Navbar.php'; ?>
 
     <header class="max-w-5xl mx-auto px-6 py-20 text-center">
-        <h1 class="text-4xl font-bold mb-6 text-white"><?php echo $texts['download_heading'] ?? 'Download OmniBoard Studio'; ?></h1>
-        <p class="text-slate-400 text-xl mb-10 max-w-2xl mx-auto"><?php echo $texts['download_subheading'] ?? 'Get the latest version of OmniBoard Studio for your platform. All files are hosted securely on our servers.'; ?></p>
+        <h1 class="text-4xl font-bold mb-6 text-white">Download OmniBoard Studio</h1>
+        <p class="text-slate-400 text-xl mb-10 max-w-2xl mx-auto">Get the latest version of OmniBoard Studio for your platform. All files are hosted securely on our servers.</p>
     </header>
 
     <main class="w-full py-10 flex-grow">
         <?php if ($latest_release): ?>
         <section id="latest-download" class="max-w-5xl mx-auto px-6 mb-20">
-            <h2 class="text-3xl font-bold mb-8 text-center text-white"><?php echo $texts['download_latest_version'] ?? 'Latest Version'; ?> (<?= htmlspecialchars($latest_release['version']) ?>)</h2>
+            <h2 class="text-3xl font-bold mb-8 text-center text-white">Latest Version (<?= htmlspecialchars($latest_release['version']) ?>)</h2>
             <div class="grid md:grid-cols-2 gap-8">
                 <div class="p-6 border border-slate-700 rounded-xl shadow-sm bg-slate-800 text-center">
-                    <h2 class="text-2xl font-semibold mb-4 text-blue-400"><?php echo $texts['download_windows'] ?? 'Windows'; ?></h2>
-                    <p class="text-slate-400 mb-6"><?php echo $texts['download_windows_description'] ?? 'Download the Windows installer to get started quickly.'; ?></p>
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-400">Windows</h2>
+                    <p class="text-slate-400 mb-6">Download the Windows installer to get started quickly.</p>
                     <a href="<?= htmlspecialchars($latest_release['windows_file']) ?>" download
-                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors"><?php echo $texts['download_button'] ?? 'Download for Windows'; ?></a>
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download for Windows</a>
                 </div>
                 <div class="p-6 border border-slate-700 rounded-xl shadow-sm bg-slate-800 text-center">
-                    <h2 class="text-2xl font-semibold mb-4 text-blue-400"><?php echo $texts['download_linux'] ?? 'Linux'; ?></h2>
-                    <p class="text-slate-400 mb-6"><?php echo $texts['download_linux_description'] ?? 'Get the Linux version of OmniBoard Studio for your GNU/Linux systems.'; ?></p>
+                    <h2 class="text-2xl font-semibold mb-4 text-blue-400">Linux</h2>
+                    <p class="text-slate-400 mb-6">Get the Linux version of OmniBoard Studio for your GNU/Linux systems.</p>
                     <a href="<?= htmlspecialchars($latest_release['linux_file']) ?>" download
-                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors"><?php echo $texts['download_button'] ?? 'Download for Linux'; ?></a>
+                        class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">Download for Linux</a>
                 </div>
             </div>
         </section>
         <?php else: ?>
-            <p class="text-center text-slate-400"><?php echo $texts['download_no_releases'] ?? 'No releases available at the moment.'; ?></p>
+            <p class="text-center text-slate-400">No releases available at the moment.</p>
         <?php endif; ?>
 
         <?php if (!empty($previous_releases)): ?>
         <section id="previous-versions" class="max-w-5xl mx-auto px-6 mb-20">
-            <h2 class="text-2xl font-bold mb-6 text-white border-b border-slate-700 pb-2"><?php echo $texts['download_previous_versions'] ?? 'Previous Versions'; ?></h2>
+            <h2 class="text-2xl font-bold mb-6 text-white border-b border-slate-700 pb-2">Previous Versions</h2>
             <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left">
                         <thead class="text-slate-400 text-xs uppercase tracking-wider bg-slate-900/50">
                             <tr>
-                                <th class="px-6 py-4"><?php echo $texts['download_version'] ?? 'Version'; ?></th>
-                                <th class="px-6 py-4"><?php echo $texts['download_release_date'] ?? 'Release Date'; ?></th>
-                                <th class="px-6 py-4"><?php echo $texts['download_windows'] ?? 'Windows'; ?></th>
-                                <th class="px-6 py-4"><?php echo $texts['download_linux'] ?? 'Linux'; ?></th>
+                                <th class="px-6 py-4">Version</th>
+                                <th class="px-6 py-4">Release Date</th>
+                                <th class="px-6 py-4">Windows</th>
+                                <th class="px-6 py-4">Linux</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-700/50">

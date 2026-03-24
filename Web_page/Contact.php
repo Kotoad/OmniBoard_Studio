@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars($current_lang); ?>">
+<html lang="en">
 
-<?php $page_title = $texts['contact_title'] ?? 'Contact Us - OmniBoard Studio'; include 'Head.php';?>
+<?php $page_title = "Contact Us - OmniBoard Studio"; include 'Head.php';?>
 
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
@@ -9,17 +9,18 @@
 
     <header class="max-w-4xl mx-auto px-6 py-16 text-center">
         <h1 class="text-4xl font-extrabold tracking-tight text-white mb-6">
-            <?php echo $texts['contact_heading'] ?? 'Contact Us'; ?>
+            Contact Us
         </h1>
         <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-            <?php echo $texts['contact_subheading'] ?? 'We’d love to hear from you! Whether you have questions, feedback, or just want to say hello, feel free to reach out.'; ?>
+            We’d love to hear from you! Whether you have questions, feedback, or just want to say hello, feel free to
+            reach out.
         </p>
     </header>
 
     <main class="w-full py-20 flex-grow border-t border-slate-800">
         <section class="max-w-4xl mx-auto px-6 text-center">
-            <h2 class="text-2xl font-bold text-blue-400 mb-6"><?php echo $texts['contact_email'] ?? 'Email Us'; ?></h2>
-            <p class="text-slate-300"><?php echo $texts['contact_email_description'] ?? 'For general inquiries, support, or partnership opportunities, please email us at'; ?>
+            <h2 class="text-2xl font-bold text-blue-400 mb-6">Email Us</h2>
+            <p class="text-slate-300">For general inquiries, support, or partnership opportunities, please email us at
                 <a href="mailto:krystofotta@gmail.com" class="text-blue-400 hover:underline">krystofotta@gmail.com</a>.
             </p>
         </section>
