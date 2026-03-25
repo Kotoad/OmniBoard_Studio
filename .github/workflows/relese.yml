@@ -92,13 +92,13 @@ jobs:
           # Setup specific version installer
           (Get-content OmniBoard_Studio_Installer.iss) `
             -replace 'download_url', 'https://omniboardstudio.cz/downloads/${{ inputs.version }}/OmniBoard_Studio_Windows.zip' `
-            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_${{ inputs.version }}"' `
+            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_${{ inputs.version }}' `
             | Set-Content OmniBoard_Studio_Installer.iss
 
           # Setup latest version installer
           (Get-content OmniBoard_Studio_Installer_latest.iss) `
             -replace 'download_url', 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
-            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_latest"' `
+            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_latest' `
             | Set-Content OmniBoard_Studio_Installer_latest.iss
 
       - name: Compile Inno Setup installers
