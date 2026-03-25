@@ -238,7 +238,17 @@ jobs:
           W_FILE="/downloads/$VERSION/OmniBoard_Online_Installer.exe"
           L_FILE="/downloads/$VERSION/OmniBoard_Studio_Linux.tar.gz"
 
+          # 1. Safely generate the JSON payload using jq
+          JSON_PAYLOAD=$(jq -n \
+            --arg v "$VERSION" \
+            --arg d "$DATE" \
+            --arg wf "$W_FILE" \
+            --arg lf "$L_FILE" \
+            --arg n "$NOTES" \
+            '{version: $v, date: $d, windows_file: $wf, linux_file: $lf, notes: $n}')
+
+          # 2. Send the safely encoded payload
           curl -f -X POST https://omniboardstudio.cz/API/add_release \
             -H "Content-Type: application/json" \
             -H "Authorization: Bearer ${{ secrets.ACTION_API_TOKEN }}" \
-            -d "{\"version\":\"$VERSION\", \"date\":\"$DATE\", \"windows_file\":\"$W_FILE\", \"linux_file\":\"$L_FILE\", \"notes\":\"$NOTES\"}"
+            -d "$JSON_PAYLOAD"
