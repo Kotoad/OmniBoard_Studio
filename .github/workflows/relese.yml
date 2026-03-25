@@ -87,18 +87,25 @@ jobs:
             -Path "dist\OmniBoard Studio\*" `
             -DestinationPath "OmniBoard_Studio_Windows.zip"
 
-      - name: Patch download URL in ISS
+      - name: Patch download ISS
         run: |
-          # Point the installer to the NEW versioned folder URL
-          (Get-Content OmniBoard_Studio_Installer.iss) `
-            -replace 'https://github\.com/[^'']+/OmniBoard_Studio_Windows\.zip', `
-                     "https://omniboardstudio.cz/downloads/${{ inputs.version }}/OmniBoard_Studio_Windows.zip" `
+          # Setup specific version installer
+          (Get-content OmniBoard_Studio_Installer.iss) `
+            -replace 'download_url\',\s*\'[^\']*\'', 'https://omniboardstudio.cz/downloads/${{ inputs.version }}/OmniBoard_Studio_Windows.zip' `
+            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_${{ inputs.version }}"' `
             | Set-Content OmniBoard_Studio_Installer.iss
 
-      - name: Compile Inno Setup installer
+          # Setup latest version installer
+          (Get-content OmniBoard_Studio_Installer.iss) `
+            -replace 'download_url\',\s*\'[^\']*\'', 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
+            -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_latest"' `
+            | Set-Content OmniBoard_Studio_Installer.iss
+
+      - name: Compile Inno Setup installers
         run: |
           choco install innosetup --no-progress -y
           iscc OmniBoard_Studio_Installer.iss
+          iscc OmniBoard_Studio_Installer_latest.iss
 
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
@@ -106,7 +113,8 @@ jobs:
           name: windows-build
           path: |
             OmniBoard_Studio_Windows.zip
-            OmniBoard_Online_Installer.exe
+            OmniBoard_Online_Installer_${{ inputs.version }}.exe
+            OmniBoard_Online_Installer_latest.exe
 
   # ─────────────────────────────────────────────
   # 3. Build Linux — tar.gz bundle
@@ -187,25 +195,37 @@ jobs:
 
       - name: Stage files for FTP upload
         run: |
-          mkdir -p ftp_downloads
-          cp artifacts/windows-build/OmniBoard_Studio_Windows.zip   ftp_downloads/
-          cp artifacts/windows-build/OmniBoard_Online_Installer.exe ftp_downloads/
-          cp artifacts/linux-build/OmniBoard_Studio_Linux.tar.gz    ftp_downloads/
-          cp install.sh                                             ftp_downloads/ || true
+          mkdir -p ftp_downloads/specific
+          mkdir -p ftp_downloads/latest
+
+          # Specific version folder
+          cp artifacts/windows-build/OmniBoard_Studio_Windows.zip   ftp_downloads/specific/
+          cp artifacts/windows-build/OmniBoard_Online_Installer_${{ inputs.version }}.exe ftp_downloads/specific/
+          cp artifacts/linux-build/OmniBoard_Studio_Linux.tar.gz    ftp_downloads/specific/
+          cp install.sh                                             ftp_downloads/specific/ || true
+
+          # Latest version folder
+          cp artifacts/windows-build/OmniBoard_Studio_Windows.zip   ftp_downloads/latest/
+          cp artifacts/windows-build/OmniBoard_Online_Installer_latest.exe ftp_downloads/latest/
+          cp artifacts/linux-build/OmniBoard_Studio_Linux.tar.gz    ftp_downloads/latest/
+          cp install.sh                                             ftp_downloads/latest/ || true
 
       - name: Install lftp
         run: sudo apt-get update -q && sudo apt-get install -y lftp
 
       - name: Upload binaries via lftp (FTPS)
         run: |
-          # Note the NEW path: /downloads/${{ inputs.version }}/
           lftp -c "
           set ftp:ssl-force true;
           set ftp:ssl-protect-data true;
           set ssl:verify-certificate no;
           open -u ${{ secrets.FTP_USER }},${{ secrets.FTP_PASSWORD }} ${{ secrets.FTP_SERVER }};
+
           mkdir -p /downloads/${{ inputs.version }};
-          mirror -R ftp_downloads/ /downloads/${{ inputs.version }}/;
+          mirror -R ftp_downloads/specific/ /downloads/${{ inputs.version }}/;
+
+          mkdir -p /downloads/latest;
+          mirror -R ftp_downloads/latest/ /downloads/latest/;
           "
 
       - name: Upload API files via lftp (FTPS)
@@ -235,7 +255,7 @@ jobs:
           VERSION="${{ inputs.version }}"
           NOTES="${{ inputs.notes }}"
           DATE=$(date +'%Y-%m-%d')
-          W_FILE="/downloads/$VERSION/OmniBoard_Online_Installer.exe"
+          W_FILE="/downloads/$VERSION/OmniBoard_Online_Installer_$VERSION.exe"
           L_FILE="/downloads/$VERSION/OmniBoard_Studio_Linux.tar.gz"
 
           # 1. Safely generate the JSON payload using jq

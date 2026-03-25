@@ -13,7 +13,7 @@ if ($expected_token === 'Bearer UNSET' || $auth_header !== $expected_token) {
 }
 
 $data = json_decode(file_get_contents('php://input'), true);
-if (!$data || empty($data['version']) || empty($data['url'])) {
+if (!$data || empty($data['version'])) {
     http_response_code(400);
     die('Bad Request: Missing required fields (version, url).');
 }

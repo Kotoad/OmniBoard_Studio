@@ -50,7 +50,7 @@ begin
 
   // 2. Setup download
   DownloadPage.Clear;
-  DownloadPage.Add('download_url', 'OmniBoard.zip', '');
+  DownloadPage.Add('https://github.com/Kotoad/APP_PyQt/releases/latest/download/OmniBoard_Studio_Windows.zip', 'OmniBoard.zip', '');
 
   // 3. Execute download safely
   if not WizardSilent then DownloadPage.Show;

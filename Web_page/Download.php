@@ -1,18 +1,21 @@
-<?php require_once __DIR__ . '/i18n.php'; ?>
-<!DOCTYPE html>
-<html lang="<?= htmlspecialchars($current_lang ?? 'en') ?>">
-
 <?php 
+require_once __DIR__ . '/i18n.php'; 
+
+require_once __DIR__ . '/Admin/config.php';
+
+$stmt = $pdo->prepare("SELECT * FROM releases ORDER BY release_date DESC");
+$stmt->execute();
+$releases = $stmt->fetchAll();
+
+$latest_release = $releases[0] ?? null;
+$previous_releases = array_slice($releases, 1);
+
 $page_title = t('Download', 'page_title', 'Download OmniBoard Studio - Visual Programming Environment'); 
 include 'Head.php';
 
-// Load local releases
-$releases_file = __DIR__ . '/data/releases.json';
-$releases = file_exists($releases_file) ? json_decode(file_get_contents($releases_file), true) : [];
-$latest_release = !empty($releases) ? $releases[0] : null;
-$previous_releases = count($releases) > 1 ? array_slice($releases, 1) : [];
 ?>
-
+<!DOCTYPE html>
+<html lang="<?= htmlspecialchars($current_lang ?? 'en') ?>">
 <body class="bg-slate-900 text-slate-100 font-sans antialiased min-h-screen flex flex-col">
 
     <?php include 'Navbar.php'; ?>
@@ -34,7 +37,7 @@ $previous_releases = count($releases) > 1 ? array_slice($releases, 1) : [];
                 <div class="p-6 border border-slate-700 rounded-xl shadow-sm bg-slate-800 text-center">
                     <h2 class="text-2xl font-semibold mb-4 text-blue-400"><?= t('Download', 'latest_version.windows.title', 'Windows') ?></h2>
                     <p class="text-slate-400 mb-6"><?= t('Download', 'latest_version.windows.description', 'Download the Windows installer to get started quickly.') ?></p>
-                    <a href="<?= htmlspecialchars($latest_release['windows_file']) ?>" download
+                    <a href="https://omniboardstudio.cz/downloads/latest/OmniBoard_Online_Installer_latest.exe" download
                         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">
                         <?= t('Download', 'latest_version.windows.button', 'Download for Windows') ?>
                     </a>
@@ -42,7 +45,7 @@ $previous_releases = count($releases) > 1 ? array_slice($releases, 1) : [];
                 <div class="p-6 border border-slate-700 rounded-xl shadow-sm bg-slate-800 text-center">
                     <h2 class="text-2xl font-semibold mb-4 text-blue-400"><?= t('Download', 'latest_version.linux.title', 'Linux') ?></h2>
                     <p class="text-slate-400 mb-6"><?= t('Download', 'latest_version.linux.description', 'Get the Linux version of OmniBoard Studio for your GNU/Linux systems.') ?></p>
-                    <a href="<?= htmlspecialchars($latest_release['linux_file']) ?>" download
+                    <a href="https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Linux.tar.gz" download
                         class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-500 transition-colors">
                         <?= t('Download', 'latest_version.linux.button', 'Download for Linux') ?>
                     </a>

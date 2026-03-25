@@ -173,7 +173,6 @@ function load_json_file(string $path): array
 }
 
 $app_starts = load_json_file(DATA_DIR . 'app_starts.json');
-$local_releases = load_json_file(DATA_DIR . 'releases.json');
 
 // Fetch users from MySQL database instead of JSON
 try {
@@ -187,6 +186,14 @@ try {
     unset($u); // break reference
 } catch (PDOException $e) {
     die("Error fetching users: " . $e->getMessage());
+}
+
+// Fetch releases from MySQL database instead of JSON
+try {
+    $stmt = $pdo->query("SELECT * FROM releases ORDER BY release_date DESC");
+    $releases = $stmt->fetchAll();
+} catch (PDOException $e) {
+    die("Error fetching releases: " . $e->getMessage());
 }
 
 // Sort app_starts descending by timestamp
@@ -400,10 +407,7 @@ if ($ph_res && isset($ph_res[0]['data'])) {
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <?php
         $gh_stars   = $gh_repo['stargazers_count'] ?? '–';
-        $latest_ver = 'v0.22.15';
-        if (is_array($gh_tags) && !empty($gh_tags)) {
-            $latest_ver = $gh_tags[0]['name'] ?? $latest_ver;
-        }
+        $latest_ver = $releases[0]['version'] ?? '–';
         $stats_cards = [
             ['label' => 'App Starts',       'value' => number_format(count($app_starts)), 'color' => 'text-blue-400'],
             ['label' => 'Registered Users', 'value' => number_format(count($users)),      'color' => 'text-green-400'],
@@ -436,14 +440,6 @@ if ($ph_res && isset($ph_res[0]['data'])) {
             <div>
                 <p class="font-semibold text-slate-100">GitHub Repository</p>
                 <p class="text-slate-400 text-xs"><?= GITHUB_REPO ?></p>
-            </div>
-        </a>
-        <a href="https://scarf.sh" target="_blank"
-           class="flex items-center gap-3 bg-slate-800 border border-slate-700 hover:border-blue-600 rounded-xl p-4 transition-colors group">
-            <div class="w-10 h-10 bg-purple-600/20 rounded-lg flex items-center justify-center text-purple-400 text-xl group-hover:bg-purple-600/30 transition-colors">&#128273;</div>
-            <div>
-                <p class="font-semibold text-slate-100">Scarf.sh Downloads</p>
-                <p class="text-slate-400 text-xs">omniboard.gateway.scarf.sh</p>
             </div>
         </a>
     </div>
@@ -563,14 +559,14 @@ if ($ph_res && isset($ph_res[0]['data'])) {
     <h2 class="text-2xl font-bold mb-6 text-white">Local Server Releases</h2>
 
     <?php 
-    $latest = !empty($local_releases) ? $local_releases[0] : null; 
+    $latest = !empty($releases) ? $releases[0] : null; 
     if ($latest): 
     ?>
     <div class="bg-blue-900/20 border border-blue-700 rounded-xl px-6 py-4 mb-6 flex flex-wrap items-center justify-between gap-4">
         <div>
             <p class="text-blue-300 text-sm uppercase tracking-widest mb-1">Current Live Version</p>
             <p class="text-white text-3xl font-bold"><?= htmlspecialchars($latest['version']) ?></p>
-            <p class="text-slate-400 text-sm mt-1">Released: <?= htmlspecialchars($latest['date']) ?></p>
+            <p class="text-slate-400 text-sm mt-1">Released: <?= htmlspecialchars($latest['release_date']) ?></p>
         </div>
         <div class="flex flex-col gap-2 text-sm">
             <a href="<?= htmlspecialchars($latest['windows_file']) ?>"
@@ -584,11 +580,11 @@ if ($ph_res && isset($ph_res[0]['data'])) {
     <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
             <h3 class="font-semibold text-slate-100">All Hosted Versions</h3>
-            <span class="text-xs text-slate-400 font-mono">Source: data/releases.json</span>
+            <span class="text-xs text-slate-400 font-mono">Source: MySQL database</span>
         </div>
         
-        <?php if (empty($local_releases)): ?>
-        <p class="px-6 py-4 text-slate-400 text-sm">No versions found in releases.json.</p>
+        <?php if (empty($releases)): ?>
+        <p class="px-6 py-4 text-slate-400 text-sm">No versions found in the database.</p>
         <?php else: ?>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -602,7 +598,7 @@ if ($ph_res && isset($ph_res[0]['data'])) {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-700/50">
-                    <?php foreach ($local_releases as $i => $release):
+                    <?php foreach ($releases as $i => $release):
                         $is_latest = ($i === 0);
                     ?>
                     <tr class="hover:bg-slate-700/30 transition-colors">
@@ -613,7 +609,7 @@ if ($ph_res && isset($ph_res[0]['data'])) {
                             <?php endif; ?>
                         </td>
                         <td class="px-4 py-3 text-slate-400 text-xs">
-                            <?= htmlspecialchars($release['date']) ?>
+                            <?= htmlspecialchars($release['release_date']) ?>
                         </td>
                         <td class="px-4 py-3">
                             <?php if (!empty($release['windows_file'])): ?>
