@@ -96,10 +96,10 @@ jobs:
             | Set-Content OmniBoard_Studio_Installer.iss
 
           # Setup latest version installer
-          (Get-content OmniBoard_Studio_Installer.iss) `
+          (Get-content OmniBoard_Studio_Installer_latest.iss) `
             -replace 'download_url', 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
             -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_latest"' `
-            | Set-Content OmniBoard_Studio_Installer.iss
+            | Set-Content OmniBoard_Studio_Installer_latest.iss
 
       - name: Compile Inno Setup installers
         run: |
