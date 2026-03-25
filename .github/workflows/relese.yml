@@ -97,7 +97,7 @@ jobs:
 
           # Setup latest version installer
           (Get-content OmniBoard_Studio_Installer.iss) `
-            -replace 'download_url, 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
+            -replace 'download_url', 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
             -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename="OmniBoard_Online_Installer_latest"' `
             | Set-Content OmniBoard_Studio_Installer.iss
 
