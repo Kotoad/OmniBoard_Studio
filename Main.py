@@ -1104,21 +1104,28 @@ def apply_theme(app):
     palette = QPalette()
 
     if theme == 'dark':
-        palette.setColor(QPalette.ColorRole.Window, QColor(43, 43, 43))
-        palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
-        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(43, 43, 43))
-        palette.setColor(QPalette.ColorRole.ToolTipBase, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.ToolTipText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Text, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.Button, QColor(43, 43, 43))
-        palette.setColor(QPalette.ColorRole.ButtonText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.BrightText, Qt.GlobalColor.red)
-        palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
-        palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
-        palette.setColor(QPalette.ColorRole.HighlightedText, Qt.GlobalColor.white)
-        palette.setColor(QPalette.ColorRole.NoRole, QColor(105, 105, 105))
-        palette.setColor(QPalette.ColorRole.Accent, QColor(255, 0, 0))
+        # Slate 900 main background
+        palette.setColor(QPalette.ColorRole.Window, QColor(15, 23, 42))
+        # Slate 200 main text
+        palette.setColor(QPalette.ColorRole.WindowText, QColor(226, 232, 240))
+        # Slate 800 surface/panels
+        palette.setColor(QPalette.ColorRole.Base, QColor(30, 41, 59))
+        # Slate 700 alternate backgrounds/borders
+        palette.setColor(QPalette.ColorRole.AlternateBase, QColor(51, 65, 85))
+        palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(30, 41, 59))
+        palette.setColor(QPalette.ColorRole.ToolTipText, QColor(226, 232, 240))
+        palette.setColor(QPalette.ColorRole.Text, QColor(226, 232, 240))
+        palette.setColor(QPalette.ColorRole.Button, QColor(30, 41, 59))
+        palette.setColor(QPalette.ColorRole.ButtonText, QColor(226, 232, 240))
+        # Warning/Moved accent
+        palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 160, 0))
+        # Primary Teal accent for links and highlights
+        palette.setColor(QPalette.ColorRole.Link, QColor(96, 165, 250))
+        palette.setColor(QPalette.ColorRole.Highlight, QColor(96, 165, 250))
+        palette.setColor(QPalette.ColorRole.HighlightedText, QColor(255, 255, 255))
+        palette.setColor(QPalette.ColorRole.NoRole, QColor(51, 65, 85))
+        # Teal accent
+        palette.setColor(QPalette.ColorRole.Accent, QColor(96, 165, 250))
     elif theme == 'light':
         palette.setColor(QPalette.ColorRole.Window, QColor(253, 245, 230))
         palette.setColor(QPalette.ColorRole.WindowText, Qt.GlobalColor.black)

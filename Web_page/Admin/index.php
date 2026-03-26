@@ -172,8 +172,6 @@ function load_json_file(string $path): array
     return is_array($data) ? $data : [];
 }
 
-$app_starts = load_json_file(DATA_DIR . 'app_starts.json');
-
 // Fetch users from MySQL database instead of JSON
 try {
     $stmt = $pdo->query("SELECT * FROM users ORDER BY id DESC");
@@ -196,8 +194,13 @@ try {
     die("Error fetching releases: " . $e->getMessage());
 }
 
-// Sort app_starts descending by timestamp
-usort($app_starts, fn($a, $b) => strcmp($b['timestamp'] ?? '', $a['timestamp'] ?? ''));
+// Fetch app starts from MySQL database instead of JSON
+try {
+    $stmt = $pdo->query("SELECT * FROM app_starts ORDER BY started_at DESC");
+    $app_starts = $stmt->fetchAll();
+} catch (PDOException $e) {
+    die("Error fetching app starts: " . $e->getMessage());
+}
 
 // ── GitHub repo data ──────────────────────────────────────────────────────────
 $gh_repo    = api_get('https://api.github.com/repos/' . GITHUB_REPO, github_headers());
@@ -253,12 +256,17 @@ if ($posthog_configured) {
 $starts_by_platform = [];
 $starts_by_version  = [];
 $unique_ids         = [];
+$total_starts        = 0;
 
 foreach ($app_starts as $s) {
     $p = $s['platform'] ?? 'unknown';
     $v = $s['version']  ?? 'unknown';
-    $starts_by_platform[$p] = ($starts_by_platform[$p] ?? 0) + 1;
-    $starts_by_version[$v]  = ($starts_by_version[$v]  ?? 0) + 1;
+    $starts = (int)($s['starts'] ?? 1);
+
+    $total_starts += $starts;
+
+    $starts_by_platform[$p] = ($starts_by_platform[$p] ?? 0) + $starts;
+    $starts_by_version[$v]  = ($starts_by_version[$v]  ?? 0) + $starts;
     if (!empty($s['anonymous_id'])) {
         $unique_ids[$s['anonymous_id']] = true;
     }
@@ -282,9 +290,34 @@ foreach ($users as $u) {
 }
 
 // ── Server info ────────────────────────────────────────────────────────────────
-$disk_total = @disk_total_space('/') ?: @disk_total_space('C:\\') ?: 0;
-$disk_free  = @disk_free_space('/')  ?: @disk_free_space('C:\\')  ?: 0;
-$disk_used  = $disk_total - $disk_free;
+function get_directory_size($dir) {
+    $size = 0;
+    if (!is_dir($dir) || !is_readable($dir)) return 0;
+
+    try {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS)
+        );
+        foreach ($iterator as $file) {
+            // Sum only files, ignoring symlinks to avoid infinite loops or escaping the directory
+            if ($file->isFile() && !$file->isLink()) {
+                $size += $file->getSize();
+            }
+        }
+    } catch (Exception $e) {
+        // Silently ignore folders with restricted read permissions
+    }
+    return $size;
+}
+
+// Set your actual hosting quota here (1GB = 1024 * 1024 * 1024 bytes)
+$disk_total = 1073741824; // 1 GB in bytes
+
+// Calculate actual used space starting from the directory this script is in
+$disk_used  = get_directory_size($_SERVER['DOCUMENT_ROOT']); 
+
+// Calculate free space based on your quota, ensuring it doesn't go below 0
+$disk_free  = max(0, $disk_total - $disk_used);
 
 function human_bytes(int $bytes): string
 {
@@ -293,9 +326,6 @@ function human_bytes(int $bytes): string
     if ($bytes >= 1024)       return round($bytes / 1024,       2) . ' KB';
     return $bytes . ' B';
 }
-
-$starts_file_size = file_exists(DATA_DIR . 'app_starts.json') ? filesize(DATA_DIR . 'app_starts.json') : 0;
-$users_file_size  = file_exists(DATA_DIR . 'users.json')      ? filesize(DATA_DIR . 'users.json')      : 0;
 
 // ── GitHub OAuth URL ─────────────────────────────────────────────────────────
 $gh_oauth_state         = bin2hex(random_bytes(16));
@@ -409,7 +439,7 @@ if ($ph_res && isset($ph_res[0]['data'])) {
         $gh_stars   = $gh_repo['stargazers_count'] ?? '–';
         $latest_ver = $releases[0]['version'] ?? '–';
         $stats_cards = [
-            ['label' => 'App Starts',       'value' => number_format(count($app_starts)), 'color' => 'text-blue-400'],
+            ['label' => 'App Starts',       'value' => number_format($total_starts), 'color' => 'text-blue-400'],
             ['label' => 'Registered Users', 'value' => number_format(count($users)),      'color' => 'text-green-400'],
             ['label' => 'GitHub Stars',     'value' => is_numeric($gh_stars) ? number_format($gh_stars) : $gh_stars, 'color' => 'text-yellow-400'],
             ['label' => 'Unique Installs',  'value' => number_format(count($unique_ids)), 'color' => 'text-purple-400'],
@@ -454,10 +484,11 @@ if ($ph_res && isset($ph_res[0]['data'])) {
             <table class="w-full text-sm">
                 <thead class="text-slate-400 text-xs uppercase tracking-wider bg-slate-900/50">
                     <tr>
-                        <th class="px-4 py-3 text-left">Timestamp</th>
+                        <th class="px-4 py-3 text-left">Last Start</th>
                         <th class="px-4 py-3 text-left">Version</th>
                         <th class="px-4 py-3 text-left">Platform</th>
                         <th class="px-4 py-3 text-left">Anonymous ID</th>
+                        <th class="px-4 py-3 text-left">Total Starts</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-700/50">
@@ -465,13 +496,14 @@ if ($ph_res && isset($ph_res[0]['data'])) {
                     $recent = array_slice($app_starts, 0, 10);
                     if (empty($recent)):
                     ?>
-                    <tr><td colspan="4" class="px-4 py-6 text-center text-slate-500">No app starts recorded yet.</td></tr>
+                    <tr><td colspan="5" class="px-4 py-6 text-center text-slate-500">No app starts recorded yet.</td></tr>
                     <?php else: foreach ($recent as $s): ?>
                     <tr class="hover:bg-slate-700/30 transition-colors">
-                        <td class="px-4 py-3 text-slate-300 font-mono text-xs"><?= htmlspecialchars($s['timestamp'] ?? '') ?></td>
+                        <td class="px-4 py-3 text-slate-300 font-mono text-xs"><?= htmlspecialchars($s['started_at'] ?? '') ?></td>
                         <td class="px-4 py-3"><span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded"><?= htmlspecialchars($s['version'] ?? '–') ?></span></td>
                         <td class="px-4 py-3 text-slate-300"><?= htmlspecialchars(ucfirst($s['platform'] ?? '–')) ?></td>
                         <td class="px-4 py-3 font-mono text-slate-400 text-xs"><?= htmlspecialchars(substr($s['anonymous_id'] ?? '–', 0, 16)) ?>…</td>
+                        <td class="px-4 py-3 text-slate-300"><?= htmlspecialchars($s['starts'] ?? '–') ?></td>
                     </tr>
                     <?php endforeach; endif; ?>
                 </tbody>
@@ -644,7 +676,7 @@ if ($ph_res && isset($ph_res[0]['data'])) {
     <!-- Summary cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <?php $summary_cards = [
-            ['label' => 'Total Starts',    'value' => number_format(count($app_starts))],
+            ['label' => 'Total Starts',    'value' => number_format($total_starts)],
             ['label' => 'Unique Installs', 'value' => number_format(count($unique_ids))],
             ['label' => 'Windows Starts',  'value' => number_format($starts_by_platform['windows'] ?? 0)],
             ['label' => 'Linux Starts',    'value' => number_format($starts_by_platform['linux'] ?? 0)],
@@ -707,21 +739,23 @@ if ($ph_res && isset($ph_res[0]['data'])) {
                         <th class="px-4 py-3 text-left">Platform</th>
                         <th class="px-4 py-3 text-left">Anonymous ID</th>
                         <th class="px-4 py-3 text-left">IP Hash</th>
+                        <th class="px-4 py-3 text-left">Total Starts</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-700/50" id="startsTableBody">
                     <?php if (empty($app_starts)): ?>
-                    <tr><td colspan="6" class="px-4 py-8 text-center text-slate-500">No app starts recorded yet.</td></tr>
+                    <tr><td colspan="7" class="px-4 py-8 text-center text-slate-500">No app starts recorded yet.</td></tr>
                     <?php else: foreach ($app_starts as $i => $s): ?>
                     <tr class="hover:bg-slate-700/30 transition-colors starts-row"
                         data-platform="<?= htmlspecialchars($s['platform'] ?? '') ?>"
                         data-version="<?= htmlspecialchars($s['version'] ?? '') ?>">
                         <td class="px-4 py-2.5 text-slate-500 text-xs"><?= $i + 1 ?></td>
-                        <td class="px-4 py-2.5 text-slate-300 font-mono text-xs"><?= htmlspecialchars($s['timestamp'] ?? '') ?></td>
+                        <td class="px-4 py-2.5 text-slate-300 font-mono text-xs"><?= htmlspecialchars($s['started_at'] ?? '') ?></td>
                         <td class="px-4 py-2.5"><span class="bg-blue-900/40 text-blue-300 text-xs px-2 py-0.5 rounded"><?= htmlspecialchars($s['version'] ?? '–') ?></span></td>
                         <td class="px-4 py-2.5 text-slate-300"><?= htmlspecialchars(ucfirst($s['platform'] ?? '–')) ?></td>
                         <td class="px-4 py-2.5 font-mono text-slate-400 text-xs"><?= htmlspecialchars(substr($s['anonymous_id'] ?? '–', 0, 12)) ?>…</td>
                         <td class="px-4 py-2.5 font-mono text-slate-500 text-xs"><?= htmlspecialchars($s['ip_hash'] ?? '–') ?></td>
+                        <td class="px-4 py-2.5 text-slate-300"><?= htmlspecialchars($s['starts'] ?? '–') ?></td>
                     </tr>
                     <?php endforeach; endif; ?>
                 </tbody>
@@ -991,7 +1025,9 @@ if ($ph_res && isset($ph_res[0]['data'])) {
         ]; foreach ($server_info as $c): ?>
         <div class="bg-slate-800 border border-slate-700 rounded-xl p-5">
             <p class="text-slate-400 text-xs uppercase tracking-widest mb-1"><?= $c['label'] ?></p>
-            <p class="text-slate-100 font-semibold text-sm break-all"><?= htmlspecialchars($c['value']) ?></p>
+            <p <?= $c['label'] === 'Current Time' ? 'id="server-live-clock"' : '' ?> class="text-slate-100 font-semibold text-sm break-all">
+                <?= htmlspecialchars($c['value']) ?>
+            </p>
         </div>
         <?php endforeach; ?>
     </div>
@@ -1033,12 +1069,12 @@ if ($ph_res && isset($ph_res[0]['data'])) {
             </thead>
             <tbody class="divide-y divide-slate-700/50">
                 <tr class="hover:bg-slate-700/30">
-                    <td class="px-4 py-3 font-mono text-slate-300 text-xs">data/app_starts.json</td>
-                    <td class="px-4 py-3 text-slate-300"><?= human_bytes($starts_file_size) ?></td>
+                    <td class="px-4 py-3 font-mono text-slate-300 text-xs">MySQL Database (app_starts table)</td>
+                    <td class="px-4 py-3 text-slate-500">N/A</td>
                     <td class="px-4 py-3 text-slate-300"><?= number_format(count($app_starts)) ?></td>
                     <td class="px-4 py-3">
-                        <span class="text-xs px-2 py-0.5 rounded <?= file_exists(DATA_DIR . 'app_starts.json') ? 'bg-green-900/40 text-green-300' : 'bg-slate-700 text-slate-400' ?>">
-                            <?= file_exists(DATA_DIR . 'app_starts.json') ? 'Yes' : 'No' ?>
+                        <span class="text-xs px-2 py-0.5 rounded bg-blue-900/40 text-blue-300">
+                            Active
                         </span>
                     </td>
                 </tr>
@@ -1073,8 +1109,27 @@ if ($ph_res && isset($ph_res[0]['data'])) {
 <script>
 // ── Clock ────────────────────────────────────────────────────────────────────
 (function updateClock() {
-    const el = document.getElementById('live-clock');
-    if (el) el.textContent = new Date().toLocaleString('en-GB', { hour12: false });
+    const now = new Date();
+    
+    // Update Navbar clock
+    const navEl = document.getElementById('live-clock');
+    if (navEl) navEl.textContent = now.toLocaleString('en-GB', { hour12: false });
+
+    // Update Server Tab clock
+    const serverEl = document.getElementById('server-live-clock');
+    if (serverEl) {
+        // Format to YYYY-MM-DD HH:MM:SS
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const time = now.toTimeString().split(' ')[0]; // Gets HH:MM:SS
+        const tz = now.toTimeString().split(' ')[1]; // Gets timezone abbreviation
+        
+        // Note: The timezone abbreviation (like CET) from PHP will be replaced,
+        // but the time will keep ticking accurately.
+        serverEl.textContent = `${year}-${month}-${day} ${time} ${tz}`;
+    }
+
     setTimeout(updateClock, 1000);
 })();
 

@@ -1,4 +1,4 @@
-<<?php require_once 'i18n.php'; ?>
+<?php require_once 'i18n.php'; ?>
 <!DOCTYPE html>
 <html lang="<?= htmlspecialchars($current_lang ?? 'en') ?>">
 

@@ -74,7 +74,7 @@
                 <?= t('Tutorial_0_linux_based_RPI_variant_en', 'sections.2.notes.0', 'Red LED indicates power and green LED indicates reading/writing to the MicroSD card.') ?>
             </div>
             <div class="mt-8 p-4 bg-blue-900/20 border border-blue-800 rounded-lg text-blue-200 text-sm">
-                <?= t('Tutorial_0_linux_based_RPI_variant_en', 'sections.2.notes.1', '*W means what this RPI model has WiFi built-in...') ?>
+                <?= t('Tutorial_0_linux_based_RPI_variant_en', 'sections.2.notes.1', '*W means what this RPI model has WiFi built-in...') ?><br>
             </div>
         </section>
     </main>

@@ -1,356 +1,4 @@
 {
-  "Index": {
-    "page_title": "OmniBoard Studio - Vizuální programování pro mikrokontroléry a mikropočítače",
-    "header": {
-      "title": "Vizuální programování pro mikrokontroléry a mikropočítače",
-      "description": "Vytvářejte a kompilujte projekty pro MicroPython a Python zcela jednoduše. Ucelené vizuální uzlové (node) prostředí se zabudovaným editorem kódu, optimalizované pro Raspberry Pi Pico i další zařízení.",
-      "buttons": [
-        "Začínáme",
-        "Přečíst dokumentaci"
-      ]
-    },
-    "core_features": {
-      "title": "Klíčové vlastnosti",
-      "features": [
-        {
-          "title": "Vizuální editor uzlů",
-          "description": "Přetahujte logické bloky, časovače a hardwarová rozhraní a snadno tak budujte komplexní logiku bez nutnosti ručního psaní syntaxe."
-        },
-        {
-          "title": "Integrovaný kompilátor",
-          "description": "Okamžitě převádějte vizuální diagramy uzlů do optimalizovaného kódu MicroPython a Python, který je ihned připravený k nasazení na připojená zařízení."
-        },
-        {
-          "title": "Hardwarová podpora",
-          "description": "Nativní podpora a postupy nastavení přímo pro řadu Raspberry Pi Pico a modely Raspberry Pi 1 až 5."
-        }
-      ]
-    },
-    "future_developments": {
-      "title": "Plány do budoucna",
-      "features": [
-        {
-          "title": "Rozšířená podpora hardwaru",
-          "description": "Rozšíření kompatibility o další platformy mikrokontrolérů a jednodeskové počítače mimo ekosystém Raspberry Pi."
-        },
-        {
-          "title": "Pokročilé typy uzlů",
-          "description": "Uvedení nových kategorií uzlů, s nimiž zvládnete i složitější logiku, zpracování dat a hardwarové interakce."
-        },
-        {
-          "title": "Příspěvky od komunity",
-          "description": "Podpora pro všechny uživatele: můžete s ostatními sdílet vlastní šablony uzlů, tutoriály nebo nápady na projekty, a společně tak vytvořit výukové prostředí pro snazší spolupráci."
-        }
-      ]
-    }
-  },
-  "Footer": {
-    "links": [
-      "OmniBoard Studio",
-      "Funkce",
-      "Výukové materiály",
-      "Často kladené otázky",
-      "Stáhnout aplikaci",
-      "Kontaktujte nás"
-    ],
-    "copyright": "© 2026 OmniBoard Studio. Všechna práva vyhrazena."
-  },
-  "Navbar": {
-    "brand": "OmniBoard Studio",
-    "links": [
-      "Funkce",
-      "Výukové materiály",
-      "FAQ",
-      "Stáhnout aplikaci"
-    ],
-    "auth": {
-      "logged_in": [
-        "Nastavení účtu",
-        "Odhlásit se"
-      ],
-      "logged_out": "Přihlásit se"
-    },
-    "mobile_menu": [
-      "Domů",
-      "Výukové materiály",
-      "Stáhnout aplikaci"
-    ]
-  },
-  "Contact": {
-    "page_title": "Kontaktujte nás - OmniBoard Studio",
-    "header": {
-      "title": "Kontaktujte nás",
-      "description": "Rádi bychom od vás slyšeli! Ať už máte dotazy, zpětnou vazbu, nebo chcete jen říct ahoj, neváhejte nás kontaktovat."
-    },
-    "main": {
-      "title": "Napište nám",
-      "description": "Ohledně obecných dotazů, podpory nebo možností partnerství nám prosím pošlete e-mail na krystofotta@gmail.com."
-    }
-  },
-  "Download": {
-    "page_title": "Stáhnout OmniBoard Studio - Vizuální programovací prostředí",
-    "header": {
-      "title": "Stáhnout OmniBoard Studio",
-      "description": "Získejte nejnovější verzi OmniBoard Studio pro vaši platformu. Všechny soubory jsou bezpečně hostovány na našich serverech."
-    },
-    "latest_version": {
-      "title": "Nejnovější verze",
-      "windows": {
-        "title": "Windows",
-        "description": "Stáhněte si instalátor pro Windows a rychle začněte.",
-        "button": "Stáhnout pro Windows"
-      },
-      "linux": {
-        "title": "Linux",
-        "description": "Získejte verzi OmniBoard Studio pro systémy GNU/Linux.",
-        "button": "Stáhnout pro Linux"
-      },
-      "no_releases_message": "V současné době nejsou k dispozici žádné verze ke stažení."
-    },
-    "previous_versions": {
-      "title": "Předchozí verze",
-      "table_headers": [
-        "Verze",
-        "Datum vydání",
-        "Windows",
-        "Linux"
-      ]
-    }
-  },
-  "FAQ": {
-    "page_title": "Často kladené otázky - OmniBoard Studio",
-    "header": {
-      "title": "Často kladené otázky",
-      "description": "Zde najdete odpovědi na běžné dotazy ohledně aplikace OmniBoard Studio."
-    },
-    "questions": [
-      {
-        "question": "Co je to OmniBoard Studio?",
-        "answer": "OmniBoard Studio je vizuální programovací prostředí určené pro projekty s mikrokontroléry. Umožňuje uživatelům vytvářet a kompilovat kód v MicroPythonu pomocí uživatelského rozhraní, které je založeno na principech „táhni a pusť“ (drag and drop) a propojování uzlů (nodes)."
-      },
-      {
-        "question": "Které platformy OmniBoard Studio podporuje?",
-        "answer": "V současnosti OmniBoard Studio podporuje operační systémy Windows a Linux. Aktivně pracujeme na tom, abychom v budoucnu podporu rozšířili i o další platformy."
-      },
-      {
-        "question": "S jakým hardwarem je OmniBoard Studio kompatibilní?",
-        "answer": "Aplikace OmniBoard Studio je navržena pro spolupráci s řadou Raspberry Pi Pico a modely Raspberry Pi 1 až 5. Do budoucích aktualizací plánujeme přidat podporu pro další platformy mikrokontrolérů a jednodeskové počítače."
-      },
-      {
-        "question": "Je používání OmniBoard Studia bezplatné?",
-        "answer": "Ano, aplikace OmniBoard Studio je volně ke stažení a k použití. Náš závazek je poskytovat tvůrcům, pedagogům a kutilům z komunity kolem mikrokontrolérů výkonný a snadno dostupný nástroj."
-      },
-      {
-        "question": "Kde najdu výukové programy a dokumentaci?",
-        "answer": "Ucelené tutoriály a dokumentaci najdete na naší stránce Výukové materiály (Tutorials). Věnujeme se v nich všemu potřebnému: od prvních kroků a nastavení hardwaru přes pokročilou práci s uzly (nodes) až po samotné nasazení projektu."
-      }
-    ]
-  },
-  "Settings": {
-    "page_title": "Nastavení účtu - OmniBoard Studio",
-    "header": {
-      "title": "Nastavení účtu"
-    },
-    "messages": {
-      "unlink_success": "{provider} byl úspěšně odpojen.",
-      "unlink_error": "Nemůžete odpojit svou jedinou metodu přihlášení."
-    },
-    "profile": {
-      "title": "Primární účet",
-      "member_since": "Členem od:"
-    },
-    "login_methods": {
-      "title": "Připojené metody přihlášení",
-      "google": {
-        "name": "Google",
-        "connected_as": "Připojeno jako",
-        "not_connected": "Nepřipojeno",
-        "button_unlink": "Odpojit",
-        "button_connect": "Připojit Google"
-      },
-      "github": {
-        "name": "GitHub",
-        "connected_as": "Připojeno jako",
-        "not_connected": "Nepřipojeno",
-        "button_unlink": "Odpojit",
-        "button_connect": "Připojit GitHub"
-      }
-    }
-  },
-  "login": {
-    "page_title": "Přihlásit se - OmniBoard Studio",
-    "header": "Přihlásit se",
-    "github_button": "Přihlásit se pomocí GitHubu",
-    "google_button": "Přihlásit se pomocí Google"
-  },
-  "Tutorials": {
-    "page_title": "OmniBoard Studio – Vizuální programování pro mikrokontroléry",
-    "header": {
-      "title": "OmniBoard Studio: Výukové materiály",
-      "description": "Objevte naše rozsáhlé výukové materiály, díky kterým využijete aplikaci OmniBoard Studio naplno. Ať už patříte mezi začátečníky, nebo se řadíte ke zkušeným kutilům, máme pro vás návody na skvělé projekty."
-    },
-    "sidebar": {
-      "Getting Started": [
-        "Nastavení Raspberry Pi",
-        "Nastavení Raspberry Pi Pico"
-      ],
-      "Core Concepts": [
-        "Základy elektroniky",
-        "Blikající LED dioda",
-        "LED dioda ovládaná tlačítkem",
-        "Časování LED",
-        "LED semafor"
-      ],
-      "Advanced": [
-        "Propojení s hardwarem"
-      ]
-    },
-    "main_section": {
-      "title": "Dostupné výukové programy",
-      "tutorials_list": [
-        {
-          "label": "Tutoriál 0",
-          "title": "Nastavení Raspberry Pi pro OS na bázi Linuxu",
-          "description": "Návod, jak nastavit Raspberry Pi na bázi OS Linux, abyste ho mohli využívat v programu OmniBoard Studio."
-        },
-        {
-          "label": "Tutoriál 0",
-          "title": "Nastavení Raspberry Pi Pico",
-          "description": "Naučte se flashovat nejnovější firmware MicroPython a připravit svou desku na práci s programem OmniBoard Studio."
-        },
-        {
-          "label": "Tutoriál 1",
-          "title": "Základy elektroniky",
-          "description": "Abyste mohli stavět vlastní projekty, musíte nejdříve porozumět těm nejdůležitějším elektrickým veličinám, symbolům a principům propojování obvodů."
-        },
-        {
-          "label": "Tutoriál 2",
-          "title": "První projekt",
-          "description": "Pomocí uzlů v prostředí aplikace OmniBoard Studio si zvládnete sestavit svůj úplně první interaktivní projekt."
-        },
-        {
-          "label": "Tutoriál 3",
-          "title": "Časování LED",
-          "description": "Připravili jsme pro vás návod, ve kterém se naučíte ovládat LED diodu s využitím aplikace OmniBoard Studio – zkusíte si to pro různé časové intervaly."
-        },
-        {
-          "label": "Tutoriál 4",
-          "title": "LED dioda ovládaná tlačítkem",
-          "description": "Připravili jsme pro vás návod, ve kterém se dozvíte, jak ovládat LED diodu stisknutím tlačítka."
-        }
-      ]
-    }
-  },
-  "Tutorial_0_linux_based_RPI_variant_en": {
-    "page_title": "Nastavení OS Linux pro Raspberry Pi",
-    "header": {
-      "title": "Jak se vypořádat s nastavením systému na bázi Linuxu u Raspberry Pi",
-      "description": "Uvnitř tohoto materiálu vás krůček po krůčku provedeme úskalími správného zapojení klasického Raspberry Pi s využitím OS pracujícího na principech Linuxu. Samozřejmě proto, abychom toto řešení následně bez obav použili společně se softwarem OmniBoard Studio."
-    },
-    "sections": [
-      {
-        "title": "Podporované RPI modely:",
-        "models": [
-          "Raspberry Pi 5",
-          "Raspberry Pi 4 Model B",
-          "Raspberry Pi 3 Model B+",
-          "Raspberry Pi 3 Model B",
-          "Raspberry Pi 3 Model A+",
-          "Raspberry Pi 2 Model B",
-          "Raspberry Pi 1 Model B+",
-          "Raspberry Pi 1 Model B",
-          "Raspberry Pi 1 Model A+",
-          "Raspberry Pi 1 Model A",
-          "Raspberry Pi Zero 2 W*",
-          "Raspberry Pi Zero 2 WH*",
-          "Raspberry Pi Zero W*",
-          "Raspberry Pi Zero"
-        ]
-      },
-      {
-        "title": "Věci, bez kterých se určitě neobejdete:",
-        "requirements": [
-          "Správně zvolený kompatibilní modul, tedy konkrétní deska s označením Raspberry Pi (výběr provádějte na základě nabídky výše)",
-          "Typ paměťové karty ve formátu MicroSD s kapacitou úložiště o minimální velikosti 8GB, ačkoli doporučujeme vsadit spíše na velikosti 32GB+ z třídy Class 10.",
-          "Klasický nabíjecí (respektive jakýkoli standardní napájecí adaptér vyhovující podmínkám rozhraní USB s proudem kolem 5V, který kabelem propojíte se zdrojem). To se zkrátka pro chod zařízení vašeho ražení jistě neztratí.",
-          "HDMI kabel ke zprostředkování monitoru z vnějších i vnitřních podmínek (můžete jej sice brát jen v potaz pouze na samém počátku pro samotný set up, nicméně i tehdy ho u mnohých modelových zástupců nezbytně s redukční pojistkou ve zmenšené variantě neboli jako prvek známý spíše jako micro HDMI budete opravdu muset naplno k provozu použít)."
-        ]
-      },
-      {
-        "title": "Tipy, jak vaše zařízení typu Raspberry Pi odladit krok za krokem k dokonalosti:",
-        "steps": [
-          "Chybět vám nesmí ten vůbec nejdůležitější a tedy v první řadě opravdu hodně oblíbený program – k snazší orientaci využijte ten pod hlavičkou názvu Raspberry Pi Imager. Aktuální verzi můžete vždy bezpečně stáhnout rovnou přes odkaz výrobce: https://www.raspberrypi.com/software/.",
-          "Poté stačí vložit paměťovou kartu z dílny rodiny MicroSD nejdříve k přímému přečtení přímo pomocí vašeho počítače a nechat ji posléze nahrát příslušná data ze softwaru Imager určeného pro platformu zařízení Raspberry Pi.",
-          "Vyberte odpovídající RPI model a s ním zároveň ten z operačních systémů, o který stojíte vůbec nejvíc, (my ze zkušenosti plně sázíme hned radši na OS přímo z produkce značky: Raspberry Pi ve verzi 64 bitové verze). I zde se však naskýtají možnosti kompromisu z řad mnoha zmenšených a tzv. odtučněných verzí zvaných \"lite\", ale nezapomeňte vzít rovněž na paměť, že v případě oné zredukované verze navždy beznadějně ztratíte výhody celkového vyobrazení RPI včetně samotného vizuálu uživatelského rozhraní OS, čili s GUI na RPI nadobro amen a celkové použití pak vůbec ani z daleka není tak snadné k pochopení pro lidi s minimem vstupních znalostí.)",
-          "Teď zvolte na formátované jednotce právě kartu s pamětí typu MicroSD pro cílové zaměření nahrávání vybraného obsahu samotného virtuálního disku pro váš budoucí minipočítačový skvost z edice s označením modelu z palety RPI (často nazývané \"Terčové\" ukládání, pro jistotu tak k zapsání finálního materiálu z nabídky, pro kterou pak máte v oblibě použít rovnou konkrétní označení - storage/cílové disk).",
-          "Klikněte v klidu a s rozumem napřed hned na tlačítko se slovem „Další/Next“ a ihned na to navolte vlastní ideální jméno celého připojeného systému, tzv. jméno vašeho jednodeskového RPI v širé síti připojených virtuálních RPI souputníků – známé to jako „Hostname“, vedle něj ovšem nezapomeňte připojit ani unikátní název či chcete-li Uživatelské jméno určené rovnou přímo ke snadnému způsobu a celému pojetí bezproblémového „Login“ vstupu k vlastní obsluze přístroje. Jako vůbec úplně k těm absolutně a plně stěžejním aspektům chodu zde ještě musíme logicky jednoznačně přiřadit silné vstupní Heslo, a to znovu k řádnému odhlášení i přihlášení (dále se běžně využívá též známé spíše jako pojem - Login password). V obou naposledy vyjmenovaných ohledech (tedy uživatelského pojmenování i bezpečnostního hesla) se pak zkuste raději napřed obzvlášť hodně dobře upřímně vynasnažit udržet všechny zmiňované kombinace s pamatovanými variacemi k celkovému nastavení bez jakýchkoli okolků plně bez sebemenších nedorozumění ve vaší vlastní dobře cvičené představivosti/nepaměti – či spíš právě paměti v první řadě!",
-          "Pro zadání jména WiFi sítě včetně přidruženého hesla se s dalším postupem plynule seznamte bez zdržování již dopředu. Celkový přehled včetně zapojených dostupných lokálních internetových připojení nicméně není u většiny produktových přírůstků nikterak přísně konečný, takže v rámci následného dalšího rozvržení RPI konfigurace nebude pro budoucí chvíle žádný závažný oříšek v aplikaci s předponou GUI či v SSH ani o chloupek nesnadnější síť připojit novou.",
-          "Definujte vaše stávající i to k danému místu naprosto ideální odpovídající a tudíž k používání preferované rozvržení časových zón a nakonec takto s úspěchem určete plnohodnotně a adekvátně rovnou plošně celou předlohu nastavení vaší počítačové klávesnice v podobě toho na míru přesně padnoucího rozložení.",
-          "Chcete-li ovšem využít jakéhokoliv dálkového řízení či vnější kontroly přes celou délku komunikačního vzdálenostního pole se speciální sadou rozsáhlých příkazů či procesy pro přístup ze značně oddálených přípojek, zaktivujte určitě též funkci k zapnutí VNC se zbytkem funkcionalit SSH pro další chvíle.",
-          "Stiskem na „Zapsat/Write“ úspěšně zaktivujete povel k postupné formaci u nahrávání stávající systémové šablony (tzv. obrys plně využitelného „obrazu“ virtuálního programu ve velikosti jedné verze softwaru k spuštění). Na to už s jistotou upozorňuje též varovné připomenutí, ať raději nezapomenete před jakýmkoliv činem vzít s jistotou na vlastní uvědomění jeden sice zprvu banální nicméně velmi významný i dosti silně se propisující fakt s obřími škodami v podobě kompletní redukce paměti uložené na celé širé škále oné jednotky. Ano, teď se zde vymazává doopravdy vše uložené z MicroSD karty! Písemná výstraha proto s opatrností raději praví (ve vší úctě k obřím nešťastným ztrátám s naprosto katastrofálním důsledkem chyb v paměti): POZOR: V tomto kroku bezostyšně nenávratně smáznete každé byť sebemenší smítko uživatelských informací i kousky dat doteď beztrestně pohozené, volně poskakující ze dne na den mezi prázdnými úložnými prostorami celé vkládané vnější paměťové jednotky MicroSD!",
-          "Po naprostém dokreslení obrazu a skončení oné dosti složité i lehce dlouhé doby kopírovací mánie konečně úspěšně a pak rovnou celkem s velkou slávou vysvoboďte celou kartu, ze zdánlivého počítačového uvěznění – avšak raději pouze tak plně v duchu standardizovaného, opatrného a na první pohled takzvaného i nejvýš doporučeného přístupu v mantinelech tzv. postupu spojeného s volbou „bezpečného odebrání jednotky“ („safely eject“). A takhle vysvobozený materiál typu jedné poctivě zpracované MicroSD paměťové karty s OS pro svůj RPI zázrak rovnou neváhejte vsunout tam, kam vlastně od pohledu patří nejlépe - a sice neomylně s lehkostí do správného slotu čerstvě na ten akt vyčkávající úložné Raspberry Pi zdířky.",
-          "Nastartujte zařízení rodiny Raspberry Pi do režimu „Power On“ – stačí prostě jen správně zajistit adekvátní síť s odpovídajícím přívodem napájení k zásuvce (pokud samozřejmě jako rozumní kutilové vůbec stojíte za možností vidět předlohu systému – takzvané využití přes typický proces grafických předpokladů k navigaci spojených s pojmem z pole GUI). V tu chvíli ihned pochopíte logiku snahy mít na dané příležitosti po ruce raději myš a pro začátek bez ohledu na věci příští jednoznačně a spolehlivě též pořádnou klávesnici v jednom kompletu do usb slotů připojenou.",
-          {
-            "description": "První krok ke spojení k navázání kontaktů a první fáze do nastavení parametrů",
-            "instructions": [
-              "V rámci obsluhování zařízení zvaných s ohledem k funkčnímu prvku jako GUI, navolte ke zpřístupnění celého obsahu obě dvě položky vašeho hesla pospolu vedle s polem vyplněného uživatelského účtu. Jako ten v logickém a postupném sledu úplně nejzazší kousek si tak už s radostí bez bázně nakonec zkuste rovnou cvičně otevřít klasický rozklikávací virtuální ovládací panel ukrytý vždy v nitru záložek rolovacího systému z rodiny složek ukrytých s označením terminálu (v menu ho většinou objevíte na klikací cestě postavené následovně: Aplikace – tedy Applications > dále směr a hledáček k Příslušenství neboli s anglickým výrazivem ke složce s označením Accessories > na konci naší výpravy pak s vítězným kliknutím stisknete s odhodláním ono pomyslné tlačítko s pojmem Terminal.)",
-              "Bude-li využita celá řádná šíře služeb a postupů se systémem na bázi SSH funkcionalit – ptejte se především ve věci odhalování adres pro navigační RPI a zjistěte její podobu skrz zadní vrátka domovských serverů s vaší internetovou rozvodnou přípojkou na administrátorském křesle z přihlašovací obrazovky (jinými slovy pak skrytě a naprosto přes router), příp. zkuste celou sadu procesů po vzoru s nástrojem na bázi odhalování přesně tohoto parametru například spuštěním nmapu, nebo rovnou po úspěšném odhalení cíle proveďte napojení pro celou správu od připojení přímo přes některého ze zástupců tzv. klientských portálů v programu SSH (např. v oknech známých s programem PuTTY běžících pro formáty s opěrným Windows základem, potažmo dohledatelnou z nabídky ve službě macOS popř. na Linuxovém Terminal okně). Užitý standard v přepisové textově psané direktivě pro navigační zrychlení u spouštění: příkaz neboli command - ssh vasejmeno@pridelena_ip_adresa. V momentě na řádek plně zapíšete onen výraz ke zdárnému přijetí formou třech hlásek „yes“ a zadáte správně i to zdlouhavě i složitě a na 100% po celou dobu spolehlivě dobře držené nejpřísněji hlídané heslo. Bingo! Přesně tahle snaha totiž rázem stačila do cíle k pokročilejším možnostem přesně řízených operací v režimu příkazového řádku samotného obslužného zařízení vašeho minipočítačového systému s hlavičkou RPI (kompletně psaný též pod anglickým synonymním termínem jako příkaz Command line interface - zkráceně též CLI).",
-              "Poté stačí zapojit do hry rovnou přes terminálovou zónu pro povely aktualizační výpočet se záměrem zaktualizování všeho toho balastu (čímž napomůžete navíc ke znatelnému zlepšení celkového fungování i chodu uvnitř samotného operačního podhoubí s rozvojem procesorového řízení z jádra). Prostě a jasně teď na příkazovém řádku neomylně udejte a proklepněte tento příkaz do finále s vypsaným slovesným sdělením formálně ohraničeným větou: sudo apt update && sudo apt full-upgrade -y",
-              "S využitím z rozcestníků plného menu se zkratkou s písmeny známými spíše dohromady jako vizuální prvek s označením rozhraní GUI (neboli toho s převahou klikací verze i celkového formování ze standardního obrazového základu navržených složek), dostáváte rovnou pro přímou spolupráci v celkově velmi rozšiřujícím a zajímavém konceptu, též s ohromným znatelným ohlasem u spousty zvědavců možnost volně operovat též uvnitř programu spuštěném do podoby známé pod pseudonymem či reálnou obchodní známkou - a tím pro napojení bez jakýchkoliv těžkostí hned přímo až k uživatelskému koutku virtuálního pracovního zobrazení obrazovky, do plochy v rámci vzdáleného spuštění s programem ze stáje označené od výrobce jménem: RealVNC Viewer. JEN MĚJTE V PATRNOSTI ŽE JE URČITĚ SILNĚ DOPORUČENÉ PŘED TÍM VŠÍM NEZAPOMENOUT NA NÁSLEDUJÍCÍ POZNÁMKU (ve zkratce známou pod slovem NOTE): Pokud hodláte a doopravdy zvažujete tento krok opravdu po zásluze s rozumným naplánováním s klidem, vážností a z pohodlí se ctí užít, určitě a raději navždy do paměti vtiskněte poučení že: Před celou akcí musíte v útrobách dohledu v nastavení RPI neomylně s rozmyslem povolovat funkci přes VNC propojení u příslušných posuvníků se stavy spuštěno s nastavením zapnuto, odškrtnuto v oné složce (tedy cesta zpravidla vede v rámci menu takto: Preferences neboli do sekce s českým slovem jako Předvolby > Dále z nabídky na volbu pod označením směr přesun k řádku označeném s RPI modelem slovy Raspberry Pi Configuration čili přes slovo k Nastavení či Konfigurace samotného systému samotného počítače z palety modelů Raspberry Pi > V samém konci už pak jen jednoduše vykliknout onen prvek pod třípísmenným označením do funkční zkratky s pojmem zapnout: VNC).",
-              "K následnému promítnutí oněch novot se celková instalovaná struktura bez problémů restartováním zařízení ze zapnutí RPI zresetuje do počátečního stadia nabootování už rovnou se započatými i uloženými zásahy a modifikacemi u aplikací s příkazem slova ke spuštění operace: sudo reboot."
-            ]
-          }
-        ],
-        "notes": [
-          "Dioda v rudém zbarvení u RPI (tzn. nepsaně tak nějak většinou celosvětově standardizovaně ta barvy svítící spíš až v tónech světle syté do tmavě či jemně do jasně tónované do rudě červeného odstínu z palety barev, tedy neboli jasně - prostě tzv. klasické označení zobrazení od LED typu Red) – tedy blikající nebo přímo též plně celou silou rovnou stabilně naprosto přesvědčivě dlouhodobě už do jasna po spuštění pro bliknutí tak jako semafor - spolehlivě tak indikující plnohodnotné fungování pod zátěží bezproblémově zapojené síly pro přípojku (čili se správností pro proudění přiměřeně nastaveného a regulérního správného napájecího elementu přicházejícího k desce a na kontaktech neboli prostě a jasně spíše ze starší technické angličtiny přes slovní pojem z oboru taktéž občas laicky jako síla od slovíčka pod heslem power - energie bez přerušení s ukázkovou stabilitou celého RPI). O trochu jiná světelná ukázková situace se ve vedlejší rovině odehrává za doprovodu svitu druhého z ukazatelů, tedy opět k prozkoumání zblízka za pomoci pohledu i diody (tentokrát ovšem zelené) – v zeleném provedení s ohledem k signalizacím pro svit od Green LED. Ta totiž blikáním naznačuje a s mírnou doprovodnou odezvou pro oko hned radostně jasně dokazuje samotnému vnímateli s postřehem k chodu minipočítače – tzn. tedy informuje na první pohled o dějících se stěžejních příkazech z centra RPI ke komunikaci do úložného bloku a to z činností přímo ohledně propisování nových nebo se snaží o proces ke čtení/načítání těch na ní s úspěchem celých již zapsaných dat uvnitř MicroSD úložného modulu se zasunutou formou přes sd port na celkové desce a ukazuje o všem zmíněném neomezeně od počátku do konce operace – (čili napovídá něco k rovině okolo dějů z procesního základu tzv. reading/writing neboli klasické formě čtení dat / psaní záznamů do úložného zázemí s cílem se zasunutou v řádném úložišti čipových portů na spodní i svrchní části čipu čili od zasunuté paměti v zařízení pro zapojení a spojení formou konektoru formátu s porty do karet pro zasunutí do RPI typu s formátem MicroSD na konektoru paměti typu card).",
-          "Můžete si též snadno do budoucna ušetřit nejedno nechtěné a naprosto nevhodné překvapení do dalších zmatených dní při řešení záludností a potíží tak, že si pohlídáte též zrádné hvězdičky (ve formě * za názvy variant počítače). Své nesporné opodstatnění, proč tomu zrovna tam tak v mnoha popisech na těchto webových záznamech vlastně v popisu nakonec u modelů bývá, samozřejmě do důsledku objasní s naprostou přesností též hvězdičky, tedy znatelně s vysvětlením též obvyklého symbolu se značením k prodeji do koncového bodu u jména – zkratce se schovaným tajemstvím za popisem s písmenkem od základu od W * (zkratka W totiž neznamená u většiny produktů s modelovými řadami u celých čipů nic menšího ani na druhou stranu nic většího do vysvětleného popisu k danému zjištění), a rovnou objasňuje bez řečí pro označení modelů bez prodlení rovnou vysvětlením od plného odhalení smyslu v pojmu od významu slůvka přes spojení pro fakt k zjištění i rovnou celkem jasnou informaci s překladem z textu do znění toho, co onen přepis v popisu znamená od písmena s popisem RPI s tvarem do pojmu s modelem obdařeného i plně vyzbrojeného spolehlivě plně připraveným a k nasazení i plošně zapojeným systémem od funkčního hardwaru pro zapojení s WiFi a příbuzných dálkových připojení k modulu pro WiFi připojení z výroby built-in do struktury a z výroby dodaného do podoby zabudované funkcionality přímo i na čip od plošného spoje rovnou s ohledem na dodanou podporu signálu pro internet s technologií též od WiFi – vestavěného adaptéru s funkčním anténním spojením zabudovaného modulu (koneckonců od doby k představení RPI s číslem série s trojkou model od označení typu na trhu pod celým pojmenováním z rodiny model 3 a logicky přirozeně a se vzestupným pokrokem tak logicky též všech i z těch od něj těch výše zmíněných starších pokročilejších edic v nabídkách na světových trzích – výjimky k potvrzení pravidla pro vývoj a vizi do nynějšího stavu a doby do přehledu v tomto segmentu bez povšimnutí spíše už nenajdete a též mají plošně obdařeny pro tuto funkčnost připojení obvod a vestavěným čipem do rodiny prvků přes signály s modulem od internetu skrze vnitřnosti vestavěného rozvodu od základu spjaté naplno na desku přímo připájené funkcionalitou z ústrojí z řady s technologií pro WiFi k vysílání zabudovanou – built in). <br> Symbolika ohledně skrytého detailu s druhou odbočkou o doplňujícím znění * k doplňku u druhé hvězdičky (totiž k písmenům v případě s variantou se jménem WH) bez okolků na první dobrou jasně poukazuje, s odkazem o vlastnostech modelu bez rozdílů oproti verzi předchozí bez onoho znaku do odlišení, též bezezbytku o faktu, že má krom zavedeného internetového WiFi spojení zabudovaného pro daný druh modelu již přímo s konektivitou WiFi vestavěnou na modulu obvodu formátu do RPI z pole od vestavěného – built in, rovnou z logických pohnutek z pohledu obvodu na desku připájené už k plně osazené do zkušebních otvorů kolíky tzn. jako tzv. headers z formátu připojených rovnou do čipu s deskou u plošných kontaktů plně obdařeny obvody popsanými připojeným plošným základem a do pájené formy z plně zaletovaného od osazených a k připojení hotových prvků – od slova tedy popsaného jako u modelů s tzv. already populated obvodovými kolíky pro spojení."
-        ]
-      }
-    ]
-  },
-  "Tutorial_0_RPI_PICO_variant_en": {
-    "page_title": "Tutoriál k nastavení pro Raspberry Pi Pico – od OmniBoard Studio",
-    "header": {
-      "title": "Celkové seznámení a nastavení pro Raspberry Pi Pico",
-      "description": "Zjistěte z první ruky rovnou snadno od expertů z celého studia s praxí ověřeným způsobem – naučte se tak konečně jednoduše s pochopením a lehkostí plnohodnotně a zcela sami pro obvodové spoje desky zvládnout nástrahy od zkoušek při příležitostech ke schopnosti umět ovládat a úspěšně flashovat systém od novinek z nejnovějšího zástupce systémů s programem od vydavatelství u znění pro firmware od jména softwaru s logem a názvem pod licencí od rodiny MicroPython a připravit tím rovnou samotný stroj v podobě obvodu i desky do dokonalosti po stránce připravené ke spolupráci obsluhovaného pro zapojení od programů v naší zbrusu připravené pro plné zátěže s aplikací ze série OmniBoard Studio."
-    },
-    "sections": [
-      {
-        "title": "Celkový přehled z podpory s modelem ze zastoupení u obvodů z podpory s kompatibilitou Raspberry Pi Pico ve všech známých formách modelů u známých variant k odzkoušení a zobrazení k vývoji v programu s ohledem na podporu ze znění variant i z nabídky pro zapojení do kompatibilního prostředí pro odzkoušení – Supported Variants:",
-        "variants": [
-          "Raspberry Pi Pico",
-          "Raspberry Pi Pico W*",
-          "Raspberry Pi Pico WH*",
-          "Raspberry Pi Pico 2",
-          "Raspberry Pi Pico 2 W*"
-        ]
-      },
-      {
-        "title": "Co vše pro jistotu ze základu do vybavení od samotného přístroje přesně nezapomenout pořídit k řádnému odladění – tzn. pomůcky k chodu co budete po všechny dny s obsluhou k provozu v základu zcela neodkladně 100% občas s radostí ze zkoušení v projektu pro úspěch zkrátka dovybavit i u plošných potřeb pro funkčnost v tomto návodu k bezproblémovým přípravám zcela nutně pro činnost nezbytně od úspěchu vyžadovat – neboli v krátkosti: You will need:",
-        "requirements": [
-          "Správný kus funkční pro prodej u prodejce, tzn. vybraná odpovídající do základu formovaná funkčně zapojená obvodová modelová deska s názvem u značení s nápisem u modelové zkoušky na kompatibilní kus pro zařízení od zástupců Raspberry Pi Pico z obvodu s obsahem desky tzn. board (tedy jako pomůcka rovnou raději rovnou před zkouškou a pokusy navolte od seznamu a ukažte pohledem ze specifikací do výběru od modelů viz seznam s vypsáním s označením v listu k prověření pro odzkoušení na vrchu – tj. pro kompatibilní variantu u viz specifikace see list above)",
-          "Připojené pro spojení nezbytné dráty, do zapojení ze zavedených a po desítky let zaručených kabeláží z prodejen pro elektroniku pod tvarem spíše u starších z kabelů s koncovkou ve verzi po jménu přes konektor do označení ze skupiny a od Micro USB s kabelem připraveným do balení pro zprostředkování od portů pro propojování a spojení pro přenesení k modulu od desky se zapojením na minipočítače s odznakem z portfolia přes Pico s konektory do spárování v zdířkách přímo ve vstupu do portu přes koncovky s přístrojem pro počítač (odkud ho i řídíme a napájíme - to your computer)",
-          "Počítač, popř. též přenosný model tzn. laptop či jiné formy do zařízení s výpočetním z hlediska funkcionalit počítačovým výkonem tzn. stroj s označením computer ze specifikací obdařeným naprosto neoddiskutovatelně se zakončením do slotu ke zdi ze zavedených spojů do připojení přes slotové vstupy na zkoušení pro sběrnici ze zapojení ve formátu do zdířky od USB do standardů z portů do spojů a nezapomenout navíc rovnou naprosto se vším pro zaručený stálý od zkoušek po úspěšný výsledek pro bezpečný a stabilně zajištěný od spuštění k ukončení naprosto bez přerušení připojený od dodavatelů k formátu přístupu ze spojení na lokální připojení přes síť na internet do rozvodů u datové dálnice v celosvětové od zkoušek spojení u adres s doménou od připojení bez ztrát na rychlosti v režimu a po plném ověření přes úspěšný zkušební krok se signálem a spojením na plnohodnotný zaručený do cloudu s příkazem u vstupu na plný přístup k obsahu na internet u připojení – u termínu od internet access"
-        ]
-      },
-      {
-        "title": "Celkový přehled a navazující kroky s postupem do fáze dokončení od začátku do konce s připojením a instalacemi bez potíží pro nastavení zařízení ze sekce a od modelové sady vašeho zkušebního obvodového minipočítače od typu ve verzi ke stroji na připojení přes piny od verze ke jménu desky Raspberry Pi Pico (do originálu v překladu k originálnímu znění neboli kroky na zkoušení s názvem od slova pro Steps do překladu jako se zaměřením z nastavení přes set up od vlastního vybavení strojem s názvem your Raspberry Pi Pico):",
-        "steps": [
-          {
-            "description": "Jako u vůbec jednoho z opravdu prvních v důležitosti z postupů před nastavením zkuste k stažení vybrat radši ke svému obvodovému spojení v podobě softwarového prostředí se zařízením spíše s ohledem na aktuálnost verzi v nejnovějších aktualizacích s nejnovějším modelem v překladu pro stáhnutí s funkcionalitami do systému ze zavedených v MicroPython se zkušební platformou pro software i přes odnože pro funkční spoj s platformou RPI – tzn. s odkazem k download the latest version ze zavedených s funkcionalitou z firmwaru od MicroPython na přístroje rodiny od verze for your RPI",
-            "links": [
-              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace pro Pico (pro originální název v přepisu tedy s překladem z for Raspberry Pi z verze Pico): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO/",
-              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady rodiny modelů k modelu z verze s PICO pod doplňujícím názvem s W od specifikace s dalším typem u koncovky u označení do formátu a jména s odkazem do WH z nabídky trhu (pro originální název v přepisu tedy s překladem z for Raspberry Pi z verze Pico od odkazů u koncovky z názvu od W přes symboly a spojky do textu pro výraz and ze specifikací u zkrácení jmenného názvu s přídomkem k verzi na konci – WH): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO_W/",
-              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady u novějších rodiny modelů k modelu z verze s novou generací u PICO vylepšené u druhé revize pod doplňujícím názvem na novou sadu od specifikace s označením s dalším typem s číslovkou u doplňku u koncovky u označení do formátu a jména na konec řádku s odkazem do generace u řady s novým názvem u čísla od formátu novinky v prodeji k obvodové desce pod názvem Pico 2 (pro originální název v přepisu tedy s překladem z angličtiny do přehledu v textu pro model s typem for Raspberry Pi z verze na odlišení pro sérii u edic pro desky s označením Pico na edici z generace přes odlišení a s dodatkem o verzi na číslo s hodnotou z názvu ke stroji u pinu přes nápis ve verzi z řady 2): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO2/",
-              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady u novějších rodiny modelů k modelu z verze s novou generací u PICO vylepšené u druhé revize pod doplňujícím názvem na novou sadu od specifikace s označením s dalším typem s číslovkou u doplňku u koncovky s modelem z verze pro internet ze skrytého označení doplňku W s dalším typem u koncovky u označení do formátu a jména s odkazem do WH z nabídky trhu ze specifikace u zkrácení jmenného názvu s přídomkem k verzi na konci ve verzi u zkratky a formátu s obvodovým zkrácením s koncovkou ve znamení názvu u modelu – WH z nabídky trhu u řady u generací s odlišením (pro originální název v přepisu tedy s překladem z angličtiny do přehledu v textu pro model s typem for Raspberry Pi z verze na odlišení pro sérii u edic pro desky s označením Pico odkazů u koncovky z názvu u generace u řady novinky ve verzi 2 na odlišení o verzi na číslo a navíc s přídavkem od doplňků W přes symboly a spojky do textu pro výraz s překladem od slova and ze specifikací a modelu WH): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO2_W/"
-            ]
-          },
-          "Spojte zaručeně neomylně do zapojení ze zavedených u vašeho zařízení vaší modelovou obvodovou modifikaci v zastoupení pro zkoušení přes Raspberry Pi u Pico s funkční přípojkou do chodu obvodů směrem pro připojení vašeho na výkon obdařeného u slotu ke spuštění stroje s napájením pro řídící v řízení pro ovládání přes program k instalaci od počítače, s pomocí zprostředkovaného toku z kabelu u přípojky (tzn. ze slov from original: to your computer s odkazem pro zapojení) ve formátu ke spuštění procesu na propojení pomocí z kabelové řady (tedy spojené i pod překladem k postupu od textu u sítě s using pro funkčnost k The Micro USB u modelu od kabelu pod řadou u drátového spojení ve slovech pro angličtinu k pojmu do základu v cable), vše při probíhajícím současně (což se v oboru značí přísně s doporučením o podržení tlačítka čili from the while u textového holding ze sepnutí v textu do polohy down s držením na stisknutí bez přerušení k sepnutí) speciálně navrženého do příkazu na spouštění u řízení od hardwarového sepnutí přes spínač pro ovládání v módu BOOTSEL (tlačítko, tedy u přechodu v tlačítko obvykle rovnou do podoby v typicky jasně svítící či barevné pro odlišení barvě v tónu s odlišením z rodiny barev u světlého povrchu, do světlé v zobrazení do odstínů u světle z bílé od slov z white u spínače pro spouštění od zavedeného buttonu) navržené do architektury čipu v obvodu na samotném hardwaru k řízení na modelu od zmenšeniny z rodiny do pico u formátu s příslušným RPI (on the Pico z verze originálu). Právě to zkrátka celé totiž na povel s jistotou do procesu bezpečně rovnou s rychlostí (This will ze spuštění) celkově zapojí na plné úsilí i do zátěže ke zprostředkování úkonu nastaví neboli rovnou z provozních procedur převede na přímé zadání čip (odkud ho i řídíme a napájíme - put the Pico do zátěžového modelu ke komunikaci do úložného s módem formátu ze slova for USB) s přesným odladěním od nastaveného modulu ze série z nastavení s přístupem do řady velkokapacitního rozhraní od dat s modulem k přístupu z uložení v zařízení (z anglického originálu přeloženo od textu spjatého u mass do zázemí s velikou do uložení od slova storage u paměťového obsluhování z režimu – do spárování v zdířkách přímo ve vstupu do portu do formátu do slovíčka na konci od anglického z mode).",
-          "Zkopírujte ke zkušebnímu přesunutí z formátu se soubory a navolte možnost z nabídky k překopírování do podoby u přesunu z volby ze zkopírovat tzn. přetáhněte (Copy u označení do akce) s radostí ze staženého uložiště již zdárně dopředu bezchybně zařazený z připravených na zkoušení soubor plný pokynů stáhnutého k funkčnosti čipu s formátem ze softwaru u vydání a řad do příkazu ze samotného firmwaru pro obvod z verze s naprogramovanou logikou do funkčních datových modulů s logikou u softwaru od programátorské sady k logice s rodinou jazyků z MicroPython se strukturou (the downloaded k překladu v zkopírované a stažené balíčky pro MicroPython se firmware v balíčku po stažení do souboru neboli z formátu v file) na příslušnou složku spojenou s kořenovým zázemím a centrálním uložištěm rozdělení adresářů (to the ze spojení pro směr k složce Pico u verze z obvodu s obsahem desky pro soubor a rozdělení ke stromové základní logice souborů s koncovkami od řad u stromu souborů u tzv. root se složkou formátu k složkám do řazení z directory u označení adresář) - jako v závorce na upozornění k faktu k seznámení pro uživatele jako u odlišení pro chod v zobrazení při spuštění v režimu od čipu a z verze o upozornění (celé desky po vzoru z verze tzn. z the Pico pak logicky bez rozpaků ve chvílích napojení po zapnutí rovnou se po detekci ukáže nebo aspoň k náhledu naprosto bezchybně ve vyobrazení u počítače poslušně vyskočí - will appear jakožto po obsluze zařízení as a rovnou do formátu klasického ze zavedených v podobě k přístroji od disků či z přepisů od paměťové karty pro flash u paměťových do USB rozhraní na úložném v drive s označením pro klasický disk k propojení na USB port a konektor)."
-        ]
-      }
-    ]
-  },
   "Basic_therms": {
     "page_title": "Základy elektroniky a schémata zapojení",
     "header": {
@@ -504,6 +152,211 @@
       }
     ]
   },
+  "Contact": {
+    "page_title": "Kontaktujte nás - OmniBoard Studio",
+    "header": {
+      "title": "Kontaktujte nás",
+      "description": "Rádi bychom od vás slyšeli! Ať už máte dotazy, zpětnou vazbu, nebo chcete jen říct ahoj, neváhejte nás kontaktovat."
+    },
+    "main": {
+      "title": "Napište nám",
+      "description": "Ohledně obecných dotazů, podpory nebo možností partnerství nám prosím pošlete e-mail na krystofotta@gmail.com."
+    }
+  },
+  "Download": {
+    "page_title": "Stáhnout OmniBoard Studio - Vizuální programovací prostředí",
+    "header": {
+      "title": "Stáhnout OmniBoard Studio",
+      "description": "Získejte nejnovější verzi OmniBoard Studio pro vaši platformu. Všechny soubory jsou bezpečně hostovány na našich serverech."
+    },
+    "latest_version": {
+      "title": "Nejnovější verze",
+      "windows": {
+        "title": "Windows",
+        "description": "Stáhněte si instalátor pro Windows a rychle začněte.",
+        "button": "Stáhnout pro Windows"
+      },
+      "linux": {
+        "title": "Linux",
+        "description": "Získejte verzi OmniBoard Studio pro systémy GNU/Linux.",
+        "button": "Stáhnout pro Linux"
+      },
+      "no_releases_message": "V současné době nejsou k dispozici žádné verze ke stažení."
+    },
+    "previous_versions": {
+      "title": "Předchozí verze",
+      "table_headers": [
+        "Verze",
+        "Datum vydání",
+        "Windows",
+        "Linux"
+      ]
+    }
+  },
+  "FAQ": {
+    "page_title": "Často kladené otázky - OmniBoard Studio",
+    "header": {
+      "title": "Často kladené otázky",
+      "description": "Zde najdete odpovědi na běžné dotazy ohledně aplikace OmniBoard Studio."
+    },
+    "questions": [
+      {
+        "question": "Co je to OmniBoard Studio?",
+        "answer": "OmniBoard Studio je vizuální programovací prostředí určené pro projekty s mikrokontroléry. Umožňuje uživatelům vytvářet a kompilovat kód v MicroPythonu pomocí uživatelského rozhraní, které je založeno na principech „táhni a pusť“ (drag and drop) a propojování uzlů (nodes)."
+      },
+      {
+        "question": "Které platformy OmniBoard Studio podporuje?",
+        "answer": "V současnosti OmniBoard Studio podporuje operační systémy Windows a Linux. Aktivně pracujeme na tom, abychom v budoucnu podporu rozšířili i o další platformy."
+      },
+      {
+        "question": "S jakým hardwarem je OmniBoard Studio kompatibilní?",
+        "answer": "Aplikace OmniBoard Studio je navržena pro spolupráci s řadou Raspberry Pi Pico a modely Raspberry Pi 1 až 5. Do budoucích aktualizací plánujeme přidat podporu pro další platformy mikrokontrolérů a jednodeskové počítače."
+      },
+      {
+        "question": "Je používání OmniBoard Studia bezplatné?",
+        "answer": "Ano, aplikace OmniBoard Studio je volně ke stažení a k použití. Náš závazek je poskytovat tvůrcům, pedagogům a kutilům z komunity kolem mikrokontrolérů výkonný a snadno dostupný nástroj."
+      },
+      {
+        "question": "Kde najdu výukové programy a dokumentaci?",
+        "answer": "Ucelené tutoriály a dokumentaci najdete na naší stránce Výukové materiály (Tutorials). Věnujeme se v nich všemu potřebnému: od prvních kroků a nastavení hardwaru přes pokročilou práci s uzly (nodes) až po samotné nasazení projektu."
+      }
+    ]
+  },
+  "Footer": {
+    "links": [
+      "OmniBoard Studio",
+      "Funkce",
+      "Výukové materiály",
+      "Často kladené otázky",
+      "Stáhnout aplikaci",
+      "Kontaktujte nás"
+    ],
+    "copyright": "© 2026 OmniBoard Studio. Všechna práva vyhrazena."
+  },
+  "Index": {
+    "page_title": "OmniBoard Studio - Vizuální programování pro mikrokontroléry a mikropočítače",
+    "header": {
+      "title": "Vizuální programování pro mikrokontroléry a mikropočítače",
+      "description": "Vytvářejte a kompilujte projekty pro MicroPython a Python zcela jednoduše. Ucelené vizuální uzlové (node) prostředí se zabudovaným editorem kódu, optimalizované pro Raspberry Pi Pico i další zařízení.",
+      "buttons": [
+        "Začínáme",
+        "Přečíst dokumentaci"
+      ]
+    },
+    "core_features": {
+      "title": "Klíčové vlastnosti",
+      "features": [
+        {
+          "title": "Vizuální editor uzlů",
+          "description": "Přetahujte logické bloky, časovače a hardwarová rozhraní a snadno tak budujte komplexní logiku bez nutnosti ručního psaní syntaxe."
+        },
+        {
+          "title": "Integrovaný kompilátor",
+          "description": "Okamžitě převádějte vizuální diagramy uzlů do optimalizovaného kódu MicroPython a Python, který je ihned připravený k nasazení na připojená zařízení."
+        },
+        {
+          "title": "Hardwarová podpora",
+          "description": "Nativní podpora a postupy nastavení přímo pro řadu Raspberry Pi Pico a modely Raspberry Pi 1 až 5."
+        }
+      ]
+    },
+    "future_developments": {
+      "title": "Plány do budoucna",
+      "features": [
+        {
+          "title": "Rozšířená podpora hardwaru",
+          "description": "Rozšíření kompatibility o další platformy mikrokontrolérů a jednodeskové počítače mimo ekosystém Raspberry Pi."
+        },
+        {
+          "title": "Pokročilé typy uzlů",
+          "description": "Uvedení nových kategorií uzlů, s nimiž zvládnete i složitější logiku, zpracování dat a hardwarové interakce."
+        },
+        {
+          "title": "Příspěvky od komunity",
+          "description": "Podpora pro všechny uživatele: můžete s ostatními sdílet vlastní šablony uzlů, tutoriály nebo nápady na projekty, a společně tak vytvořit výukové prostředí pro snazší spolupráci."
+        }
+      ]
+    }
+  },
+  "Navbar": {
+    "brand": "OmniBoard Studio",
+    "links": [
+      "Funkce",
+      "Výukové materiály",
+      "FAQ",
+      "Stáhnout aplikaci"
+    ],
+    "auth": {
+      "logged_in": [
+        "Nastavení účtu",
+        "Odhlásit se"
+      ],
+      "logged_out": "Přihlásit se"
+    },
+    "mobile_menu": [
+      "Domů",
+      "Výukové materiály",
+      "Stáhnout aplikaci"
+    ]
+  },
+  "Tutorials": {
+    "page_title": "OmniBoard Studio – Vizuální programování pro mikrokontroléry",
+    "header": {
+      "title": "OmniBoard Studio: Výukové materiály",
+      "description": "Objevte naše rozsáhlé výukové materiály, díky kterým využijete aplikaci OmniBoard Studio naplno. Ať už patříte mezi začátečníky, nebo se řadíte ke zkušeným kutilům, máme pro vás návody na skvělé projekty."
+    },
+    "sidebar": {
+      "Getting Started": [
+        "Nastavení Raspberry Pi",
+        "Nastavení Raspberry Pi Pico"
+      ],
+      "Core Concepts": [
+        "Základy elektroniky",
+        "Blikající LED dioda",
+        "LED dioda ovládaná tlačítkem",
+        "Časování LED",
+        "LED semafor"
+      ],
+      "Advanced": [
+        "Propojení s hardwarem"
+      ]
+    },
+    "main_section": {
+      "title": "Dostupné výukové programy",
+      "tutorials_list": [
+        {
+          "label": "Tutoriál 0",
+          "title": "Nastavení Raspberry Pi pro OS na bázi Linuxu",
+          "description": "Návod, jak nastavit Raspberry Pi na bázi OS Linux, abyste ho mohli využívat v programu OmniBoard Studio."
+        },
+        {
+          "label": "Tutoriál 0",
+          "title": "Nastavení Raspberry Pi Pico",
+          "description": "Naučte se flashovat nejnovější firmware MicroPython a připravit svou desku na práci s programem OmniBoard Studio."
+        },
+        {
+          "label": "Tutoriál 1",
+          "title": "Základy elektroniky",
+          "description": "Abyste mohli stavět vlastní projekty, musíte nejdříve porozumět těm nejdůležitějším elektrickým veličinám, symbolům a principům propojování obvodů."
+        },
+        {
+          "label": "Tutoriál 2",
+          "title": "První projekt",
+          "description": "Pomocí uzlů v prostředí aplikace OmniBoard Studio si zvládnete sestavit svůj úplně první interaktivní projekt."
+        },
+        {
+          "label": "Tutoriál 3",
+          "title": "Časování LED",
+          "description": "Připravili jsme pro vás návod, ve kterém se naučíte ovládat LED diodu s využitím aplikace OmniBoard Studio – zkusíte si to pro různé časové intervaly."
+        },
+        {
+          "label": "Tutoriál 4",
+          "title": "LED dioda ovládaná tlačítkem",
+          "description": "Připravili jsme pro vás návod, ve kterém se dozvíte, jak ovládat LED diodu stisknutím tlačítka."
+        }
+      ]
+    }
+  },
   "LED_trafic_light": {
     "page_title": "Výukový program LED semafor – OmniBoard Studio",
     "header": {
@@ -575,5 +428,146 @@
         }
       }
     ]
+  },
+  "Tutorial_0_linux_based_RPI_variant_en": {
+    "page_title": "Nastavení OS Linux pro Raspberry Pi",
+    "header": {
+      "title": "Jak se vypořádat s nastavením systému na bázi Linuxu u Raspberry Pi",
+      "description": "Uvnitř tohoto materiálu vás krůček po krůčku provedeme úskalími správného zapojení klasického Raspberry Pi s využitím OS pracujícího na principech Linuxu. Samozřejmě proto, abychom toto řešení následně bez obav použili společně se softwarem OmniBoard Studio."
+    },
+    "sections": [
+      {
+        "title": "Podporované RPI modely:",
+        "models": [
+          "Raspberry Pi 5",
+          "Raspberry Pi 4 Model B",
+          "Raspberry Pi 3 Model B+",
+          "Raspberry Pi 3 Model B",
+          "Raspberry Pi 3 Model A+",
+          "Raspberry Pi 2 Model B",
+          "Raspberry Pi 1 Model B+",
+          "Raspberry Pi 1 Model B",
+          "Raspberry Pi 1 Model A+",
+          "Raspberry Pi 1 Model A",
+          "Raspberry Pi Zero 2 W*",
+          "Raspberry Pi Zero 2 WH*",
+          "Raspberry Pi Zero W*",
+          "Raspberry Pi Zero"
+        ]
+      },
+      {
+        "title": "Věci, bez kterých se určitě neobejdete:",
+        "requirements": [
+          "Správně zvolený kompatibilní modul, tedy konkrétní deska s označením Raspberry Pi (výběr provádějte na základě nabídky výše)",
+          "Typ paměťové karty ve formátu MicroSD s kapacitou úložiště o minimální velikosti 8GB, ačkoli doporučujeme vsadit spíše na velikosti 32GB+ z třídy Class 10.",
+          "Klasický nabíjecí (respektive jakýkoli standardní napájecí adaptér vyhovující podmínkám rozhraní USB s proudem kolem 5V, který kabelem propojíte se zdrojem). To se zkrátka pro chod zařízení vašeho ražení jistě neztratí.",
+          "HDMI kabel ke zprostředkování monitoru z vnějších i vnitřních podmínek (můžete jej sice brát jen v potaz pouze na samém počátku pro samotný set up, nicméně i tehdy ho u mnohých modelových zástupců nezbytně s redukční pojistkou ve zmenšené variantě neboli jako prvek známý spíše jako micro HDMI budete opravdu muset naplno k provozu použít)."
+        ]
+      },
+      {
+        "title": "Tipy, jak vaše zařízení typu Raspberry Pi odladit krok za krokem k dokonalosti:",
+        "steps": [
+          "Chybět vám nesmí ten vůbec nejdůležitější a tedy v první řadě opravdu hodně oblíbený program – k snazší orientaci využijte ten pod hlavičkou názvu Raspberry Pi Imager. Aktuální verzi můžete vždy bezpečně stáhnout rovnou přes odkaz výrobce: https://www.raspberrypi.com/software/.",
+          "Poté stačí vložit paměťovou kartu z dílny rodiny MicroSD nejdříve k přímému přečtení přímo pomocí vašeho počítače a nechat ji posléze nahrát příslušná data ze softwaru Imager určeného pro platformu zařízení Raspberry Pi.",
+          "Vyberte odpovídající RPI model a s ním zároveň ten z operačních systémů, o který stojíte vůbec nejvíc, (my ze zkušenosti plně sázíme hned radši na OS přímo z produkce značky: Raspberry Pi ve verzi 64 bitové verze). I zde se však naskýtají možnosti kompromisu z řad mnoha zmenšených a tzv. odtučněných verzí zvaných \"lite\", ale nezapomeňte vzít rovněž na paměť, že v případě oné zredukované verze navždy beznadějně ztratíte výhody celkového vyobrazení RPI včetně samotného vizuálu uživatelského rozhraní OS, čili s GUI na RPI nadobro amen a celkové použití pak vůbec ani z daleka není tak snadné k pochopení pro lidi s minimem vstupních znalostí.)",
+          "Teď zvolte na formátované jednotce právě kartu s pamětí typu MicroSD pro cílové zaměření nahrávání vybraného obsahu samotného virtuálního disku pro váš budoucí minipočítačový skvost z edice s označením modelu z palety RPI (často nazývané \"Terčové\" ukládání, pro jistotu tak k zapsání finálního materiálu z nabídky, pro kterou pak máte v oblibě použít rovnou konkrétní označení - storage/cílové disk).",
+          "Klikněte v klidu a s rozumem napřed hned na tlačítko se slovem „Další/Next“ a ihned na to navolte vlastní ideální jméno celého připojeného systému, tzv. jméno vašeho jednodeskového RPI v širé síti připojených virtuálních RPI souputníků – známé to jako „Hostname“, vedle něj ovšem nezapomeňte připojit ani unikátní název či chcete-li Uživatelské jméno určené rovnou přímo ke snadnému způsobu a celému pojetí bezproblémového „Login“ vstupu k vlastní obsluze přístroje. Jako vůbec úplně k těm absolutně a plně stěžejním aspektům chodu zde ještě musíme logicky jednoznačně přiřadit silné vstupní Heslo, a to znovu k řádnému odhlášení i přihlášení (dále se běžně využívá též známé spíše jako pojem - Login password). V obou naposledy vyjmenovaných ohledech (tedy uživatelského pojmenování i bezpečnostního hesla) se pak zkuste raději napřed obzvlášť hodně dobře upřímně vynasnažit udržet všechny zmiňované kombinace s pamatovanými variacemi k celkovému nastavení bez jakýchkoli okolků plně bez sebemenších nedorozumění ve vaší vlastní dobře cvičené představivosti/nepaměti – či spíš právě paměti v první řadě!",
+          "Pro zadání jména WiFi sítě včetně přidruženého hesla se s dalším postupem plynule seznamte bez zdržování již dopředu. Celkový přehled včetně zapojených dostupných lokálních internetových připojení nicméně není u většiny produktových přírůstků nikterak přísně konečný, takže v rámci následného dalšího rozvržení RPI konfigurace nebude pro budoucí chvíle žádný závažný oříšek v aplikaci s předponou GUI či v SSH ani o chloupek nesnadnější síť připojit novou.",
+          "Definujte vaše stávající i to k danému místu naprosto ideální odpovídající a tudíž k používání preferované rozvržení časových zón a nakonec takto s úspěchem určete plnohodnotně a adekvátně rovnou plošně celou předlohu nastavení vaší počítačové klávesnice v podobě toho na míru přesně padnoucího rozložení.",
+          "Chcete-li ovšem využít jakéhokoliv dálkového řízení či vnější kontroly přes celou délku komunikačního vzdálenostního pole se speciální sadou rozsáhlých příkazů či procesy pro přístup ze značně oddálených přípojek, zaktivujte určitě též funkci k zapnutí VNC se zbytkem funkcionalit SSH pro další chvíle.",
+          "Stiskem na „Zapsat/Write“ úspěšně zaktivujete povel k postupné formaci u nahrávání stávající systémové šablony (tzv. obrys plně využitelného „obrazu“ virtuálního programu ve velikosti jedné verze softwaru k spuštění). Na to už s jistotou upozorňuje též varovné připomenutí, ať raději nezapomenete před jakýmkoliv činem vzít s jistotou na vlastní uvědomění jeden sice zprvu banální nicméně velmi významný i dosti silně se propisující fakt s obřími škodami v podobě kompletní redukce paměti uložené na celé širé škále oné jednotky. Ano, teď se zde vymazává doopravdy vše uložené z MicroSD karty! Písemná výstraha proto s opatrností raději praví (ve vší úctě k obřím nešťastným ztrátám s naprosto katastrofálním důsledkem chyb v paměti): POZOR: V tomto kroku bezostyšně nenávratně smáznete každé byť sebemenší smítko uživatelských informací i kousky dat doteď beztrestně pohozené, volně poskakující ze dne na den mezi prázdnými úložnými prostorami celé vkládané vnější paměťové jednotky MicroSD!",
+          "Po naprostém dokreslení obrazu a skončení oné dosti složité i lehce dlouhé doby kopírovací mánie konečně úspěšně a pak rovnou celkem s velkou slávou vysvoboďte celou kartu, ze zdánlivého počítačového uvěznění – avšak raději pouze tak plně v duchu standardizovaného, opatrného a na první pohled takzvaného i nejvýš doporučeného přístupu v mantinelech tzv. postupu spojeného s volbou „bezpečného odebrání jednotky“ („safely eject“). A takhle vysvobozený materiál typu jedné poctivě zpracované MicroSD paměťové karty s OS pro svůj RPI zázrak rovnou neváhejte vsunout tam, kam vlastně od pohledu patří nejlépe - a sice neomylně s lehkostí do správného slotu čerstvě na ten akt vyčkávající úložné Raspberry Pi zdířky.",
+          "Nastartujte zařízení rodiny Raspberry Pi do režimu „Power On“ – stačí prostě jen správně zajistit adekvátní síť s odpovídajícím přívodem napájení k zásuvce (pokud samozřejmě jako rozumní kutilové vůbec stojíte za možností vidět předlohu systému – takzvané využití přes typický proces grafických předpokladů k navigaci spojených s pojmem z pole GUI). V tu chvíli ihned pochopíte logiku snahy mít na dané příležitosti po ruce raději myš a pro začátek bez ohledu na věci příští jednoznačně a spolehlivě též pořádnou klávesnici v jednom kompletu do usb slotů připojenou.",
+          {
+            "description": "První krok ke spojení k navázání kontaktů a první fáze do nastavení parametrů",
+            "instructions": [
+              "V rámci obsluhování zařízení zvaných s ohledem k funkčnímu prvku jako GUI, navolte ke zpřístupnění celého obsahu obě dvě položky vašeho hesla pospolu vedle s polem vyplněného uživatelského účtu. Jako ten v logickém a postupném sledu úplně nejzazší kousek si tak už s radostí bez bázně nakonec zkuste rovnou cvičně otevřít klasický rozklikávací virtuální ovládací panel ukrytý vždy v nitru záložek rolovacího systému z rodiny složek ukrytých s označením terminálu (v menu ho většinou objevíte na klikací cestě postavené následovně: Aplikace – tedy Applications > dále směr a hledáček k Příslušenství neboli s anglickým výrazivem ke složce s označením Accessories > na konci naší výpravy pak s vítězným kliknutím stisknete s odhodláním ono pomyslné tlačítko s pojmem Terminal.)",
+              "Bude-li využita celá řádná šíře služeb a postupů se systémem na bázi SSH funkcionalit – ptejte se především ve věci odhalování adres pro navigační RPI a zjistěte její podobu skrz zadní vrátka domovských serverů s vaší internetovou rozvodnou přípojkou na administrátorském křesle z přihlašovací obrazovky (jinými slovy pak skrytě a naprosto přes router), příp. zkuste celou sadu procesů po vzoru s nástrojem na bázi odhalování přesně tohoto parametru například spuštěním nmapu, nebo rovnou po úspěšném odhalení cíle proveďte napojení pro celou správu od připojení přímo přes některého ze zástupců tzv. klientských portálů v programu SSH (např. v oknech známých s programem PuTTY běžících pro formáty s opěrným Windows základem, potažmo dohledatelnou z nabídky ve službě macOS popř. na Linuxovém Terminal okně). Užitý standard v přepisové textově psané direktivě pro navigační zrychlení u spouštění: příkaz neboli command - ssh vasejmeno@pridelena_ip_adresa. V momentě na řádek plně zapíšete onen výraz ke zdárnému přijetí formou třech hlásek „yes“ a zadáte správně i to zdlouhavě i složitě a na 100% po celou dobu spolehlivě dobře držené nejpřísněji hlídané heslo. Bingo! Přesně tahle snaha totiž rázem stačila do cíle k pokročilejším možnostem přesně řízených operací v režimu příkazového řádku samotného obslužného zařízení vašeho minipočítačového systému s hlavičkou RPI (kompletně psaný též pod anglickým synonymním termínem jako příkaz Command line interface - zkráceně též CLI).",
+              "Poté stačí zapojit do hry rovnou přes terminálovou zónu pro povely aktualizační výpočet se záměrem zaktualizování všeho toho balastu (čímž napomůžete navíc ke znatelnému zlepšení celkového fungování i chodu uvnitř samotného operačního podhoubí s rozvojem procesorového řízení z jádra). Prostě a jasně teď na příkazovém řádku neomylně udejte a proklepněte tento příkaz do finále s vypsaným slovesným sdělením formálně ohraničeným větou: sudo apt update && sudo apt full-upgrade -y",
+              "S využitím z rozcestníků plného menu se zkratkou s písmeny známými spíše dohromady jako vizuální prvek s označením rozhraní GUI (neboli toho s převahou klikací verze i celkového formování ze standardního obrazového základu navržených složek), dostáváte rovnou pro přímou spolupráci v celkově velmi rozšiřujícím a zajímavém konceptu, též s ohromným znatelným ohlasem u spousty zvědavců možnost volně operovat též uvnitř programu spuštěném do podoby známé pod pseudonymem či reálnou obchodní známkou - a tím pro napojení bez jakýchkoliv těžkostí hned přímo až k uživatelskému koutku virtuálního pracovního zobrazení obrazovky, do plochy v rámci vzdáleného spuštění s programem ze stáje označené od výrobce jménem: RealVNC Viewer. JEN MĚJTE V PATRNOSTI ŽE JE URČITĚ SILNĚ DOPORUČENÉ PŘED TÍM VŠÍM NEZAPOMENOUT NA NÁSLEDUJÍCÍ POZNÁMKU (ve zkratce známou pod slovem NOTE): Pokud hodláte a doopravdy zvažujete tento krok opravdu po zásluze s rozumným naplánováním s klidem, vážností a z pohodlí se ctí užít, určitě a raději navždy do paměti vtiskněte poučení že: Před celou akcí musíte v útrobách dohledu v nastavení RPI neomylně s rozmyslem povolovat funkci přes VNC propojení u příslušných posuvníků se stavy spuštěno s nastavením zapnuto, odškrtnuto v oné složce (tedy cesta zpravidla vede v rámci menu takto: Preferences neboli do sekce s českým slovem jako Předvolby > Dále z nabídky na volbu pod označením směr přesun k řádku označeném s RPI modelem slovy Raspberry Pi Configuration čili přes slovo k Nastavení či Konfigurace samotného systému samotného počítače z palety modelů Raspberry Pi > V samém konci už pak jen jednoduše vykliknout onen prvek pod třípísmenným označením do funkční zkratky s pojmem zapnout: VNC).",
+              "K následnému promítnutí oněch novot se celková instalovaná struktura bez problémů restartováním zařízení ze zapnutí RPI zresetuje do počátečního stadia nabootování už rovnou se započatými i uloženými zásahy a modifikacemi u aplikací s příkazem slova ke spuštění operace: sudo reboot."
+            ]
+          }
+        ],
+        "notes": [
+          "Dioda v rudém zbarvení u RPI (tzn. nepsaně tak nějak většinou celosvětově standardizovaně ta barvy svítící spíš až v tónech světle syté do tmavě či jemně do jasně tónované do rudě červeného odstínu z palety barev, tedy neboli jasně - prostě tzv. klasické označení zobrazení od LED typu Red) – tedy blikající nebo přímo též plně celou silou rovnou stabilně naprosto přesvědčivě dlouhodobě už do jasna po spuštění pro bliknutí tak jako semafor - spolehlivě tak indikující plnohodnotné fungování pod zátěží bezproblémově zapojené síly pro přípojku (čili se správností pro proudění přiměřeně nastaveného a regulérního správného napájecího elementu přicházejícího k desce a na kontaktech neboli prostě a jasně spíše ze starší technické angličtiny přes slovní pojem z oboru taktéž občas laicky jako síla od slovíčka pod heslem power - energie bez přerušení s ukázkovou stabilitou celého RPI). O trochu jiná světelná ukázková situace se ve vedlejší rovině odehrává za doprovodu svitu druhého z ukazatelů, tedy opět k prozkoumání zblízka za pomoci pohledu i diody (tentokrát ovšem zelené) – v zeleném provedení s ohledem k signalizacím pro svit od Green LED. Ta totiž blikáním naznačuje a s mírnou doprovodnou odezvou pro oko hned radostně jasně dokazuje samotnému vnímateli s postřehem k chodu minipočítače – tzn. tedy informuje na první pohled o dějících se stěžejních příkazech z centra RPI ke komunikaci do úložného bloku a to z činností přímo ohledně propisování nových nebo se snaží o proces ke čtení/načítání těch na ní s úspěchem celých již zapsaných dat uvnitř MicroSD úložného modulu se zasunutou formou přes sd port na celkové desce a ukazuje o všem zmíněném neomezeně od počátku do konce operace – (čili napovídá něco k rovině okolo dějů z procesního základu tzv. reading/writing neboli klasické formě čtení dat / psaní záznamů do úložného zázemí s cílem se zasunutou v řádném úložišti čipových portů na spodní i svrchní části čipu čili od zasunuté paměti v zařízení pro zapojení a spojení formou konektoru formátu s porty do karet pro zasunutí do RPI typu s formátem MicroSD na konektoru paměti typu card).",
+          "Můžete si též snadno do budoucna ušetřit nejedno nechtěné a naprosto nevhodné překvapení do dalších zmatených dní při řešení záludností a potíží tak, že si pohlídáte též zrádné hvězdičky (ve formě * za názvy variant počítače). Své nesporné opodstatnění, proč tomu zrovna tam tak v mnoha popisech na těchto webových záznamech vlastně v popisu nakonec u modelů bývá, samozřejmě do důsledku objasní s naprostou přesností též hvězdičky, tedy znatelně s vysvětlením též obvyklého symbolu se značením k prodeji do koncového bodu u jména – zkratce se schovaným tajemstvím za popisem s písmenkem od základu od W * (zkratka W totiž neznamená u většiny produktů s modelovými řadami u celých čipů nic menšího ani na druhou stranu nic většího do vysvětleného popisu k danému zjištění), a rovnou objasňuje bez řečí pro označení modelů bez prodlení rovnou vysvětlením od plného odhalení smyslu v pojmu od významu slůvka přes spojení pro fakt k zjištění i rovnou celkem jasnou informaci s překladem z textu do znění toho, co onen přepis v popisu znamená od písmena s popisem RPI s tvarem do pojmu s modelem obdařeného i plně vyzbrojeného spolehlivě plně připraveným a k nasazení i plošně zapojeným systémem od funkčního hardwaru pro zapojení s WiFi a příbuzných dálkových připojení k modulu pro WiFi připojení z výroby built-in do struktury a z výroby dodaného do podoby zabudované funkcionality přímo i na čip od plošného spoje rovnou s ohledem na dodanou podporu signálu pro internet s technologií též od WiFi – vestavěného adaptéru s funkčním anténním spojením zabudovaného modulu (koneckonců od doby k představení RPI s číslem série s trojkou model od označení typu na trhu pod celým pojmenováním z rodiny model 3 a logicky přirozeně a se vzestupným pokrokem tak logicky též všech i z těch od něj těch výše zmíněných starších pokročilejších edic v nabídkách na světových trzích – výjimky k potvrzení pravidla pro vývoj a vizi do nynějšího stavu a doby do přehledu v tomto segmentu bez povšimnutí spíše už nenajdete a též mají plošně obdařeny pro tuto funkčnost připojení obvod a vestavěným čipem do rodiny prvků přes signály s modulem od internetu skrze vnitřnosti vestavěného rozvodu od základu spjaté naplno na desku přímo připájené funkcionalitou z ústrojí z řady s technologií pro WiFi k vysílání zabudovanou – built in). <br> Symbolika ohledně skrytého detailu s druhou odbočkou o doplňujícím znění * k doplňku u druhé hvězdičky (totiž k písmenům v případě s variantou se jménem WH) bez okolků na první dobrou jasně poukazuje, s odkazem o vlastnostech modelu bez rozdílů oproti verzi předchozí bez onoho znaku do odlišení, též bezezbytku o faktu, že má krom zavedeného internetového WiFi spojení zabudovaného pro daný druh modelu již přímo s konektivitou WiFi vestavěnou na modulu obvodu formátu do RPI z pole od vestavěného – built in, rovnou z logických pohnutek z pohledu obvodu na desku připájené už k plně osazené do zkušebních otvorů kolíky tzn. jako tzv. headers z formátu připojených rovnou do čipu s deskou u plošných kontaktů plně obdařeny obvody popsanými připojeným plošným základem a do pájené formy z plně zaletovaného od osazených a k připojení hotových prvků – od slova tedy popsaného jako u modelů s tzv. already populated obvodovými kolíky pro spojení."
+        ]
+      }
+    ]
+  },
+  "Tutorial_0_RPI_PICO_variant_en": {
+    "page_title": "Tutoriál k nastavení pro Raspberry Pi Pico – od OmniBoard Studio",
+    "header": {
+      "title": "Celkové seznámení a nastavení pro Raspberry Pi Pico",
+      "description": "Zjistěte z první ruky rovnou snadno od expertů z celého studia s praxí ověřeným způsobem – naučte se tak konečně jednoduše s pochopením a lehkostí plnohodnotně a zcela sami pro obvodové spoje desky zvládnout nástrahy od zkoušek při příležitostech ke schopnosti umět ovládat a úspěšně flashovat systém od novinek z nejnovějšího zástupce systémů s programem od vydavatelství u znění pro firmware od jména softwaru s logem a názvem pod licencí od rodiny MicroPython a připravit tím rovnou samotný stroj v podobě obvodu i desky do dokonalosti po stránce připravené ke spolupráci obsluhovaného pro zapojení od programů v naší zbrusu připravené pro plné zátěže s aplikací ze série OmniBoard Studio."
+    },
+    "sections": [
+      {
+        "title": "Celkový přehled z podpory s modelem ze zastoupení u obvodů z podpory s kompatibilitou Raspberry Pi Pico ve všech známých formách modelů u známých variant k odzkoušení a zobrazení k vývoji v programu s ohledem na podporu ze znění variant i z nabídky pro zapojení do kompatibilního prostředí pro odzkoušení – Supported Variants:",
+        "variants": [
+          "Raspberry Pi Pico",
+          "Raspberry Pi Pico W*",
+          "Raspberry Pi Pico WH*",
+          "Raspberry Pi Pico 2",
+          "Raspberry Pi Pico 2 W*"
+        ]
+      },
+      {
+        "title": "Co vše pro jistotu ze základu do vybavení od samotného přístroje přesně nezapomenout pořídit k řádnému odladění – tzn. pomůcky k chodu co budete po všechny dny s obsluhou k provozu v základu zcela neodkladně 100% občas s radostí ze zkoušení v projektu pro úspěch zkrátka dovybavit i u plošných potřeb pro funkčnost v tomto návodu k bezproblémovým přípravám zcela nutně pro činnost nezbytně od úspěchu vyžadovat – neboli v krátkosti: You will need:",
+        "requirements": [
+          "Správný kus funkční pro prodej u prodejce, tzn. vybraná odpovídající do základu formovaná funkčně zapojená obvodová modelová deska s názvem u značení s nápisem u modelové zkoušky na kompatibilní kus pro zařízení od zástupců Raspberry Pi Pico z obvodu s obsahem desky tzn. board (tedy jako pomůcka rovnou raději rovnou před zkouškou a pokusy navolte od seznamu a ukažte pohledem ze specifikací do výběru od modelů viz seznam s vypsáním s označením v listu k prověření pro odzkoušení na vrchu – tj. pro kompatibilní variantu u viz specifikace see list above)",
+          "Připojené pro spojení nezbytné dráty, do zapojení ze zavedených a po desítky let zaručených kabeláží z prodejen pro elektroniku pod tvarem spíše u starších z kabelů s koncovkou ve verzi po jménu přes konektor do označení ze skupiny a od Micro USB s kabelem připraveným do balení pro zprostředkování od portů pro propojování a spojení pro přenesení k modulu od desky se zapojením na minipočítače s odznakem z portfolia přes Pico s konektory do spárování v zdířkách přímo ve vstupu do portu přes koncovky s přístrojem pro počítač (odkud ho i řídíme a napájíme - to your computer)",
+          "Počítač, popř. též přenosný model tzn. laptop či jiné formy do zařízení s výpočetním z hlediska funkcionalit počítačovým výkonem tzn. stroj s označením computer ze specifikací obdařeným naprosto neoddiskutovatelně se zakončením do slotu ke zdi ze zavedených spojů do připojení přes slotové vstupy na zkoušení pro sběrnici ze zapojení ve formátu do zdířky od USB do standardů z portů do spojů a nezapomenout navíc rovnou naprosto se vším pro zaručený stálý od zkoušek po úspěšný výsledek pro bezpečný a stabilně zajištěný od spuštění k ukončení naprosto bez přerušení připojený od dodavatelů k formátu přístupu ze spojení na lokální připojení přes síť na internet do rozvodů u datové dálnice v celosvětové od zkoušek spojení u adres s doménou od připojení bez ztrát na rychlosti v režimu a po plném ověření přes úspěšný zkušební krok se signálem a spojením na plnohodnotný zaručený do cloudu s příkazem u vstupu na plný přístup k obsahu na internet u připojení – u termínu od internet access"
+        ]
+      },
+      {
+        "title": "Celkový přehled a navazující kroky s postupem do fáze dokončení od začátku do konce s připojením a instalacemi bez potíží pro nastavení zařízení ze sekce a od modelové sady vašeho zkušebního obvodového minipočítače od typu ve verzi ke stroji na připojení přes piny od verze ke jménu desky Raspberry Pi Pico (do originálu v překladu k originálnímu znění neboli kroky na zkoušení s názvem od slova pro Steps do překladu jako se zaměřením z nastavení přes set up od vlastního vybavení strojem s názvem your Raspberry Pi Pico):",
+        "steps": [
+          {
+            "description": "Jako u vůbec jednoho z opravdu prvních v důležitosti z postupů před nastavením zkuste k stažení vybrat radši ke svému obvodovému spojení v podobě softwarového prostředí se zařízením spíše s ohledem na aktuálnost verzi v nejnovějších aktualizacích s nejnovějším modelem v překladu pro stáhnutí s funkcionalitami do systému ze zavedených v MicroPython se zkušební platformou pro software i přes odnože pro funkční spoj s platformou RPI – tzn. s odkazem k download the latest version ze zavedených s funkcionalitou z firmwaru od MicroPython na přístroje rodiny od verze for your RPI",
+            "links": [
+              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace pro Pico (pro originální název v přepisu tedy s překladem z for Raspberry Pi z verze Pico): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO/",
+              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady rodiny modelů k modelu z verze s PICO pod doplňujícím názvem s W od specifikace s dalším typem u koncovky u označení do formátu a jména s odkazem do WH z nabídky trhu (pro originální název v přepisu tedy s překladem z for Raspberry Pi z verze Pico od odkazů u koncovky z názvu od W přes symboly a spojky do textu pro výraz and ze specifikací u zkrácení jmenného názvu s přídomkem k verzi na konci – WH): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO_W/",
+              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady u novějších rodiny modelů k modelu z verze s novou generací u PICO vylepšené u druhé revize pod doplňujícím názvem na novou sadu od specifikace s označením s dalším typem s číslovkou u doplňku u koncovky u označení do formátu a jména na konec řádku s odkazem do generace u řady s novým názvem u čísla od formátu novinky v prodeji k obvodové desce pod názvem Pico 2 (pro originální název v přepisu tedy s překladem z angličtiny do přehledu v textu pro model s typem for Raspberry Pi z verze na odlišení pro sérii u edic pro desky s označením Pico na edici z generace přes odlišení a s dodatkem o verzi na číslo s hodnotou z názvu ke stroji u pinu přes nápis ve verzi z řady 2): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO2/",
+              "V návodu po sekci u zařízení ze systému pro obvody od vývojářů s modely s ohledem k podpoře z rodiny k Raspberry Pi u specifikace od řady u novějších rodiny modelů k modelu z verze s novou generací u PICO vylepšené u druhé revize pod doplňujícím názvem na novou sadu od specifikace s označením s dalším typem s číslovkou u doplňku u koncovky s modelem z verze pro internet ze skrytého označení doplňku W s dalším typem u koncovky u označení do formátu a jména s odkazem do WH z nabídky trhu ze specifikace u zkrácení jmenného názvu s přídomkem k verzi na konci ve verzi u zkratky a formátu s obvodovým zkrácením s koncovkou ve znamení názvu u modelu – WH z nabídky trhu u řady u generací s odlišením (pro originální název v přepisu tedy s překladem z angličtiny do přehledu v textu pro model s typem for Raspberry Pi z verze na odlišení pro sérii u edic pro desky s označením Pico odkazů u koncovky z názvu u generace u řady novinky ve verzi 2 na odlišení o verzi na číslo a navíc s přídavkem od doplňků W přes symboly a spojky do textu pro výraz s překladem od slova and ze specifikací a modelu WH): s odkazem ze specifikací pod nápisem od url – https://micropython.org/download/RPI_PICO2_W/"
+            ]
+          },
+          "Spojte zaručeně neomylně do zapojení ze zavedených u vašeho zařízení vaší modelovou obvodovou modifikaci v zastoupení pro zkoušení přes Raspberry Pi u Pico s funkční přípojkou do chodu obvodů směrem pro připojení vašeho na výkon obdařeného u slotu ke spuštění stroje s napájením pro řídící v řízení pro ovládání přes program k instalaci od počítače, s pomocí zprostředkovaného toku z kabelu u přípojky (tzn. ze slov from original: to your computer s odkazem pro zapojení) ve formátu ke spuštění procesu na propojení pomocí z kabelové řady (tedy spojené i pod překladem k postupu od textu u sítě s using pro funkčnost k The Micro USB u modelu od kabelu pod řadou u drátového spojení ve slovech pro angličtinu k pojmu do základu v cable), vše při probíhajícím současně (což se v oboru značí přísně s doporučením o podržení tlačítka čili from the while u textového holding ze sepnutí v textu do polohy down s držením na stisknutí bez přerušení k sepnutí) speciálně navrženého do příkazu na spouštění u řízení od hardwarového sepnutí přes spínač pro ovládání v módu BOOTSEL (tlačítko, tedy u přechodu v tlačítko obvykle rovnou do podoby v typicky jasně svítící či barevné pro odlišení barvě v tónu s odlišením z rodiny barev u světlého povrchu, do světlé v zobrazení do odstínů u světle z bílé od slov z white u spínače pro spouštění od zavedeného buttonu) navržené do architektury čipu v obvodu na samotném hardwaru k řízení na modelu od zmenšeniny z rodiny do pico u formátu s příslušným RPI (on the Pico z verze originálu). Právě to zkrátka celé totiž na povel s jistotou do procesu bezpečně rovnou s rychlostí (This will ze spuštění) celkově zapojí na plné úsilí i do zátěže ke zprostředkování úkonu nastaví neboli rovnou z provozních procedur převede na přímé zadání čip (odkud ho i řídíme a napájíme - put the Pico do zátěžového modelu ke komunikaci do úložného s módem formátu ze slova for USB) s přesným odladěním od nastaveného modulu ze série z nastavení s přístupem do řady velkokapacitního rozhraní od dat s modulem k přístupu z uložení v zařízení (z anglického originálu přeloženo od textu spjatého u mass do zázemí s velikou do uložení od slova storage u paměťového obsluhování z režimu – do spárování v zdířkách přímo ve vstupu do portu do formátu do slovíčka na konci od anglického z mode).",
+          "Zkopírujte ke zkušebnímu přesunutí z formátu se soubory a navolte možnost z nabídky k překopírování do podoby u přesunu z volby ze zkopírovat tzn. přetáhněte (Copy u označení do akce) s radostí ze staženého uložiště již zdárně dopředu bezchybně zařazený z připravených na zkoušení soubor plný pokynů stáhnutého k funkčnosti čipu s formátem ze softwaru u vydání a řad do příkazu ze samotného firmwaru pro obvod z verze s naprogramovanou logikou do funkčních datových modulů s logikou u softwaru od programátorské sady k logice s rodinou jazyků z MicroPython se strukturou (the downloaded k překladu v zkopírované a stažené balíčky pro MicroPython se firmware v balíčku po stažení do souboru neboli z formátu v file) na příslušnou složku spojenou s kořenovým zázemím a centrálním uložištěm rozdělení adresářů (to the ze spojení pro směr k složce Pico u verze z obvodu s obsahem desky pro soubor a rozdělení ke stromové základní logice souborů s koncovkami od řad u stromu souborů u tzv. root se složkou formátu k složkám do řazení z directory u označení adresář) - jako v závorce na upozornění k faktu k seznámení pro uživatele jako u odlišení pro chod v zobrazení při spuštění v režimu od čipu a z verze o upozornění (celé desky po vzoru z verze tzn. z the Pico pak logicky bez rozpaků ve chvílích napojení po zapnutí rovnou se po detekci ukáže nebo aspoň k náhledu naprosto bezchybně ve vyobrazení u počítače poslušně vyskočí - will appear jakožto po obsluze zařízení as a rovnou do formátu klasického ze zavedených v podobě k přístroji od disků či z přepisů od paměťové karty pro flash u paměťových do USB rozhraní na úložném v drive s označením pro klasický disk k propojení na USB port a konektor)."
+        ]
+      }
+    ]
+  },
+  "Settings": {
+    "page_title": "Nastavení účtu - OmniBoard Studio",
+    "header": {
+      "title": "Nastavení účtu"
+    },
+    "messages": {
+      "unlink_success": "{provider} byl úspěšně odpojen.",
+      "unlink_error": "Nemůžete odpojit svou jedinou metodu přihlášení."
+    },
+    "profile": {
+      "title": "Primární účet",
+      "member_since": "Členem od:"
+    },
+    "login_methods": {
+      "title": "Připojené metody přihlášení",
+      "google": {
+        "name": "Google",
+        "connected_as": "Připojeno jako",
+        "not_connected": "Nepřipojeno",
+        "button_unlink": "Odpojit",
+        "button_connect": "Připojit Google"
+      },
+      "github": {
+        "name": "GitHub",
+        "connected_as": "Připojeno jako",
+        "not_connected": "Nepřipojeno",
+        "button_unlink": "Odpojit",
+        "button_connect": "Připojit GitHub"
+      }
+    }
   }
 }

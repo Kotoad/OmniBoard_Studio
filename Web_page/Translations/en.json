@@ -1,79 +1,155 @@
 {
-  "Index": {
-    "page_title": "OmniBoard Studio - Visual Programming for Microcontrollers and Microcomputers",
+  "Basic_therms": {
+    "page_title": "Basic Electronics & Circuit Diagrams",
     "header": {
-      "title": "Visual Programming for Microcontrollers and Microcomputers",
-      "description": "Build and compile MicroPython and Python projects seamlessly. A complete visual node environment with built-in code editing for Raspberry Pi Pico and more.",
-      "buttons": [
-        "Get Started",
-        "Read Documentation"
-      ]
+      "title": "Basic Electronics & Circuit Diagrams",
+      "description": "Understand essential electrical quantities, symbols, and wiring principles before building projects."
     },
-    "core_features": {
-      "title": "Core Features",
-      "features": [
-        {
-          "title": "Visual Node Editor",
-          "description": "Drag and drop logic blocks, timers, and hardware interfaces to build complex logic without writing syntax manually."
-        },
-        {
-          "title": "Integrated Compiler",
-          "description": "Instantly translate visual node graphs into optimized MicroPython and Python code ready for deployment to connected devices."
-        },
-        {
-          "title": "Hardware Support",
-          "description": "Native support and setup workflows for the Raspberry Pi Pico series and Raspberry Pi 1 to 5."
+    "sections": [
+      {
+        "title": "Electrical and Magnetic Quantities",
+        "description": [
+          "Before diving into building circuits, it's important to understand some fundamental electrical and magnetic quantities that are commonly used in electronics. These quantities help us describe and analyze the behavior of electrical circuits and components.",
+          "Here are some of the key electrical and magnetic quantities you should be familiar with:"
+        ],
+        "categories": {
+          "Electric Quantities": {
+            "Electric charge": "A fundamental property of matter that causes it to experience a force when placed in an electric field, measured in coulombs (C) and represented by \"Q\". In simple terms, it can be thought of as the \"quantity\" of electricity, where a higher charge indicates more electric particles present.",
+            "Electric voltage": "In electrical terms is a potential difference between two points in a circuit, measured in volts (V) and it's represented by the symbol \"V\" in American English and \"U\" in European English. In simple terms, it can be thought of as the \"pressure\" that pushes electric charges through a conductor, enabling the flow of current.",
+            "Electric current": "The flow of electric charge through a conductor, measured in amperes (A) and represented by \"I\". It represents the rate at which electric charges pass through a point in a circuit. There are two types of electric current: direct current (DC), where the flow of charge is in one direction, and alternating current (AC), where the flow of charge periodically reverses direction. In simple terms, it can be thought of as the \"flow\" of electricity, where a higher current indicates a greater flow of electric charge.",
+            "Electric resistance": "The opposition to the flow of electric current, measured in ohms (Ω) and represented by \"R\". It determines how much current will flow for a given voltage, the rest will turn to heat. In simple terms, it can be thought of as the \"friction\" that impedes the flow of electricity, where a higher resistance results in less current flow for a given voltage.",
+            "Electric power": "The rate at which electrical energy is transferred or consumed, measured in watts (W) and represented by \"P\". In simple terms, it can be thought of as the \"work\" done by electricity, where a higher power indicates more energy being transferred or consumed.",
+            "Electric conductance": "The reciprocal of resistance, measured in siemens (S) and represented by \"G\". In simple terms, it can be thought of as the \"ease\" with which electricity flows through a conductor, where a higher conductance indicates less resistance and easier flow of electric current.",
+            "Electric energy": "The capacity to do work, measured in joules (J) and represented by \"E\". In simple terms, it can be thought of as the \"fuel\" that powers electrical devices, where a higher energy indicates more capacity to perform work.",
+            "Electric capacity": "The ability of a system to store electric charge, measured in farads (F) and represented by \"C\". In simple terms, it can be thought of as the \"storage\" for electricity, where a higher capacity indicates a greater ability to store electric charge.",
+            "Electric inductance": "The property of a conductor that opposes changes in current, measured in henries (H) and represented by \"L\". In simple terms, it can be thought of as the \"inertia\" of electricity, where a higher inductance indicates a greater opposition to changes in current flow."
+          },
+          "Magnetic Quantities": {
+            "Magnetic flux": "The total magnetic field passing through a given area, measured in webers (Wb) and represented by \"Φ\". In simple terms, it can be thought of as the \"amount\" of magnetism, where a higher magnetic flux indicates a stronger magnetic field passing through an area.",
+            "Magnetic field strength": "The intensity of a magnetic field, measured in teslas (T) and represented by \"B\". In simple terms, it can be thought of as the \"strength\" of magnetism, where a higher magnetic field strength indicates a stronger magnetic field.",
+            "Magnetic permeability": "The ability of a material to support the formation of a magnetic field, measured in henries per meter (H/m) and represented by \"μ\". In simple terms, it can be thought of as the \"friendliness\" of a material to magnetism, where a higher magnetic permeability indicates that the material allows magnetic fields to pass through it more easily.",
+            "Magnetic reluctance": "The opposition to the creation of a magnetic field in a material, measured in ampere-turns per weber (At/Wb) and represented by \"R_m\". In simple terms, it can be thought of as the \"resistance\" to magnetism, where a higher magnetic reluctance indicates that the material opposes the formation of a magnetic field more strongly.",
+            "Magnetic energy": "The energy stored in a magnetic field, measured in joules (J) and represented by \"E_m\". In simple terms, it can be thought of as the \"potential\" of magnetism, where a higher magnetic energy indicates that more energy is stored in the magnetic field.",
+            "Magnetic force": "The force exerted by a magnetic field on moving charges or other magnets, measured in newtons (N) and represented by \"F_m\". In simple terms, it can be thought of as the \"push\" or \"pull\" of magnetism, where a higher magnetic force indicates a stronger interaction between the magnetic field and charged particles or other magnets.",
+            "Magnetic moment": "A measure of the strength and orientation of a magnet's magnetic field, measured in ampere-square meters (A·m²) and represented by \"m\". In simple terms, it can be thought of as the \"personality\" of a magnet, where a higher magnetic moment indicates a stronger and more oriented magnetic field."
+          }
         }
-      ]
-    },
-    "future_developments": {
-      "title": "Future Developments",
-      "features": [
-        {
-          "title": "Expanded Hardware Support",
-          "description": "Adding compatibility with more microcontroller platforms and single-board computers beyond the Raspberry Pi ecosystem."
-        },
-        {
-          "title": "Advanced Node Types",
-          "description": "Introducing new node categories for more complex logic, data processing, and hardware interactions."
-        },
-        {
-          "title": "Community Contributions",
-          "description": "Encouraging users to share their own node templates, tutorials, and project ideas to foster a collaborative learning environment."
+      },
+      {
+        "title": "Common Electrical Terms and Symbols",
+        "description": [
+          "In addition to understanding the fundamental electrical and magnetic quantities, it's also important to familiarize yourself with common electrical terms and symbols that are used in circuit diagrams and electronics discussions. These terms and symbols help us communicate effectively about electronic components, circuits, and concepts.",
+          "Here are some common electrical terms and symbols you should know:"
+        ],
+        "terms": {
+          "Ground": "A reference point in an electrical circuit from which voltages are measured, a common return path for electric current. In simple terms, it can be thought of as the \"zero\" point in a circuit, where all voltages are measured relative to it and it provides a path for current to return to the source.",
+          "Power Supply": "A source of electrical power for the circuit, providing the necessary voltage and current. In simple terms, it can be thought of as the \"heart\" of a circuit, where it provides the energy needed for the circuit to function.",
+          "Pin symbol": "A symbol representing a connection point on a your RPI by number",
+          "Resistor": "A component that resists the flow of electric current, used to control voltage and current in a circuit. In simple terms, it can be thought of as the \"brake\" of a circuit, where it limits the flow of electricity to protect other components and control the behavior of the circuit.",
+          "Capacitor": "A component that stores and releases electrical energy, used for filtering, timing, and energy storage in circuits. In simple terms, it can be thought of as the \"battery\" of a circuit, where it temporarily stores electrical energy and releases it when needed to smooth out voltage fluctuations or provide power during brief interruptions.",
+          "Inductor": "A component that stores energy in a magnetic field when electric current flows through it, used for filtering, energy storage, and inductive coupling in circuits. In simple terms, it can be thought of as the \"coil\" of a circuit, where it creates a magnetic field that can store energy and oppose changes in current flow, making it useful for filtering and energy storage applications.",
+          "Diode": "A component that allows current to flow in one direction only, used for rectification, signal modulation, and protection in circuits. In simple terms, it can be thought of as the \"one-way valve\" of a circuit, where it permits the flow of electricity in one direction while blocking it in the opposite direction, making it essential for controlling current flow and protecting components from reverse voltage.",
+          "LED diode": "A type of diode that emits light when current flows through it, used for indication and display purposes in circuits. In simple terms, it can be thought of as the \"light bulb\" of a circuit, where it produces light when electricity flows through it, making it useful for visual indicators and displays.",
+          "Transistor": "A semiconductor device used to amplify or switch electronic signals, essential for building complex circuits and digital logic. In simple terms, it can be thought of as the \"amplifier\" or \"switch\" of a circuit, where it can control the flow of electricity based on an input signal, making it fundamental for amplification and digital logic applications."
         }
-      ]
-    }
+      }
+    ]
   },
-  "Footer": {
-    "links": [
-      "OmniBoard Studio",
-      "Features",
-      "Tutorials",
-      "FAQ",
-      "Download App",
-      "Contact Us"
-    ],
-    "copyright": "© 2026 OmniBoard Studio. All rights reserved."
-  },
-  "Navbar": {
-    "brand": "OmniBoard Studio",
-    "links": [
-      "Features",
-      "Tutorials",
-      "FAQ",
-      "Download App"
-    ],
-    "auth": {
-      "logged_in": [
-        "Account Settings",
-        "Logout"
-      ],
-      "logged_out": "Login / Register"
+  "Blinking_LED": {
+    "page_title": "Blinking LED",
+    "header": {
+      "title": "How to Create a Blinking LED Project",
+      "description": "In this tutorial, we will guide you through creating a simple blinking LED project using OmniBoard Studio."
     },
-    "mobile_menu": [
-      "Home",
-      "Tutorials",
-      "Download App"
+    "sections": [
+      {
+        "title": "Steps to Create a Blinking LED Project",
+        "steps": [
+          "Open OmniBoard Studio and create a new project.",
+          {
+            "description": "Drag and drop the necessary blocks to create a node diagram that turns an LED on and off.",
+            "details": {
+              "summary": "Try to explore and make the diagram you self or click here and find out one of the solutions.",
+              "instructions": [
+                "Place Start block.",
+                "Connect the Start block to a While True block to create an infinite loop.",
+                "Then connect the While True block to a Toggle LED block. This will cause the LED to toggle between on and off states.",
+                "Finally connect the Timer block to the Toggle LED block. This will create the desired blinking effect. You can adjust the timer duration to change the blinking speed as you wish. (1000 milliseconds = 1 second)"
+              ]
+            }
+          },
+          {
+            "description": "Make the correct circuit",
+            "instructions": [
+              "Connect the GPIO pin asigned to the LED to the rezistor.",
+              "Connect the positive leg of the LED to a resistor, and then connect the other end of the LED to ground. You can determine which leg is positive and which is negative by finding the longer leg (positive) and shorter leg (negative) or flat side of the LED cover (negative)."
+            ]
+          },
+          "Compile the code and upload it to your microcontroller.",
+          "Watch your LED blink on and off at the interval you set with the Timer block!"
+        ]
+      },
+      {
+        "title": "Bonus informations",
+        "items": {
+          "Writen code example": "Here is an example of simplified the MicroPython code that would be generated by the blocks for a blinking LED project:",
+          "And here is simplefied code for Python": "",
+          "What is an LED?": "LED stands for Light Emitting Diode. It is a semiconductor device that emits light when an electric current passes through it. LEDs are widely used in electronic circuits for indication and display purposes due to their efficiency, long lifespan, and low power consumption.",
+          "In simple terms, what is an LED?": "An LED can be thought of as a \"light bulb\" in a circuit. When electricity flows through it, it produces light, making it useful for visual indicators and displays in electronic projects.",
+          "What is a resistor?": "A resistor is an electronic component that limits the flow of electric current in a circuit. It is used to protect components like LEDs from receiving too much current, which can damage them. Resistors are essential for controlling the amount of current that flows through different parts of a circuit.",
+          "In simple terms, what is a resistor?": "A resistor can be thought of as a \"gatekeeper\" in a circuit that controls how much electricity flows through it. It helps ensure that components like LEDs receive the right amount of current to function properly without getting damaged."
+        }
+      }
+    ]
+  },
+  "Button_LED": {
+    "page_title": "Button controlled LED Project",
+    "header": {
+      "title": "How to Create a Button controlled LED Project",
+      "description": "In this tutorial, we will guide you through creating a simple button controlled LED project using OmniBoard Studio."
+    },
+    "sections": [
+      {
+        "title": "Steps to Create a Button controlled LED Project",
+        "steps": [
+          "Open OmniBoard Studio and create a new project.",
+          {
+            "description": "Drag and drop the necessary blocks to create a simple circuit that controls an LED with a button.",
+            "details": {
+              "summary": "Try to explore and make the diagram you self or click here and find out one of the solutions.",
+              "instructions": [
+                "Place Start block.",
+                "Connect the Start block to a While True block to create an infinite loop.",
+                "Then connect the While True block to a Button block. This will allow us to check the state of the button.",
+                "Finally connect the True output of the Button block to a LED ON block. This will cause the LED to turn on. To the False output connect a LED OFF block. This will cause the LED to turn off."
+              ]
+            }
+          },
+          {
+            "description": "Make the correct circuit",
+            "instructions": [
+              "Connect the button to the correct GPIO pin on your microcontroller. This will allow the Button block to read the state of the button correctly. Your usual button will have two pairs of pins. You will need to connect one pair to a GPIO pin and the other pair to 3.3V.",
+              "Now you can try to connect the LED from memory because the circuit is the same as in the previous tutorial. Or click to reveal the circuit diagram and instructions."
+            ],
+            "details": {
+              "summary": "Click to reveal the circuit diagram and instructions",
+              "instructions": [
+                "Connect the GPIO pin asigned to the LED to the rezistor.",
+                "Connect the positive leg of the LED to a resistor, and then connect the other end of the LED to ground. You can determine which leg is positive and which is negative by finding the longer leg (positive) and shorter leg (negative) or flat side of the LED cover (negative)."
+              ]
+            }
+          },
+          "Compile the code and upload it to your microcontroller.",
+          "Watch your LED blink on and off at the interval you set with the Timer block!"
+        ]
+      },
+      {
+        "title": "Bonus informations",
+        "items": {
+          "Writen code example": "Here is an example of simplified the MicroPython code that would be generated by the blocks for a button controlled LED project:",
+          "And here is simplefied code for Python": ""
+        }
+      }
     ]
   },
   "Contact": {
@@ -146,42 +222,82 @@
       }
     ]
   },
-  "Settings": {
-    "page_title": "Account Settings - OmniBoard Studio",
+  "Footer": {
+    "links": [
+      "OmniBoard Studio",
+      "Features",
+      "Tutorials",
+      "FAQ",
+      "Download App",
+      "Contact Us"
+    ],
+    "copyright": "© 2026 OmniBoard Studio. All rights reserved."
+  },
+  "Index": {
+    "page_title": "OmniBoard Studio - Visual Programming for Microcontrollers and Microcomputers",
     "header": {
-      "title": "Account Settings"
+      "title": "Visual Programming for Microcontrollers and Microcomputers",
+      "description": "Build and compile MicroPython and Python projects seamlessly. A complete visual node environment with built-in code editing for Raspberry Pi Pico and more.",
+      "buttons": [
+        "Get Started",
+        "Read Documentation"
+      ]
     },
-    "messages": {
-      "unlink_success": "{provider} has been successfully unlinked.",
-      "unlink_error": "You cannot unlink your only login method."
+    "core_features": {
+      "title": "Core Features",
+      "features": [
+        {
+          "title": "Visual Node Editor",
+          "description": "Drag and drop logic blocks, timers, and hardware interfaces to build complex logic without writing syntax manually."
+        },
+        {
+          "title": "Integrated Compiler",
+          "description": "Instantly translate visual node graphs into optimized MicroPython and Python code ready for deployment to connected devices."
+        },
+        {
+          "title": "Hardware Support",
+          "description": "Native support and setup workflows for the Raspberry Pi Pico series and Raspberry Pi 1 to 5."
+        }
+      ]
     },
-    "profile": {
-      "title": "Primary Account",
-      "member_since": "Member since:"
-    },
-    "login_methods": {
-      "title": "Connected Login Methods",
-      "google": {
-        "name": "Google",
-        "connected_as": "Connected as",
-        "not_connected": "Not connected",
-        "button_unlink": "Unlink",
-        "button_connect": "Connect Google"
-      },
-      "github": {
-        "name": "GitHub",
-        "connected_as": "Connected as",
-        "not_connected": "Not connected",
-        "button_unlink": "Unlink",
-        "button_connect": "Connect GitHub"
-      }
+    "future_developments": {
+      "title": "Future Developments",
+      "features": [
+        {
+          "title": "Expanded Hardware Support",
+          "description": "Adding compatibility with more microcontroller platforms and single-board computers beyond the Raspberry Pi ecosystem."
+        },
+        {
+          "title": "Advanced Node Types",
+          "description": "Introducing new node categories for more complex logic, data processing, and hardware interactions."
+        },
+        {
+          "title": "Community Contributions",
+          "description": "Encouraging users to share their own node templates, tutorials, and project ideas to foster a collaborative learning environment."
+        }
+      ]
     }
   },
-  "login": {
-    "page_title": "Login - OmniBoard Studio",
-    "header":"Login to OmniBoard Studio",
-    "github_button": "Login with GitHub",
-    "google_button": "Login with Google"
+  "Navbar": {
+    "brand": "OmniBoard Studio",
+    "links": [
+      "Features",
+      "Tutorials",
+      "FAQ",
+      "Download App"
+    ],
+    "auth": {
+      "logged_in": [
+        "Account Settings",
+        "Logout"
+      ],
+      "logged_out": "Login / Register"
+    },
+    "mobile_menu": [
+      "Home",
+      "Tutorials",
+      "Download App"
+    ]
   },
   "Tutorials": {
     "page_title": "OmniBoard Studio - Visual Programming for Microcontrollers",
@@ -240,6 +356,30 @@
         }
       ]
     }
+  },
+  "LED_trafic_light": {
+    "page_title": "LED traffic light - OmniBoard Studio Tutorial",
+    "header": {
+      "title": "How to make a simple LED traffic light",
+      "description": "In this tutorial, we will guide you through creating a simple LED traffic light project using OmniBoard Studio."
+    },
+    "sections": [
+      {
+        "title": "Steps to Create a simple LED traffic light",
+        "steps": [
+          "Open OmniBoard Studio and create a new project.",
+          {
+            "description": "Drag and drop three LED blocks onto the canvas to represent the red, yellow, and green lights. You will need at least three LED blocks to represent the red, yellow, and green lights of the traffic light, a way to control the timing of the lights, and a way to loop the sequence. You can use a combination of LED blocks, timer blocks, and loop blocks to achieve this.",
+            "details": {
+              "summary": "Try to figure out how to connect the blocks to create the traffic light sequence on your own! If you need a hint, click here.",
+              "instructions": [
+                "Use the Start and While True blocks to create a loop that will run indefinitely."
+              ]
+            }
+          }
+        ]
+      }
+    ]
   },
   "Timing_LED": {
     "page_title": "Timing LED Tutorial - OmniBoard Studio",
@@ -399,181 +539,35 @@
       }
     ]
   },
-  "Basic_therms": {
-    "page_title": "Basic Electronics & Circuit Diagrams",
+  "Settings": {
+    "page_title": "Account Settings - OmniBoard Studio",
     "header": {
-      "title": "Basic Electronics & Circuit Diagrams",
-      "description": "Understand essential electrical quantities, symbols, and wiring principles before building projects."
+      "title": "Account Settings"
     },
-    "sections": [
-      {
-        "title": "Electrical and Magnetic Quantities",
-        "description": [
-          "Before diving into building circuits, it's important to understand some fundamental electrical and magnetic quantities that are commonly used in electronics. These quantities help us describe and analyze the behavior of electrical circuits and components.",
-          "Here are some of the key electrical and magnetic quantities you should be familiar with:"
-        ],
-        "categories": {
-          "Electric Quantities": {
-            "Electric charge": "A fundamental property of matter that causes it to experience a force when placed in an electric field, measured in coulombs (C) and represented by \"Q\". In simple terms, it can be thought of as the \"quantity\" of electricity, where a higher charge indicates more electric particles present.",
-            "Electric voltage": "In electrical terms is a potential difference between two points in a circuit, measured in volts (V) and it's represented by the symbol \"V\" in American English and \"U\" in European English. In simple terms, it can be thought of as the \"pressure\" that pushes electric charges through a conductor, enabling the flow of current.",
-            "Electric current": "The flow of electric charge through a conductor, measured in amperes (A) and represented by \"I\". It represents the rate at which electric charges pass through a point in a circuit. There are two types of electric current: direct current (DC), where the flow of charge is in one direction, and alternating current (AC), where the flow of charge periodically reverses direction. In simple terms, it can be thought of as the \"flow\" of electricity, where a higher current indicates a greater flow of electric charge.",
-            "Electric resistance": "The opposition to the flow of electric current, measured in ohms (Ω) and represented by \"R\". It determines how much current will flow for a given voltage, the rest will turn to heat. In simple terms, it can be thought of as the \"friction\" that impedes the flow of electricity, where a higher resistance results in less current flow for a given voltage.",
-            "Electric power": "The rate at which electrical energy is transferred or consumed, measured in watts (W) and represented by \"P\". In simple terms, it can be thought of as the \"work\" done by electricity, where a higher power indicates more energy being transferred or consumed.",
-            "Electric conductance": "The reciprocal of resistance, measured in siemens (S) and represented by \"G\". In simple terms, it can be thought of as the \"ease\" with which electricity flows through a conductor, where a higher conductance indicates less resistance and easier flow of electric current.",
-            "Electric energy": "The capacity to do work, measured in joules (J) and represented by \"E\". In simple terms, it can be thought of as the \"fuel\" that powers electrical devices, where a higher energy indicates more capacity to perform work.",
-            "Electric capacity": "The ability of a system to store electric charge, measured in farads (F) and represented by \"C\". In simple terms, it can be thought of as the \"storage\" for electricity, where a higher capacity indicates a greater ability to store electric charge.",
-            "Electric inductance": "The property of a conductor that opposes changes in current, measured in henries (H) and represented by \"L\". In simple terms, it can be thought of as the \"inertia\" of electricity, where a higher inductance indicates a greater opposition to changes in current flow."
-          },
-          "Magnetic Quantities": {
-            "Magnetic flux": "The total magnetic field passing through a given area, measured in webers (Wb) and represented by \"Φ\". In simple terms, it can be thought of as the \"amount\" of magnetism, where a higher magnetic flux indicates a stronger magnetic field passing through an area.",
-            "Magnetic field strength": "The intensity of a magnetic field, measured in teslas (T) and represented by \"B\". In simple terms, it can be thought of as the \"strength\" of magnetism, where a higher magnetic field strength indicates a stronger magnetic field.",
-            "Magnetic permeability": "The ability of a material to support the formation of a magnetic field, measured in henries per meter (H/m) and represented by \"μ\". In simple terms, it can be thought of as the \"friendliness\" of a material to magnetism, where a higher magnetic permeability indicates that the material allows magnetic fields to pass through it more easily.",
-            "Magnetic reluctance": "The opposition to the creation of a magnetic field in a material, measured in ampere-turns per weber (At/Wb) and represented by \"R_m\". In simple terms, it can be thought of as the \"resistance\" to magnetism, where a higher magnetic reluctance indicates that the material opposes the formation of a magnetic field more strongly.",
-            "Magnetic energy": "The energy stored in a magnetic field, measured in joules (J) and represented by \"E_m\". In simple terms, it can be thought of as the \"potential\" of magnetism, where a higher magnetic energy indicates that more energy is stored in the magnetic field.",
-            "Magnetic force": "The force exerted by a magnetic field on moving charges or other magnets, measured in newtons (N) and represented by \"F_m\". In simple terms, it can be thought of as the \"push\" or \"pull\" of magnetism, where a higher magnetic force indicates a stronger interaction between the magnetic field and charged particles or other magnets.",
-            "Magnetic moment": "A measure of the strength and orientation of a magnet's magnetic field, measured in ampere-square meters (A·m²) and represented by \"m\". In simple terms, it can be thought of as the \"personality\" of a magnet, where a higher magnetic moment indicates a stronger and more oriented magnetic field."
-          }
-        }
+    "messages": {
+      "unlink_success": "{provider} has been successfully unlinked.",
+      "unlink_error": "You cannot unlink your only login method."
+    },
+    "profile": {
+      "title": "Primary Account",
+      "member_since": "Member since:"
+    },
+    "login_methods": {
+      "title": "Connected Login Methods",
+      "google": {
+        "name": "Google",
+        "connected_as": "Connected as",
+        "not_connected": "Not connected",
+        "button_unlink": "Unlink",
+        "button_connect": "Connect Google"
       },
-      {
-        "title": "Common Electrical Terms and Symbols",
-        "description": [
-          "In addition to understanding the fundamental electrical and magnetic quantities, it's also important to familiarize yourself with common electrical terms and symbols that are used in circuit diagrams and electronics discussions. These terms and symbols help us communicate effectively about electronic components, circuits, and concepts.",
-          "Here are some common electrical terms and symbols you should know:"
-        ],
-        "terms": {
-          "Ground": "A reference point in an electrical circuit from which voltages are measured, a common return path for electric current. In simple terms, it can be thought of as the \"zero\" point in a circuit, where all voltages are measured relative to it and it provides a path for current to return to the source.",
-          "Power Supply": "A source of electrical power for the circuit, providing the necessary voltage and current. In simple terms, it can be thought of as the \"heart\" of a circuit, where it provides the energy needed for the circuit to function.",
-          "Pin symbol": "A symbol representing a connection point on a your RPI by number",
-          "Resistor": "A component that resists the flow of electric current, used to control voltage and current in a circuit. In simple terms, it can be thought of as the \"brake\" of a circuit, where it limits the flow of electricity to protect other components and control the behavior of the circuit.",
-          "Capacitor": "A component that stores and releases electrical energy, used for filtering, timing, and energy storage in circuits. In simple terms, it can be thought of as the \"battery\" of a circuit, where it temporarily stores electrical energy and releases it when needed to smooth out voltage fluctuations or provide power during brief interruptions.",
-          "Inductor": "A component that stores energy in a magnetic field when electric current flows through it, used for filtering, energy storage, and inductive coupling in circuits. In simple terms, it can be thought of as the \"coil\" of a circuit, where it creates a magnetic field that can store energy and oppose changes in current flow, making it useful for filtering and energy storage applications.",
-          "Diode": "A component that allows current to flow in one direction only, used for rectification, signal modulation, and protection in circuits. In simple terms, it can be thought of as the \"one-way valve\" of a circuit, where it permits the flow of electricity in one direction while blocking it in the opposite direction, making it essential for controlling current flow and protecting components from reverse voltage.",
-          "LED diode": "A type of diode that emits light when current flows through it, used for indication and display purposes in circuits. In simple terms, it can be thought of as the \"light bulb\" of a circuit, where it produces light when electricity flows through it, making it useful for visual indicators and displays.",
-          "Transistor": "A semiconductor device used to amplify or switch electronic signals, essential for building complex circuits and digital logic. In simple terms, it can be thought of as the \"amplifier\" or \"switch\" of a circuit, where it can control the flow of electricity based on an input signal, making it fundamental for amplification and digital logic applications."
-        }
+      "github": {
+        "name": "GitHub",
+        "connected_as": "Connected as",
+        "not_connected": "Not connected",
+        "button_unlink": "Unlink",
+        "button_connect": "Connect GitHub"
       }
-    ]
-  },
-  "Blinking_LED": {
-    "page_title": "Blinking LED",
-    "header": {
-      "title": "How to Create a Blinking LED Project",
-      "description": "In this tutorial, we will guide you through creating a simple blinking LED project using OmniBoard Studio."
-    },
-    "sections": [
-      {
-        "title": "Steps to Create a Blinking LED Project",
-        "steps": [
-          "Open OmniBoard Studio and create a new project.",
-          {
-            "description": "Drag and drop the necessary blocks to create a node diagram that turns an LED on and off.",
-            "details": {
-              "summary": "Try to explore and make the diagram you self or click here and find out one of the solutions.",
-              "instructions": [
-                "Place Start block.",
-                "Connect the Start block to a While True block to create an infinite loop.",
-                "Then connect the While True block to a Toggle LED block. This will cause the LED to toggle between on and off states.",
-                "Finally connect the Timer block to the Toggle LED block. This will create the desired blinking effect. You can adjust the timer duration to change the blinking speed as you wish. (1000 milliseconds = 1 second)"
-              ]
-            }
-          },
-          {
-            "description": "Make the correct circuit",
-            "instructions": [
-              "Connect the GPIO pin asigned to the LED to the rezistor.",
-              "Connect the positive leg of the LED to a resistor, and then connect the other end of the LED to ground. You can determine which leg is positive and which is negative by finding the longer leg (positive) and shorter leg (negative) or flat side of the LED cover (negative)."
-            ]
-          },
-          "Compile the code and upload it to your microcontroller.",
-          "Watch your LED blink on and off at the interval you set with the Timer block!"
-        ]
-      },
-      {
-        "title": "Bonus informations",
-        "items": {
-          "Writen code example": "Here is an example of simplified the MicroPython code that would be generated by the blocks for a blinking LED project:",
-          "And here is simplefied code for Python": "",
-          "What is an LED?": "LED stands for Light Emitting Diode. It is a semiconductor device that emits light when an electric current passes through it. LEDs are widely used in electronic circuits for indication and display purposes due to their efficiency, long lifespan, and low power consumption.",
-          "In simple terms, what is an LED?": "An LED can be thought of as a \"light bulb\" in a circuit. When electricity flows through it, it produces light, making it useful for visual indicators and displays in electronic projects.",
-          "What is a resistor?": "A resistor is an electronic component that limits the flow of electric current in a circuit. It is used to protect components like LEDs from receiving too much current, which can damage them. Resistors are essential for controlling the amount of current that flows through different parts of a circuit.",
-          "In simple terms, what is a resistor?": "A resistor can be thought of as a \"gatekeeper\" in a circuit that controls how much electricity flows through it. It helps ensure that components like LEDs receive the right amount of current to function properly without getting damaged."
-        }
-      }
-    ]
-  },
-  "Button_LED": {
-    "page_title": "Button controlled LED Project",
-    "header": {
-      "title": "How to Create a Button controlled LED Project",
-      "description": "In this tutorial, we will guide you through creating a simple button controlled LED project using OmniBoard Studio."
-    },
-    "sections": [
-      {
-        "title": "Steps to Create a Button controlled LED Project",
-        "steps": [
-          "Open OmniBoard Studio and create a new project.",
-          {
-            "description": "Drag and drop the necessary blocks to create a simple circuit that controls an LED with a button.",
-            "details": {
-              "summary": "Try to explore and make the diagram you self or click here and find out one of the solutions.",
-              "instructions": [
-                "Place Start block.",
-                "Connect the Start block to a While True block to create an infinite loop.",
-                "Then connect the While True block to a Button block. This will allow us to check the state of the button.",
-                "Finally connect the True output of the Button block to a LED ON block. This will cause the LED to turn on. To the False output connect a LED OFF block. This will cause the LED to turn off."
-              ]
-            }
-          },
-          {
-            "description": "Make the correct circuit",
-            "instructions": [
-              "Connect the button to the correct GPIO pin on your microcontroller. This will allow the Button block to read the state of the button correctly. Your usual button will have two pairs of pins. You will need to connect one pair to a GPIO pin and the other pair to 3.3V.",
-              "Now you can try to connect the LED from memory because the circuit is the same as in the previous tutorial. Or click to reveal the circuit diagram and instructions."
-            ],
-            "details": {
-              "summary": "Click to reveal the circuit diagram and instructions",
-              "instructions": [
-                "Connect the GPIO pin asigned to the LED to the rezistor.",
-                "Connect the positive leg of the LED to a resistor, and then connect the other end of the LED to ground. You can determine which leg is positive and which is negative by finding the longer leg (positive) and shorter leg (negative) or flat side of the LED cover (negative)."
-              ]
-            }
-          },
-          "Compile the code and upload it to your microcontroller.",
-          "Watch your LED blink on and off at the interval you set with the Timer block!"
-        ]
-      },
-      {
-        "title": "Bonus informations",
-        "items": {
-          "Writen code example": "Here is an example of simplified the MicroPython code that would be generated by the blocks for a button controlled LED project:",
-          "And here is simplefied code for Python": ""
-        }
-      }
-    ]
-  },
-  "LED_trafic_light": {
-    "page_title": "LED traffic light - OmniBoard Studio Tutorial",
-    "header": {
-      "title": "How to make a simple LED traffic light",
-      "description": "In this tutorial, we will guide you through creating a simple LED traffic light project using OmniBoard Studio."
-    },
-    "sections": [
-      {
-        "title": "Steps to Create a simple LED traffic light",
-        "steps": [
-          "Open OmniBoard Studio and create a new project.",
-          {
-            "description": "Drag and drop three LED blocks onto the canvas to represent the red, yellow, and green lights. You will need at least three LED blocks to represent the red, yellow, and green lights of the traffic light, a way to control the timing of the lights, and a way to loop the sequence. You can use a combination of LED blocks, timer blocks, and loop blocks to achieve this.",
-            "details": {
-              "summary": "Try to figure out how to connect the blocks to create the traffic light sequence on your own! If you need a hint, click here.",
-              "instructions": [
-                "Use the Start and While True blocks to create a loop that will run indefinitely."
-              ]
-            }
-          }
-        ]
-      }
-    ]
+    }
   }
 }
