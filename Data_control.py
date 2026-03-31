@@ -164,7 +164,7 @@ class DataControl:
                 'out_connections': {},
                 'canvas': self
             }
-        elif block_type in ("Basic_operations", "Exponential_operations", "Random_number"):
+        elif block_type in ("Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number"):
             info = {
                 'type': block_type,
                 'id': block_id,
@@ -181,6 +181,25 @@ class DataControl:
                 'operator': None,
                 'result_var_name': 'N',
                 'result_var_type': None,
+                'in_connections': {},
+                'out_connections': {},
+                'canvas': self
+            }
+        elif block_type in ("Lower", "Greater", "Equal", "Not_equal", "Greater_equal", "Lower_equal"):
+            info = {
+                'type': block_type,
+                'id': block_id,
+                'widget': block,
+                'width': block.boundingRect().width(),
+                'height': block.boundingRect().height(),
+                'x': x,
+                'y': y,
+                'outputs': 2,
+                'value_1_name': 'N',
+                'value_1_type': None,
+                'value_2_name': 'N',
+                'value_2_type': None,
+                'operator': None,
                 'in_connections': {},
                 'out_connections': {},
                 'canvas': self
@@ -427,7 +446,7 @@ class DataControl:
                 'out_connections': data.get('out_connections', {}),
                 'canvas': canvas
             }
-        elif block_type in ("Basic_operations", "Exponential_operations", "Random_number"):
+        elif block_type in ["Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number"]:
             info = {
                 'type': block_type,
                 'id': block_id,
@@ -444,6 +463,25 @@ class DataControl:
                 'operator': data.get('operator', None),
                 'result_var_name': data.get('result_var_name', "N"),
                 'result_var_type': data.get('result_var_type', "N/A"),
+                'in_connections': data.get('in_connections', {}),
+                'out_connections': data.get('out_connections', {}),
+                'canvas': canvas
+            }
+        elif block_type in ("Lower", "Greater", "Equal", "Not_equal", "Greater_equal", "Lower_equal"):
+            info = {
+                'type': block_type,
+                'id': block_id,
+                'widget': block,
+                'width': block.boundingRect().width(),
+                'height': block.boundingRect().height(),
+                'x': x,
+                'y': y,
+                'outputs': data.get('outputs', 1),
+                'value_1_name': data.get('value_1_name', "N"),
+                'value_1_type': data.get('value_1_type', "N/A"),
+                'value_2_name': data.get('value_2_name', "N"),
+                'value_2_type': data.get('value_2_type', "N/A"),
+                'operator': data.get('operator', None),
                 'in_connections': data.get('in_connections', {}),
                 'out_connections': data.get('out_connections', {}),
                 'canvas': canvas
@@ -686,7 +724,7 @@ class DataControl:
                 'in_connections': block_info.get('in_connections', {}),
                 'out_connections': block_info.get('out_connections', {}),
             }
-        elif block_info['type'] in ('Basic_operations', 'Exponential_operations', 'Random_number'):
+        elif block_info['type'] in ("Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number"):
             info = {
                 'type': block_info['type'],
                 'id': block_id,
@@ -702,6 +740,23 @@ class DataControl:
                 'operator': block_info.get('operator', ''),
                 'result_var_name': block_info.get('result_var_name', ''),
                 'result_var_type': block_info.get('result_var_type', ''),
+                'in_connections': block_info.get('in_connections', {}),
+                'out_connections': block_info.get('out_connections', {}),
+            }
+        elif block_info['type'] in ("Lower", "Greater", "Equal", "Not_equal", "Greater_equal", "Lower_equal"):
+            info = {
+                'type': block_info['type'],
+                'id': block_id,
+                'width': block_info['widget'].boundingRect().width(),
+                'height': block_info['widget'].boundingRect().height(),
+                'x': block_info['x'],
+                'y': block_info['y'],
+                'outputs': block_info.get('outputs', 1),
+                'value_1_name': block_info.get('value_1_name', ''),
+                'value_1_type': block_info.get('value_1_type', ''),
+                'value_2_name': block_info.get('value_2_name', ''),
+                'value_2_type': block_info.get('value_2_type', ''),
+                'operator': block_info.get('operator', ''),
                 'in_connections': block_info.get('in_connections', {}),
                 'out_connections': block_info.get('out_connections', {}),
             }

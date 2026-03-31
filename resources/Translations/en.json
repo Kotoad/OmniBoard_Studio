@@ -143,7 +143,10 @@
         "no_projects": "No projects",
         "no_saved_projects_found": "No saved projects found",
         "open_project": "Open Project",
-        "unsaved_changes": "Do you want to save changes to {name} before closing?"
+        "unsaved_changes": "Do you want to save changes to {name} before closing?",
+        "confirm_delete": "Are you sure you want to delete {name}?",
+        "confirm_new_title": "Create New Project?",
+        "confirm_new_message": "Are you sure you want to create a new project? Unsaved changes will be lost."
       },
       "changes_dialogs": {
         "main_canvas_changes": "Main canvas changes:",
@@ -221,7 +224,8 @@
       "Start": "Start",
       "End": "End",
       "Timer": "Timer",
-      "Networks": "Networks"
+      "Networks": "Networks",
+      "Return": "Return"
     },
     "logic_blocks_tab": {
       "tab_title": "Logic blocks",
@@ -229,7 +233,13 @@
       "While": "While",
       "While_true": "While true",
       "Switch": "Switch",
-      "For_Loop": "For Loop"
+      "For_Loop": "For Loop",
+      "Lower": "Lower",
+      "Greater": "Greater",
+      "Equal": "Equal",
+      "Not_equal": "Not equal",
+      "Greater_equal": "Greater or equal",
+      "Lower_equal": "Lower or equal"
     },
     "io_blocks_tab": {
       "tab_title": "I/O blocks",
@@ -244,11 +254,16 @@
     },
     "math_blocks_tab": {
       "tab_title": "Math blocks",
-      "basic_operations": "Basic operations",
-      "plus_one": "Plus 1",
-      "minus_one": "Minus 1",
-      "exponential_operations": "Exponential operations",
-      "random_number": "Random Number"
+      "Plus": "Plus",
+      "Minus": "Minus",
+      "Multiply": "Multiply",
+      "Divide": "Divide",
+      "Modulo": "Modulo",
+      "Power": "Power",
+      "Root": "Root",
+      "Plus_one": "Plus 1",
+      "Minus_one": "Minus 1",
+      "Random_number": "Random Number"
     },
     "function_blocks_tab": {
       "tab_title": "Function"
@@ -258,12 +273,19 @@
       "End": "The endpoint of the program execution.",
       "Timer": "A block that triggers actions at specified time intervals.",
       "Networks": "Controls the order of execution flow, allowing for branching.",
+      "Return": "A block that returns a value from a function and exits its execution.",
       "If": "A conditional block that executes actions based on a true/false condition.",
       "While": "A loop block that continues executing as long as a condition is true.",
       "While_true": "A loop that runs indefinitely until externally stopped.",
       "Switch": "A block that selects one of many possible actions based on a value.",
       "For_Loop": "A loop that iterates a specific number of times.",
       "Button": "Represents a physical button input device.",
+      "Lower": "Compares two values and returns true if the first is less than the second.",
+      "Greater": "Compares two values and returns true if the first is greater than the second.",
+      "Equal": "Compares two values and returns true if they are equal.",
+      "Not_equal": "Compares two values and returns true if they are not equal.",
+      "Greater_equal": "Compares two values and returns true if the first is greater than or equal to the second.",
+      "Lower_equal": "Compares two values and returns true if the first is less than or equal to the second.",
       "LED": "Represents a physical LED output device.",
       "Blink_LED": "Controls an LED to blink at specified intervals.",
       "Toggle_LED": "Toggles the state of an LED on or off.",
@@ -271,10 +293,15 @@
       "LED_ON": "Turns an LED on.",
       "LED_OFF": "Turns an LED off.",
       "RGB_LED": "Controls an RGB LED.",
-      "Basic_operations": "Performs basic arithmetic operations like addition, subtraction, multiplication, and division.",
+      "Plus": "Adds two values together and stores the result in a target variable.",
+      "Minus": "Subtracts the second value from the first and stores the result in a target variable.",
+      "Multiply": "Multiplies two values together and stores the result in a target variable.",
+      "Divide": "Divides the first value by the second and stores the result in a target variable.",
+      "Modulo": "Calculates the remainder of dividing the first value by the second and stores the result in a target variable.",
+      "Power": "Raises the first value to the power of the second value and stores the result in a target variable.",
+      "Root": "Calculates the square root of the first value and stores the result in a target variable.",
       "Plus_one": "Adds 1 to the specified variable.",
       "Minus_one": "Subtracts 1 from the specified variable.",
-      "Exponential_operations": "Performs exponential calculations such as power and square root.",
       "Random_number": "Generates a random number within a specified range.",
       "no_description": "No description available."
     }

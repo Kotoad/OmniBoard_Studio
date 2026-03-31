@@ -143,7 +143,10 @@
         "no_projects": "Žádné projekty",
         "no_saved_projects_found": "Nenalezeny žádné uložené projekty",
         "open_project": "Otevřít projekt",
-        "unsaved_changes": "Chcete uložit změny v {name} před zavřením?"
+        "unsaved_changes": "Chcete uložit změny v {name} před zavřením?",
+        "confirm_delete": "Opravdu chcete smazat {name}?",
+        "confirm_new_title": "Vytvořit nový projekt?",
+        "confirm_new_message": "Opravdu chcete vytvořit nový projekt? Neuložené změny budou ztraceny."
       },
       "changes_dialogs": {
         "main_canvas_changes": "Změny hlavního plátna:",
@@ -221,7 +224,8 @@
       "Start": "Začátek",
       "End": "Konec",
       "Timer": "Časovač",
-      "Networks": "Větve"
+      "Networks": "Větve",
+      "Return": "Návrat"
     },
     "logic_blocks_tab": {
       "tab_title": "Logické bloky",
@@ -229,7 +233,13 @@
       "While": "Pokud platí",
       "While_true": "Pokud platí vždy",
       "Switch": "Přepínač",
-      "For_Loop": "Cyklus For"
+      "For_Loop": "Cyklus For",
+      "Lower": "Menší než",
+      "Greater": "Větší než",
+      "Equal": "Rovná se",
+      "Not_equal": "Nerovná se",
+      "Greater_equal": "Větší nebo rovno",
+      "Lower_equal": "Menší nebo rovno"
     },
     "io_blocks_tab": {
       "tab_title": "Bloky V/V",
@@ -244,11 +254,16 @@
     },
     "math_blocks_tab": {
       "tab_title": "Matematické bloky",
-      "basic_operations": "Základní operace",
-      "plus_one": "Přidat 1",
-      "minus_one": "Odečíst 1",
-      "exponential_operations": "Exponenciální operace",
-      "random_number": "Náhodné číslo"
+      "Plus": "Sčítání",
+      "Minus": "Odčítání",
+      "Multiply": "Násobení",
+      "Divide": "Dělení",
+      "Modulo": "Modulo",
+      "Power": "Mocnina",
+      "Root": "Odmocnina",
+      "Plus_one": "Přidat 1",
+      "Minus_one": "Odečíst 1",
+      "Random_number": "Náhodné číslo"
     },
     "function_blocks_tab": {
       "tab_title": "Funkce"
@@ -259,11 +274,18 @@
       "Timer": "Blok, který spouští akce v zadaných časových intervalech.",
       "Networks": "Ovládá pořadí toku vykonávání, umožňuje větvení.",
       "If": "Podmínkový blok, který provádí akce na základě podmínky pravda/nepravda.",
+      "Return": "Blok, který vrací hodnotu z funkce a ukončuje její vykonávání.",
       "While": "Blok smyčky, který pokračuje v provádění, pokud je podmínka pravdivá.",
       "While_true": "Smyčka, která běží neurčitě, dokud není externně zastavena.",
       "Switch": "Blok, který vybere jednu z mnoha možných akcí na základě hodnoty.",
       "For_Loop": "Smyčka, která se iteruje určitý počet krát.",
       "Button": "Představuje fyzické tlačítko vstupního zařízení.",
+      "Lower": "Porovnává dvě hodnoty a vrací pravda, pokud je první menší než druhá.",
+      "Greater": "Porovnává dvě hodnoty a vrací pravda, pokud je první větší než druhá.",
+      "Equal": "Porovnává dvě hodnoty a vrací pravda, pokud jsou stejné.",
+      "Not_equal": "Porovnává dvě hodnoty a vrací pravda, pokud nejsou stejné.",
+      "Greater_equal": "Porovnává dvě hodnoty a vrací pravda, pokud je první větší nebo rovna druhé.",
+      "Lower_equal": "Porovnává dvě hodnoty a vrací pravda, pokud je první menší nebo rovna druhé.",
       "LED": "Představuje fyzické LED výstupní zařízení.",
       "Blink_LED": "Řídí blikání LED v zadaných intervalech.",
       "Toggle_LED": "Přepíná stav LED zapnuto nebo vypnuto.",
@@ -271,10 +293,15 @@
       "LED_ON": "Zapíná LED.",
       "LED_OFF": "Vypíná LED.",
       "RGB_LED": "Ovládá RGB LED.",
-      "Basic_operations": "Provádí základní aritmetické operace jako sčítání, odčítání, násobení a dělení.",
+      "Plus": "Sčítá dvě hodnoty a ukládá výsledek do cílové proměnné.",
+      "Minus": "Odečítá druhou hodnotu od první a ukládá výsledek do cílové proměnné.",
+      "Multiply": "Násobí dvě hodnoty a ukládá výsledek do cílové proměnné.",
+      "Divide": "Dělí první hodnotu druhou a ukládá výsledek do cílové proměnné.",
+      "Modulo": "Vypočítává zbytek po dělení první hodnoty druhou a ukládá výsledek do cílové proměnné.",
+      "Power": "Zvedá první hodnotu na exponent druhé hodnoty a ukládá výsledek do cílové proměnné.",
+      "Root": "Vypočítává druhou odmocninu první hodnoty a ukládá výsledek do cílové proměnné.",
       "Plus_one": "Přidá 1 k zadané proměnné.",
       "Minus_one": "Odečte 1 od zadané proměnné.",
-      "Exponential_operations": "Provádí exponenciální výpočty, jako je mocnina a odmocnina.",
       "Random_number": "Generuje náhodné číslo v zadaném rozsahu.",
       "no_description": "Žádný popis není k dispozici."
     }

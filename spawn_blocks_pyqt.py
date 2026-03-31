@@ -57,13 +57,7 @@ class BlockGraphicsItem(QGraphicsObject):
         self.font = "Consolas"
         #print(f"self.canvas: {self.canvas}, self.block_id: {self.block_id}, self.block_type: {self.block_type}, self.x: {x}, self.y: {y}, self.name: {self.name}")
         self.value_1_name = "N"
-        if self.block_type == "Basic_operations":
-            self.operator = "+"
-        elif self.block_type == "Exponential_operations":
-            self.operator = "^"
-        elif self.block_type == "Random_number":
-            self.operator = "rand"
-        elif self.block_type in ("If", "While", "Switch"):
+        if self.block_type in ("If", "While", "Switch"):
             self.operator = "=="
         self.value_2_name = "N"
         self.result_var_name = "N"
@@ -135,11 +129,10 @@ class BlockGraphicsItem(QGraphicsObject):
     def _setup_dimensions(self):
         
         """Set block dimensions based on type"""
-        if self.block_type in ["While", "Button"]:
+        if self.block_type in ["While", "Button", "Lower", "Equal", "Not_equal", "Greater", "Greater_equal", "Lower_equal"]:
             self.width = 100
             self.height = 75
-        elif self.block_type in ["Timer","Basic_operations", "Exponential_operations",
-                                "Random_number", "Blink_LED", "PWM_LED", "Return"]:
+        elif self.block_type in ["Timer", "Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Blink_LED", "PWM_LED", "Return"]:
             self.width = 150
             self.height = 50
         elif self.block_type in [ "Start", "End", "While_true", "Toggle_LED", "Switch", "LED_ON", "LED_OFF", "Plus_one", "Minus_one"]:
@@ -210,8 +203,24 @@ class BlockGraphicsItem(QGraphicsObject):
             text_to_measure = f"{self.value_1_name}"
         elif self.block_type == "Button":
             text_to_measure = f"{self.value_1_name}"
-        elif self.block_type in ["Basic_operations", "Exponential_operations", "Random_number"]:
-            text_to_measure = f"{self.result_var_name} = {self.value_1_name} {self.operator} {self.value_2_name}"
+        elif self.block_type in ["Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number", "Lower", "Equal", "Not_equal", "Greater", "Greater_equal", "Lower_equal"]:
+            operators = {
+                "Plus": "+",
+                "Minus": "-",
+                "Multiply": "*",
+                "Divide": "/",
+                "Modulo": "%",
+                "Power": "^2",
+                "Root": "√",
+                "Random_number": "rand",
+                "Lower": "<",
+                "Equal": "==",
+                "Not_equal": "!=",
+                "Greater": ">",
+                "Greater_equal": ">=",
+                "Lower_equal": "<="
+            }
+            text_to_measure = f"{self.result_var_name} = {self.value_1_name} {operators.get(self.block_type, "E")} {self.value_2_name}"
         elif self.block_type == "Blink_LED":
             text_to_measure = f"{self.value_1_name} - {self.sleep_time} ms"
         elif self.block_type == "PWM_LED":
@@ -282,11 +291,20 @@ class BlockGraphicsItem(QGraphicsObject):
             "Button": QColor("#D3D3D3"),    # Light gray
             "While_true": QColor("#87CEEB"),     # Sky blue
             "Function": QColor("#FFA500"),  # Orange
-            "Basic_operations": QColor("#9900FF"),  # Purple
-            "Exponential_operations": QColor("#9900FF"),      # Purple
+            "Plus": QColor("#9900FF"),  # Purple
+            "Minus": QColor("#9900FF"),  # Purple
+            "Multiply": QColor("#9900FF"),  # Purple
+            "Divide": QColor("#9900FF"),  # Purple
+            "Modulo": QColor("#9900FF"),  # Purple
+            "Power": QColor("#9900FF"),  # Purple
+            "Root": QColor("#9900FF"),  # Purple
             "Random_number": QColor("#9900FF"),  # Purple
-            "Plus_one": QColor("#9900FF"),  # Purple
-            "Minus_one": QColor("#9900FF"),  # Purple
+            "Lower": QColor("#9900FF"),  # Purple
+            "Equal": QColor("#9900FF"),  # Purple
+            "Not_equal": QColor("#9900FF"),  # Purple
+            "Greater": QColor("#9900FF"),  # Purple
+            "Greater_equal": QColor("#9900FF"),  # Purple
+            "Lower_equal": QColor("#9900FF"),  # Purple
             "Blink_LED": QColor("#57A139"),      # Green
             "Toggle_LED": QColor("#57A139"),     # Green
             "PWM_LED": QColor("#57A139"),        # Green
@@ -452,8 +470,30 @@ class BlockGraphicsItem(QGraphicsObject):
             painter.setPen(QPen(off_color))
             painter.drawText(off_rect, Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, "OFF")
         
-        elif self.block_type in ["Basic_operations", "Exponential_operations", "Random_number"]:
-            math_text = f"{self.result_var_name} = {self.value_1_name} {self.operator} {self.value_2_name}"
+        elif self.block_type in ["Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number"]:
+            operators = {
+                "Plus": "+",
+                "Minus": "-",
+                "Multiply": "*",
+                "Divide": "/",
+                "Modulo": "%",
+                "Power": "^",
+                "Root": "√",
+                "Random_number": "rand"
+            }
+            math_text = f"{self.result_var_name} = {self.value_1_name} {operators.get(self.block_type, "E")} {self.value_2_name}"
+            math_rect = QRectF(self.radius, 0, self.width, self.height)
+            painter.drawText(math_rect, Qt.AlignmentFlag.AlignCenter, math_text)
+        elif self.block_type in ["Lower", "Equal", "Not_equal", "Greater", "Greater_equal", "Lower_equal"]:
+            operators = {
+                "Lower": "<",
+                "Equal": "==",
+                "Not_equal": "!=",
+                "Greater": ">",
+                "Greater_equal": ">=",
+                "Lower_equal": "<="
+            }
+            math_text = f"{self.value_1_name} {operators.get(self.block_type, "E")} {self.value_2_name}"
             math_rect = QRectF(self.radius, 0, self.width, self.height)
             painter.drawText(math_rect, Qt.AlignmentFlag.AlignCenter, math_text)
         elif self.block_type in ["Plus_one", "Minus_one"]:
@@ -512,7 +552,7 @@ class BlockGraphicsItem(QGraphicsObject):
         # Output circle(s) (red)
         if self.block_type != "End":
             painter.setBrush(QBrush(QColor("red")))
-            if self.block_type in ["While", "Button"]:
+            if self.block_type in ["While", "Button", "Lower", "Equal", "Not_equal", "Greater", "Greater_equal", "Lower_equal"]:
                 for i in range(1, 3):
                     out_y = i * self.grid_size
                     out_circle = QRectF(self.width, out_y - self.radius, 2*self.radius, 2*self.radius)
@@ -813,7 +853,7 @@ class BlockGraphicsItem(QGraphicsObject):
         # Check output circles
         out_x = self.width + self.radius
         
-        if self.block_type in ('While', 'Button'):
+        if self.block_type in ('While', 'Button', 'Lower', 'Equal', 'Not_equal', 'Greater', 'Greater_equal', 'Lower_equal'):
             # Two output circles
             out_y1 = self.grid_size * ((self.height / self.grid_size) - 2)
             out_y2 = self.grid_size * ((self.height / self.grid_size) - 1)

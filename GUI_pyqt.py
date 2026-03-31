@@ -97,7 +97,7 @@ class RPiExecutionThread(QThread):
         Signal thread to stop gracefully.
         This is called from the main GUI thread.
         """
-        print("[RPiExecutionThread]  Stop signal received")
+        #print("[RPiExecutionThread]  Stop signal received")
         
         with self.stop_lock:
             self.should_stop = True
@@ -105,7 +105,7 @@ class RPiExecutionThread(QThread):
         # CRITICAL: Close SSH connection immediately to interrupt blocking operations
         if self.ssh is not None:
             try:
-                print("[RPiExecutionThread] Closing SSH connection...")
+                #print("[RPiExecutionThread] Closing SSH connection...")
                 self.ssh.close()
             except Exception as e:
                 print(f"[RPiExecutionThread] Error closing SSH: {e}")
@@ -113,7 +113,7 @@ class RPiExecutionThread(QThread):
         # Close channel if it exists
         if self.channel is not None:
             try:
-                print("[RPiExecutionThread] Closing SSH channel...")
+                #print("[RPiExecutionThread] Closing SSH channel...")
                 self.channel.close()
             except Exception as e:
                 print(f"[RPiExecutionThread] Error closing channel: {e}")
@@ -350,7 +350,7 @@ class RPiExecutionThread(QThread):
         Gracefully terminate old Python processes with proper delays.
         """
         try:
-            print("Terminating old processes...")
+            #print("Terminating old processes...")
             
             # Step 1: Find the process ID (PID) first
             find_pid_cmd = "pgrep -f 'python3.*File.py'"
@@ -359,17 +359,17 @@ class RPiExecutionThread(QThread):
             pids = [p for p in pids if p]  # Filter empty strings
             
             if not pids:
-                print("No processes to terminate")
+                #print("No processes to terminate")
                 return
             
-            print(f"Found {len(pids)} process(es): {pids}")
+            #print(f"Found {len(pids)} process(es): {pids}")
             
             # Step 2: Send SIGTERM to each process
             for pid in pids:
                 kill_cmd = f"kill -INT {pid} 2>/dev/null || true"
                 self.ssh.exec_command(kill_cmd, timeout=2)
             
-            print("SIGTERM sent, waiting for graceful shutdown...")
+            #print("SIGTERM sent, waiting for graceful shutdown...")
             time.sleep(3.0)  # INCREASED: Give more time for cleanup
             
             # Step 3: Check if processes still running
@@ -378,19 +378,19 @@ class RPiExecutionThread(QThread):
             remaining = [p for p in remaining if p]
             
             if remaining:
-                print(f"Warning: {len(remaining)} process(es) still running")
-                print("Escalating to SIGKILL...")
+                #print(f"Warning: {len(remaining)} process(es) still running")
+                #print("Escalating to SIGKILL...")
                 
                 for pid in remaining:
                     kill_cmd = f"kill -9 {pid} 2>/dev/null || true"
                     self.ssh.exec_command(kill_cmd, timeout=2)
                 
                 time.sleep(1.0)
-                print(" GPIO cleanup may not have completed. Pin state may be dirty.")
+                #print(" GPIO cleanup may not have completed. Pin state may be dirty.")
             
             # Final check to ensure port/file descriptors are released
             time.sleep(0.5)
-            print("Process termination logic complete")
+            #print("Process termination logic complete")
         except Exception as e:
             print(f"Process termination error: {e}")
 
@@ -402,7 +402,7 @@ class RPiExecutionThread(QThread):
         This works regardless of which Python process configured the pins.
         """
         try:
-            print("Executing kernel-level GPIO reset...")
+            #print("Executing kernel-level GPIO reset...")
             
             # Get list of all GPIO pins your application uses
             # You need to collect these from Utils.devices
@@ -411,7 +411,7 @@ class RPiExecutionThread(QThread):
             if not pins_to_reset:
                 pins_to_reset = [17]  # Fallback to default if detection fails
             
-            print(f"Resetting pins: {pins_to_reset}")
+            #print(f"Resetting pins: {pins_to_reset}")
             
             # Build compound command to reset all pins
             reset_commands = []
@@ -460,7 +460,7 @@ class RPiExecutionThread(QThread):
                     if pin is not None and pin not in pins:
                         pins.append(pin)
             
-            print(f"Detected pins in project: {pins}")
+            #print(f"Detected pins in project: {pins}")
         except Exception as e:
             print(f"Error detecting pins: {e}")
         
@@ -958,7 +958,7 @@ class GridCanvas(QGraphicsView):
         self.grid_size = grid_size
         blocks_window = blocksWindow.get_instance(parent=self)
         self.spawner = spawningblocks(self, blocks_window)  
-        print(f"[GridCanvas] spawner {self.spawner}")
+        #print(f"[GridCanvas] spawner {self.spawner}")
         self.path_manager = PathManager(self)
         self.blocks_events = elementevents(self)
         # Create graphics scene
@@ -1036,7 +1036,7 @@ class GridCanvas(QGraphicsView):
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
         self.scale(new_zoom / self.zoom_level, new_zoom / self.zoom_level)
         self.zoom_level = new_zoom
-        print(f"[GridCanvas.wheelEvent] GUI {self.GUI}, zoom level: {self.zoom_level}, slider value: {self.zoom_level*100}")
+        #print(f"[GridCanvas.wheelEvent] GUI {self.GUI}, zoom level: {self.zoom_level}, slider value: {self.zoom_level*100}")
         self.GUI.zoom_slider.setValue(int(self.zoom_level * 100))
         event.accept()
     
@@ -1056,12 +1056,12 @@ class GridCanvas(QGraphicsView):
     def reset_zoom(self):
         self.resetTransform()
         self.zoom_level = 1.0
-        print(f"Resetting view to default. Zoom level: {self.zoom_level}, zoom for slider {self.zoom_level*100}")
+        #print(f"Resetting view to default. Zoom level: {self.zoom_level}, zoom for slider {self.zoom_level*100}")
         self.GUI.zoom_slider.setValue(int(self.zoom_level*100))
 
     def keyPressEvent(self, event):
         """Handle keyboard shortcuts"""
-        print(f"[GridCanvas.keyPressEvent] Key: {event.key()}")
+        #print(f"[GridCanvas.keyPressEvent] Key: {event.key()}")
         if event.key() == Qt.Key.Key_Home:
             # Reset zoom and pan
             self.reset_zoom()
@@ -1076,7 +1076,7 @@ class GridCanvas(QGraphicsView):
             else:
                 event.ignore()
         elif self.path_manager.start_node:
-            print(f"Key pressed during path creation: {event.key()}")
+            #print(f"Key pressed during path creation: {event.key()}")
             if event.key() == Qt.Key.Key_Escape:
                 self.path_manager.cancel_connection()
                 event.accept()
@@ -1086,7 +1086,7 @@ class GridCanvas(QGraphicsView):
             if event.key() == Qt.Key.Key_Escape:
                 self.pan_mode = False
                 self.main_window.pan_button.setChecked(False)
-                print(f"pan mode {self.pan_mode}, middle mouse pressed {self.middle_mouse_pressed}")
+                #print(f"pan mode {self.pan_mode}, middle mouse pressed {self.middle_mouse_pressed}")
                 self.setCursor(Qt.CursorShape.ArrowCursor)
                 event.accept()
         else:
@@ -1094,11 +1094,11 @@ class GridCanvas(QGraphicsView):
     
     def mousePressEvent(self, event):
         """Handle mouse press - check for middle-click panning"""
-        print(f"[GridCanvas.mousePressEvent] Button: {event.button()}")
+        #print(f"[GridCanvas.mousePressEvent] Button: {event.button()}")
         
         # Handle middle-click panning
         if event.button() == Qt.MouseButton.MiddleButton:
-            print("[GridCanvas] Middle mouse pressed - starting pan")
+            #print("[GridCanvas] Middle mouse pressed - starting pan")
             self.middle_mouse_pressed = True
             self.middle_mouse_start = event.pos()
             self.setCursor(Qt.CursorShape.OpenHandCursor)
@@ -1120,32 +1120,32 @@ class GridCanvas(QGraphicsView):
                     event.accept()
                     return  # ← Return ONLY if we showed context menu
                 elif isinstance(item, PathGraphicsItem):
-                    print(f"[GridCanvas] Showing path context menu")
+                    #print(f"[GridCanvas] Showing path context menu")
                     self.show_path_context_menu(item, scene_pos)
                     event.accept()
                     return  # ← Return ONLY if we showed context menu
             # ← If NO menu shown, fall through to super()
         if event.button() == Qt.MouseButton.LeftButton:
-            print(f"[GridCanvas] Left mouse pressed")
+            #print(f"[GridCanvas] Left mouse pressed")
             if self.path_manager.start_node:
                 items = self.scene.items(self.mapToScene(event.position().toPoint()))
 
                 click_on_block = False
                 for item in items:
                     if isinstance(item, BlockGraphicsItem):
-                        print(f"[GridCanvas] Completing path to block on mouse press")
+                        #print(f"[GridCanvas] Completing path to block on mouse press")
                         click_on_block = True
                 
                 if click_on_block:
                     pass
                 else:
-                    print(f"[GridCanvas] Adding point to path at mouse press")
+                    #print(f"[GridCanvas] Adding point to path at mouse press")
                     scene_pos = self.mapToScene(event.position().toPoint())
                     self.path_manager.add_point(scene_pos)
                     event.accept()
                     return
             if self.pan_mode:
-                print(f"[GridCanvas] Starting pan mode with left click")
+                #print(f"[GridCanvas] Starting pan mode with left click")
                 self.middle_mouse_pressed = True
                 self.middle_mouse_start = event.pos()
                 self.setCursor(Qt.CursorShape.OpenHandCursor)
@@ -1158,7 +1158,7 @@ class GridCanvas(QGraphicsView):
     def mouseMoveEvent(self, event):
         """Handle mouse move - pan if middle-mouse pressed"""
         if self.middle_mouse_pressed:
-            print(f"[GridCanvas.mouseMoveEvent] Middle mouse move - panning")
+            #print(f"[GridCanvas.mouseMoveEvent] Middle mouse move - panning")
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
             # Middle-mouse is held down: pan using scroll bars instead of translate
             delta = event.pos() - self.middle_mouse_start
@@ -1191,7 +1191,7 @@ class GridCanvas(QGraphicsView):
             self.setCursor(Qt.CursorShape.ArrowCursor)
             event.accept()
         elif event.button() == Qt.MouseButton.LeftButton and self.pan_mode:
-            print(f"[GridCanvas.mouseReleaseEvent] Ending pan mode with left click")
+            #print(f"[GridCanvas.mouseReleaseEvent] Ending pan mode with left click")
             self.middle_mouse_pressed = False
             self.setCursor(Qt.CursorShape.OpenHandCursor)
             event.accept()
@@ -1202,7 +1202,7 @@ class GridCanvas(QGraphicsView):
     
     def add_block(self, block_type, x, y, block_id, name=None):
         """Add a new block to the canvas"""
-        print(f"Adding block of type {block_type} at ({x}, {y}) with ID {block_id} to canvas {self}, name: {name if name else 'N/A'}")
+        #print(f"Adding block of type {block_type} at ({x}, {y}) with ID {block_id} to canvas {self}, name: {name if name else 'N/A'}")
         block = BlockGraphicsItem(
             x=x, y=y,
             block_id=block_id,
@@ -1235,7 +1235,7 @@ class GridCanvas(QGraphicsView):
                     #print(f"Matched function canvas for block addition: {f_id}")
                     Utils.functions[f_id]['blocks'].setdefault(block_id, info)
                     break
-        print(f"Added block: {info}")
+        #print(f"Added block: {info}")
         if self.reference == 'canvas':
             #print(f"Current Utils.main_canvas blocks: {Utils.main_canvas['blocks']}")
             pass
@@ -1268,7 +1268,7 @@ class GridCanvas(QGraphicsView):
                 self.middle_mouse_start = event.points()[0].position()
                 event.accept()
             elif len(event.points()) == 2:
-                print(f"Pinch start with points: {event.points()[0].position()}, {event.points()[1].position()}")
+                #print(f"Pinch start with points: {event.points()[0].position()}, {event.points()[1].position()}")
                 self.setDragMode(QGraphicsView.DragMode.NoDrag)
                 self._initial_pinch_distance = (event.points()[0].position() - event.points()[1].position()).manhattanLength()
                 self._initial_zoom = self.zoom_level
@@ -1286,13 +1286,13 @@ class GridCanvas(QGraphicsView):
                 event.accept()
             elif len(event.points()) == 2:
                 current_distance = (event.points()[0].position() - event.points()[1].position()).manhattanLength()
-                print(f"Pinch update with current distance: {current_distance}")
+                #print(f"Pinch update with current distance: {current_distance}")
                 if self._initial_pinch_distance > 0:
-                    print(f"Calculating zoom from pinch gesture")
+                    #print(f"Calculating zoom from pinch gesture")
                     scale_factor = current_distance / self._initial_pinch_distance
                     new_zoom = self._initial_zoom * scale_factor
                     new_zoom = max(self.min_zoom, min(self.max_zoom, new_zoom))
-                    print(f"New zoom level from pinch: {new_zoom}")
+                    #print(f"New zoom level from pinch: {new_zoom}")
                     self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
                     self.scale(new_zoom / self.zoom_level, new_zoom / self.zoom_level)
                     self.zoom_level = new_zoom
@@ -1363,34 +1363,34 @@ class GridCanvas(QGraphicsView):
                 if self.GUI.current_canvas == f_info.get('canvas'):
                     paths = Utils.functions[f_id].get('paths', {})
                     break
-        print(f"paths {paths}")
+        #print(f"paths {paths}")
 
         if path_id in paths:
-            print(f"Removing path: {path_id}")
+            #print(f"Removing path: {path_id}")
             path_item = paths[path_id].get('item')
-            print(f"Path item to remove: {path_item}")
+            #print(f"Path item to remove: {path_item}")
             if path_item:
                 self.scene.removeItem(path_item)
-                print(f"Path item {path_id} removed from scene.")
+                #print(f"Path item {path_id} removed from scene.")
                 out_part, in_part = path_id.split("-")
-                print(f"Path connects {in_part} to {out_part}")
+                #print(f"Path connects {in_part} to {out_part}")
                 if self.GUI.current_canvas.reference == "canvas":
                     if in_part in Utils.main_canvas['blocks']:
-                        print(f"Removing path from block {in_part} in main_canvas")
+                        #print(f"Removing path from block {in_part} in main_canvas")
                         del Utils.main_canvas['blocks'][in_part]['in_connections'][path_id]
                     if out_part in Utils.main_canvas['blocks']:
-                        print(f"Removing path from block {out_part} in main_canvas")
+                        #print(f"Removing path from block {out_part} in main_canvas")
                         del Utils.main_canvas['blocks'][out_part]['out_connections'][path_id]
                     
                 elif self.GUI.current_canvas.reference == "function":
                     for f_id, f_info in Utils.functions.items():
                         if self.GUI.current_canvas == f_info.get('canvas'):
-                            print(f"Found matching function canvas for path removal: {f_id}")
+                            #print(f"Found matching function canvas for path removal: {f_id}")
                             if in_part in Utils.functions[f_id]['blocks']:
-                                print(f"Removing path from block {in_part} in function {f_id}")
+                                #print(f"Removing path from block {in_part} in function {f_id}")
                                 del Utils.functions[f_id]['blocks'][in_part]['in_connections'][path_id]
                             if out_part in Utils.functions[f_id]['blocks']:
-                                print(f"Removing path from block {out_part} in function {f_id}")
+                                #print(f"Removing path from block {out_part} in function {f_id}")
                                 del Utils.functions[f_id]['blocks'][out_part]['out_connections'][path_id]
                             break
                     
@@ -1457,7 +1457,7 @@ class GridCanvas(QGraphicsView):
 
     def delete_path(self, path):
         """Delete a connection path"""
-        print(f"Deleting path: {path.path_id}")
+        #print(f"Deleting path: {path.path_id}")
         command = RemovePathCommand(
             canvas=self,
             path_id=path.path_id
@@ -1476,7 +1476,7 @@ class GUI(QWidget):
 
 
         caller = inspect.currentframe().f_back
-        print(f"Getting current canvas. Called from: {caller.f_code.co_name} in {caller.f_code.co_filename}:{caller.f_lineno}")
+        #print(f"Getting current canvas. Called from: {caller.f_code.co_name} in {caller.f_code.co_filename}:{caller.f_lineno}")
         try:
             #print(f"Getting current canvas from sidebar. Current tab index: {self.get_current_tab_index()}")
             index = self.get_current_tab_index()
@@ -1489,7 +1489,7 @@ class GUI(QWidget):
             
             # Check if it's a GridCanvas instance
             if isinstance(widget, GridCanvas):
-                print("Current canvas found.")
+                #print("Current canvas found.")
                 return widget
         except Exception as e:
             print(f"Error getting current canvas: {e}")
@@ -1545,7 +1545,7 @@ class GUI(QWidget):
     
     def mousePressEvent(self, event):
         """Debug: Track if main window gets mouse press"""
-        print("GUI.mousePressEvent fired!")
+        #print("GUI.mousePressEvent fired!")
         super().mousePressEvent(event)
     
     def keyPressEvent(self, event):
@@ -1558,39 +1558,40 @@ class GUI(QWidget):
 
     def stop_execution(self):
         if Utils.app_settings.rpi_model_index == 0:
-            print("[GUI] Stopping Pico W")
+            #print("[GUI] Stopping Pico W")
             self.stop_pico_execution()
         else:
             if self.execution_thread and self.execution_thread.isRunning():
-                print("[GUI] Stopping execution thread...")
+                #print("[GUI] Stopping execution thread...")
                 self.execution_thread.should_stop = True
                 self.execution_thread.kill_process()
                 self.execution_thread.stop()
 
                 if not self.execution_thread.wait(5000):
-                    print(f"[GUI] Execution thread did not stop in time, terminating...")
+                    #print(f"[GUI] Execution thread did not stop in time, terminating...")
                     self.execution_thread.terminate()
                     self.execution_thread.wait()
             else:
-                print("[GUI] No execution thread is running.")
+                #print("[GUI] No execution thread is running.")
+                pass
 
     def create_canvas_frame(self):
         
         self.main_layout = QHBoxLayout(self)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
-        print(f"[GUI] Main layout created: {self.main_layout}")
+        #print(f"[GUI] Main layout created: {self.main_layout}")
         self.sidebar = self.create_sidebar()
         
         # Create a splitter for canvas + inspector
         
         self.canvas = GridCanvas()
 
-        print(f"[GUI]Created GridCanvas instance: {self.canvas}")
+        #print(f"[GUI]Created GridCanvas instance: {self.canvas}")
         try:
             self.canvas.GUI = self
             self.canvas.main_window = self.main_window
-            print(f"[GUI] Set GUI reference {self} in canvas as {self.canvas.GUI}")
+            #print(f"[GUI] Set GUI reference {self} in canvas as {self.canvas.GUI}")
         except Exception as e:
             print(f"Error setting GUI on canvas: {e}")
         
@@ -1657,7 +1658,7 @@ class GUI(QWidget):
         #mp2_end = MockPoint(p2_end_pos)
 
         # 4. Send Mock Events Directly to Handler
-        print(f"Simulating Pinch Center: {cx}, {cy}")
+        #print(f"Simulating Pinch Center: {cx}, {cy}")
 
         # A. Touch Begin
         event_begin = MockEvent(QEvent.Type.TouchBegin, [mp1_start])
@@ -1671,7 +1672,7 @@ class GUI(QWidget):
         event_end = MockEvent(QEvent.Type.TouchEnd, [mp1_end])
         self.canvas.touch_event(event_end)
         
-        print("Simulated Pinch Complete.")
+        #("Simulated Pinch Complete.")
 
     def on_tab_changed(self, index):
         if index not in [info['index'] for info in Utils.canvas_instances.values()]:
@@ -1837,8 +1838,8 @@ class GUI(QWidget):
         self.sidebar_frame.setMaximumWidth(150)
         self.sidebar_frame.setStyleSheet("""
             QFrame {
-                background-color: palette(window);
-                border-right: 1px solid palette(base);
+                background-color: palette(base);
+                border-right: 1px solid palette(window);
             }
         """)
         
@@ -1958,7 +1959,7 @@ class GUI(QWidget):
         try:
             tab_button.setStyleSheet("""
                 QPushButton {
-                    background-color: palette(window);
+                    background-color: palette(base);
                     color: palette(text);
                     border: none;
                     padding: 12px;
@@ -2037,7 +2038,7 @@ class GUI(QWidget):
         content_widget.new_canvas_button = QPushButton(self.t("main_GUI.sidebar.new_canvas"))
         content_widget.new_canvas_button.setStyleSheet("""
             QPushButton {
-                background-color: palette(window);
+                background-color: palette(base);
                 color: palette(text);
                 border: none;
                 padding: 12px;
@@ -2133,7 +2134,7 @@ class GUI(QWidget):
                 # Update button styles
                 for tb in self.tab_buttons:
                     if tb['index'] == tab_index:
-                        print(f"Setting active style for tab '{tb['name']}' at index {tab_index}")
+                        #print(f"Setting active style for tab '{tb['name']}' at index {tab_index}")
                         try:
                             tb['button'].setStyleSheet("""
                                 QPushButton {
@@ -2284,9 +2285,9 @@ class GUI(QWidget):
 
     def update_inspector_content(self, block, canvas=None):
         """Update the content of the inspector panel based on the selected block"""
-        print(f"Getting inspector content for block: {block}")
+        #print(f"Getting inspector content for block: {block}")
         current_canvas = self.current_canvas if canvas is None else canvas
-        print(f"Current canvas in update_inspector_content: {current_canvas}")
+        #print(f"Current canvas in update_inspector_content: {current_canvas}")
         if current_canvas is None:
             print("ERROR: No current canvas available")
             return
@@ -2430,7 +2431,7 @@ class GUI(QWidget):
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), self.name_2_input)
         if block_data['type'] == 'If':
             for i in range(1, block_data.get('conditions', 1) + 1):
-                print(f"Adding condition {i} for If block")
+                #print(f"Adding condition {i} for If block")
                 cond_widget = QWidget()
                 cond_layout = QHBoxLayout(cond_widget)
                 cond_layout.setContentsMargins(0, 0, 0, 0)
@@ -2599,7 +2600,7 @@ class GUI(QWidget):
 
         #Math blocks
 
-        if block_data['type'] in ("Basic_operations", "Exponential_operations", "Random_number"):
+        if block_data['type'] in ("Plus", "Minus", "Multiply", "Divide", "Modulo", "Power", "Root", "Random_number"):
             name_label = QLabel(self.t("main_GUI.inspector.first_variable"))
             
             value_1_name_input = SearchableLineEdit()
@@ -2607,22 +2608,18 @@ class GUI(QWidget):
             value_1_name_input.setPlaceholderText(self.t("main_GUI.inspector.first_variable_placeholder"))
             value_1_name_input.textChanged.connect(lambda text, bd=block_data: self.Block_value_1_name_changed(text, bd))
 
-            if block_data['type'] == "Basic_operations":
-                box_label = QLabel(self.t("main_GUI.inspector.operator"))
+            operators = {
+                "Plus": "+",
+                "Minus": "-",
+                "Multiply": "*",
+                "Divide": "/",
+                "Modulo": "%",
+                "Power": "**",
+                "Root": "√",
+                "Random_number": "rand"
+            }
 
-                operator_box = QComboBox()
-                operator_box.addItems(["+", "-", "*", "/", "%"])
-                operator_box.setCurrentText(block_data.get('operator', '+'))
-                operator_box.currentTextChanged.connect(lambda text, bd=block_data: self.Block_operator_changed(text, bd))
-            elif block_data['type'] == "Exponential_operations":
-                box_label = QLabel(self.t("main_GUI.inspector.operator"))
-
-                operator_box = QComboBox()
-                operator_box.addItems(["^", "√"])
-                operator_box.setCurrentText(block_data.get('operator', '^'))
-                operator_box.currentTextChanged.connect(lambda text, bd=block_data: self.Block_operator_changed(text, bd))
-            else:
-                operator_box = None
+            operator_label = QLabel(self.t("main_GUI.inspector.operator") + f": {operators.get(block_data['type'], '')}")
 
             name_label_2 = QLabel(self.t("main_GUI.inspector.second_variable"))
             value_2_name_input = SearchableLineEdit()
@@ -2643,11 +2640,33 @@ class GUI(QWidget):
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), result_var_name_input)
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), name_label)
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), value_1_name_input) 
-            if operator_box:
-                current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), box_label)
-                current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), operator_box) 
+            current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), operator_label) 
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), name_label_2)
             current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), value_2_name_input)
+
+        if block_data['type'] in ["Lower", "Greater", "Equal", "Not_equal", "Greater_equal", "Lower_equal"]:
+            
+            first_var_label = QLabel(self.t("main_GUI.inspector.first_variable"))
+            value_1_name_input = SearchableLineEdit()
+            value_1_name_input.setText(block_data.get('value_1_name', ''))
+            value_1_name_input.setPlaceholderText(self.t("main_GUI.inspector.first_variable_placeholder"))
+            value_1_name_input.textChanged.connect(lambda text, bd=block_data: self.Block_value_1_name_changed(text, bd))
+
+            second_var_label = QLabel(self.t("main_GUI.inspector.second_variable"))
+            value_2_name_input = SearchableLineEdit()
+            value_2_name_input.setText(block_data.get('value_2_name', ''))
+            value_2_name_input.setPlaceholderText(self.t("main_GUI.inspector.second_variable_placeholder"))
+            value_2_name_input.textChanged.connect(lambda text, bd=block_data: self.Block_value_2_name_changed(text, bd))
+
+            self.insert_items(block, value_1_name_input, canvas=current_canvas)
+            self.insert_items(block, value_2_name_input, canvas=current_canvas)
+
+            current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), first_var_label)
+            current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), value_1_name_input)
+
+            current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), second_var_label)
+            current_canvas.inspector_content_layout.insertWidget(current_canvas.inspector_content_layout.count(), value_2_name_input)
+
 
         if block_data['type'] in ("Plus_one", "Minus_one"):
 
@@ -2812,7 +2831,7 @@ class GUI(QWidget):
         setattr(block_data['widget'], f'main_var_{idx if idx is not None else 1}_name', text)
 
 
-        print(f"Updated block_data: {block_data}")
+        #print(f"Updated block_data: {block_data}")
 
         block_data['widget'].recalculate_size()
 
@@ -2838,7 +2857,7 @@ class GUI(QWidget):
 
         setattr(block_data['widget'], f'main_dev_{idx if idx is not None else 1}_name', text)
 
-        print(f"Updated block_data: {block_data}")
+        #print(f"Updated block_data: {block_data}")
 
         block_data['widget'].recalculate_size()
 
@@ -2911,9 +2930,9 @@ class GUI(QWidget):
         #print("Updating operator")
         if block_data['type'] == 'If':
             block_data['operators'][f"operator_{idx if idx is not None else 1}"] = text
-            print(f"Updated block_data operators: {block_data['operators']}")
+            #print(f"Updated block_data operators: {block_data['operators']}")
             setattr(block_data['widget'], f'operator_{idx if idx is not None else 1}', text)
-            print(f"Updated widget operator_{idx if idx is not None else 1}: {getattr(block_data['widget'], f'operator_{idx if idx is not None else 1}')}")
+            #print(f"Updated widget operator_{idx if idx is not None else 1}: {getattr(block_data['widget'], f'operator_{idx if idx is not None else 1}')}")
         else:
             block_data['operator'] = text
             block_data['widget'].operator = text   
@@ -3053,7 +3072,7 @@ class GUI(QWidget):
         if len(text) > 20:
                 text = text[:20]
         if block_data['type'] == 'RGB_LED':
-            print(f"Updating RGB LED PWM value for index {inx}: {text}")
+            #print(f"Updating RGB LED PWM value for index {inx}: {text}")
             block_data['second_vars'][f'value_{inx if inx is not None else 2}_2_PWM'] = text
             setattr(block_data['widget'], f'value_{inx if inx is not None else 2}_2_PWM', text)
         else:
@@ -3402,7 +3421,7 @@ class GUI(QWidget):
             value_var_input.setValidator(QIntValidator(-1073741824, 1073741823))
         value_var_input.setPlaceholderText(self.t("main_GUI.variables_tab.initial_value_placeholder"))
         if var_data and 'value' in var_data:
-            print(f"Setting initial value for variable {var_id}: {var_data['value']}")
+            #print(f"Setting initial value for variable {var_id}: {var_data['value']}")
             value_var_input.setText(var_data['value'])
             Utils.variables['main_canvas'][var_id]['value'] = var_data['value']
         value_var_input.textChanged.connect(lambda text, v_id=var_id, t="Variable", r=canvas_reference, w=value_var_input: self.value_changed(text, v_id, t, r, w))
@@ -3528,7 +3547,7 @@ class GUI(QWidget):
         value_dev_input = QLineEdit()
         value_dev_input.setPlaceholderText(self.t("main_GUI.devices_tab.pin"))
         if dev_data and 'PIN' in dev_data:
-            print(f"Setting initial PIN value for device {device_id}: {dev_data['PIN']}")
+            #print(f"Setting initial PIN value for device {device_id}: {dev_data['PIN']}")
             value_dev_input.setText(str(dev_data['PIN']))
             Utils.devices['main_canvas'][device_id]['PIN'] = dev_data['PIN']
 
@@ -3817,7 +3836,7 @@ class GUI(QWidget):
                 if canvas_reference == canvas:
                     if info['ref'] == 'canvas':
                         Utils.variables['main_canvas'][id]['type'] = input
-                        print(f"Index of type for variable {id} set to {widget.currentIndex()}")
+                        #print(f"Index of type for variable {id} set to {widget.currentIndex()}")
                         Utils.variables['main_canvas'][id]['type_index'] = widget.currentIndex()
                         value_input = Utils.variables['main_canvas'][id]['value_input']
                         break
@@ -3847,7 +3866,7 @@ class GUI(QWidget):
                 if canvas_reference == canvas:
                     if info['ref'] == 'canvas':
                         Utils.devices['main_canvas'][id]['type'] = input
-                        print(f"Index of type for device {id} set to {widget.currentIndex()}")
+                        #print(f"Index of type for device {id} set to {widget.currentIndex()}")
                         Utils.devices['main_canvas'][id]['type_index'] = widget.currentIndex()
                         break
                     elif info['ref'] == 'function':
@@ -3866,7 +3885,7 @@ class GUI(QWidget):
                     if v_id == id:
                         v_type = Utils.variables['main_canvas'][id]['type']
                         break
-                print(f"Variable {id} of type {v_type} changed to value: {input}")
+                #print(f"Variable {id} of type {v_type} changed to value: {input}")
                 
                 if input and widget:
                     if v_type == "Int":
@@ -3962,7 +3981,7 @@ class GUI(QWidget):
         #print(f"Metadata: {Utils.project_data.metadata}")
         #print(f"Saving project as '{name}'")
         if Utils.file_manager.save_project(name):
-            print(f"Project '{name}' saved")
+            #print(f"Project '{name}' saved")
             Utils.config['opend_project'] = name
 
     def on_save_file_as(self):
@@ -3976,7 +3995,8 @@ class GUI(QWidget):
         if ok and text:
             Utils.project_data.metadata['name'] = text
             if Utils.file_manager.save_project(text):
-                print(f"Project saved as '{text}'")
+                #print(f"Project saved as '{text}'")
+                pass
         
     def on_open_file(self):
         """Open saved project"""
@@ -4000,9 +4020,9 @@ class GUI(QWidget):
 
     def on_open_specific_file(self, file):
         projects = Utils.file_manager.list_projects()
-        print(f"Projects available for opening: {[p['name'] for p in projects]} at path: {[p['path'] for p in projects]}. Opening file: {file}")
+        #print(f"Projects available for opening: {[p['name'] for p in projects]} at path: {[p['path'] for p in projects]}. Opening file: {file}")
         if file in [p['name'] for p in projects]:
-            print(f"Found project '{file}' for opening")
+            #print(f"Found project '{file}' for opening")
             self.stop_execution()
             self.wipe_canvas()
             if Utils.file_manager.load_project(file):
@@ -4016,9 +4036,9 @@ class GUI(QWidget):
         """Clear the canvas of all blocks and connections"""
         self.Clear_All_Variables()
         self.Clear_All_Devices()
-        print(f"Canvas instances to clear: {list(Utils.canvas_instances.keys())}")
+        #print(f"Canvas instances to clear: {list(Utils.canvas_instances.keys())}")
         for canvas in Utils.canvas_instances.keys():
-            print("Clearing canvas:", canvas)
+            #print("Clearing canvas:", canvas)
             if canvas:
                 canvas.path_manager.clear_all_paths()
                 #print("Cleared all paths")
@@ -4066,12 +4086,12 @@ class GUI(QWidget):
         }
 
         if self.main_layout is not None:
-            print(f"Main layout {self.main_layout} exists, clearing widgets")
+            #print(f"Main layout {self.main_layout} exists, clearing widgets")
             while self.main_layout.count():
                 item = self.main_layout.takeAt(0)
                 widget = item.widget()
                 if widget is not None:
-                    print(f"Deleting widget: {widget}")
+                    #print(f"Deleting widget: {widget}")
                     widget.setParent(None)
                     widget.deleteLater()
                     
@@ -4152,7 +4172,7 @@ class GUI(QWidget):
         try:
             if blocksWindow._instance is not None:
                 if blocksWindow._instance.is_hidden == False:
-                    print("Closing blocks window")
+                    #print("Closing blocks window")
                     blocksWindow._instance.close()
                 blocksWindow._instance = None
         except Exception as e:
@@ -4163,9 +4183,9 @@ class GUI(QWidget):
         # Close Device Settings window if it exists
         try:
             device_settings_window = DeviceSettingsWindow.get_instance(self.current_canvas)
-            print("Device settings window instance:", device_settings_window)
+            #print("Device settings window instance:", device_settings_window)
             if device_settings_window.is_hidden == False:
-                print("Closing device settings window")
+                #print("Closing device settings window")
                 device_settings_window.close()
             DeviceSettingsWindow._instance = None
         except Exception as e:
@@ -4261,7 +4281,7 @@ class GUI(QWidget):
     #MARK: - RPi Execution Thread Signal Handlers
     def on_execution_status(self, status):
         """Handle status updates from execution thread"""
-        print(f"[RPi Status] {status}")
+        #print(f"[RPi Status] {status}")
     
     def on_execution_output(self, output):
         """Handle output from execution thread"""
@@ -4272,7 +4292,7 @@ class GUI(QWidget):
             return
 
         if '__REPORT__' not in str(output):
-            print(output)  # Regular log output
+            #print(output)  # Regular log output
             QMessageBox.information(
                 self,
                 self.t("main_GUI.dialogs.progress_dialogs.execution_output"),
@@ -4295,7 +4315,7 @@ class GUI(QWidget):
                     data, _ = json.JSONDecoder().raw_decode(json_candidate)
                     
                     Utils.reports = data
-                    print("Reports received:", Utils.reports)
+                    #print("Reports received:", Utils.reports)
                     
                     # Update GUI
                     self.update_current_values()
@@ -4305,7 +4325,7 @@ class GUI(QWidget):
                     os.makedirs(Reports_path, exist_ok=True)
                     with open(Reports_path / "last_report.json", "w+") as f:
                         json.dump(data, f, indent=4, ensure_ascii=False)
-                    print(parts[0])  # Print any text before the tag (optional)
+                    #print(parts[0])  # Print any text before the tag (optional)
                         
             except json.JSONDecodeError as e:
                 print(f"JSON Decode Error (Chunk might be incomplete): {e}")
@@ -4344,7 +4364,7 @@ class GUI(QWidget):
         Execute on Pico W using native pyboard library (No subprocess/Admin rights needed)
         """
         self.stop_pico_execution()  # Ensure any existing execution is stopped before starting new one
-        print("Searching for Pico W...")
+        #print("Searching for Pico W...")
         target_port = None
         
         # 1. Auto-detect COM port
@@ -4361,7 +4381,7 @@ class GUI(QWidget):
             QMessageBox.warning(self, "Connection Error", "Could not find Raspberry Pi Pico.\nEnsure it is connected and not in Bootloader mode.")
             return False
 
-        print(f"Found Pico on {target_port}")
+        #print(f"Found Pico on {target_port}")
 
         try:
             # 2. Connect directly using Pyboard class
@@ -4371,19 +4391,19 @@ class GUI(QWidget):
             pyb.enter_raw_repl()
             
             # 3. Upload File.py as main.py
-            print("Uploading main.py...")
+            #print("Uploading main.py...")
             with open("File.py", "rb") as f:
                 pyb.fs_put("File.py", "main.py")     
-            print("Upload complete")
+            #print("Upload complete")
 
-            print("Resetting board to start code...")
+            #print("Resetting board to start code...")
             try:
                 pyb.exec_("import machine; machine.reset()")  
             except Exception as e:
                 print(f"Error during reset command: {e}")
             
             # Give it a moment to flush the command before closing
-            QTimer.singleShot(500, lambda: print("Pico should be running now..."))
+            QTimer.singleShot(500)
 
             try:
                 pyb.close()
@@ -4409,7 +4429,7 @@ class GUI(QWidget):
     def stop_pico_execution(self):
 
         if hasattr(self, 'pico_thread') and self.pico_thread is not None:
-            print("Stopping listener thread...")
+            #print("Stopping listener thread...")
             self.pico_thread.stop()
             self.pico_thread.wait()
             self.pico_thread = None
@@ -4418,13 +4438,13 @@ class GUI(QWidget):
             port = Utils.config.get('pico_port')
             if not port:
                 return
-            print(f"Connecting to {port} to stop execution...")
+            #print(f"Connecting to {port} to stop execution...")
             pyb = Pyboard(port, 115200)
             
             pyb.enter_raw_repl()
             pyb.close()
 
-            print("Pico W stopped and reset.")
+            #print("Pico W stopped and reset.")
             
             QMessageBox.information(
                 self,
@@ -4487,7 +4507,7 @@ class GUI(QWidget):
             
             # ===== STEP 4: Start execution =====
             self.execution_thread.start()
-            print("[GUI] New execution started")
+            #print("[GUI] New execution started")
         
         except Exception as e:
             print(f"[GUI]Error: {str(e)}")
@@ -4544,13 +4564,13 @@ class GUI(QWidget):
         #print(f"Recreating {len(Utils.project_data.canvases)-1} function canvases from project data...")
         #print(f" Canvas data: {Utils.project_data.canvases}")
         for canvas, canvas_info in Utils.project_data.canvases.items():
-            print(f" Recreating canvas: {canvas_info['name']} (Ref: {canvas_info['ref']})")
+            #print(f" Recreating canvas: {canvas_info['name']} (Ref: {canvas_info['ref']})")
             name = canvas_info['name']
             if canvas_info['ref'] == 'main_canvas':
-                print(" Skipping main canvas, already created")
-                continue  # Skip main canvas, already created
+                #print(" Skipping main canvas, already created")
+                continue  # Skip main canvas, already createdx  
             elif canvas_info['ref'] == 'function':
-                print(f" Creating function canvas: {canvas_info['name']}")
+                #print(f" Creating function canvas: {canvas_info['name']}")
                 new_canvas = GridCanvas()
                 new_canvas.GUI = self
                 new_canvas.main_window = self.main_window
@@ -4596,13 +4616,13 @@ class GUI(QWidget):
                         )
                             
                 elif canvas_info['ref'] == 'function':
-                    print("Rebuilding blocks for function canvas")
+                    #print("Rebuilding blocks for function canvas")
                     for function_id, function_info in Utils.functions.items():
-                        print(f" Checking function: {function_id}")
+                        #print(f" Checking function: {function_id}")
                         if function_info['canvas'] == canvas:
-                            print(f" Found matching canvas for function: {function_id}")
+                            #print(f" Found matching canvas for function: {function_id}")
                             for block_id, block in Utils.project_data.functions[function_id]['blocks'].items():
-                                print(f"  Rebuilding block {block_id} of type {block['type']}")
+                                #print(f"  Rebuilding block {block_id} of type {block['type']}")
                                 self.add_block_from_data(
                                     block_type=block['type'],
                                     x=block['x'],
@@ -4628,7 +4648,7 @@ class GUI(QWidget):
                         if function_info['canvas'] == canvas:
                             data = Utils.project_data.functions[function_id]['blocks'][block_id]
                             break
-        print(f" Adding block from data: ID={block_id}, Type={block_type}, X={x}, Y={y}, Canvas {canvas}")
+        #print(f" Adding block from data: ID={block_id}, Type={block_type}, X={x}, Y={y}, Canvas {canvas}")
         block = BlockGraphicsItem(
             x=x, y=y,
             block_id=block_id,
@@ -4641,14 +4661,16 @@ class GUI(QWidget):
         for canvas_key, canvas_info in Utils.canvas_instances.items():
             if canvas_info['canvas'] == canvas:
                 break
-        if block_type in ('While', 'Button', 'Switch', 'Basic_operations', 'Exponential_operations', 'Random_number',
+        if block_type in ('While', 'Button', 'Switch', 'Plus', 'Minus', 'Power', 'Root', 'Modulo', 'Lower', 'Greater', 'Equal', 'Not_equal',
+                          'Grower_equal', 'Lower_equal',
                           'Blink_LED', 'Toggle_LED', 'LED_ON', 'LED_OFF', 'PWM_LED', 'Plus_one', 'Minus_one', 'Return'):
             block.value_1_name = data.get('value_1_name', "N")
-        if block_type in ('While', 'Basic_operations', 'Exponential_operations', 'Random_number'):
+        if block_type in ('While', 'Plus', 'Minus', 'Power', 'Root', 'Modulo', 'Lower', 'Greater', 'Equal', 'Not_equal',
+                          'Grower_equal', 'Lower_equal',):
             block.value_2_name = data.get('value_2_name', 'N')
-        if block_type in ('While', 'Basic_operations', 'Exponential_operations', 'Random_number'):
+        if block_type in ('While'):
             block.operator = data.get('operator', "==")
-        if block_type in ('Basic_operations', 'Exponential_operations', 'Random_number'):
+        if block_type in ('Plus', 'Minus', 'Power', 'Root', 'Modulo'):
             block.result_var_name = data.get('result_var_name', "result")
         if block_type in ('Timer', 'Blink_LED'):
             block.sleep_time = data.get('sleep_time', "1000")
@@ -4669,13 +4691,20 @@ class GUI(QWidget):
                 setattr(block, str_1, data['first_vars'].get(str_1, f"N"))
                 setattr(block, str_2, data['second_vars'].get(str_2, f"N"))
         if block_type == 'Function':
-            
-            for i in range(1, len(data.get('internal_vars', {}).get('main_vars', {})) + 1):
-                str_arg = f"main_var_{i}_name"
-                setattr(block, str_arg, data.get('internal_vars', {}).get('main_vars', {}).get(str_arg, f"N"))
-            for i in range(1, len(data.get('internal_devs', {}).get('main_devs', {})) + 1):
-                str_dev = f"main_dev_{i}_name"
-                setattr(block, str_dev, data.get('internal_vars', {}).get('main_devs', {}).get(str_dev, f"N"))
+            print(f" Rebuilding function block with ID {block_id}")
+            print(f"Data for function block: {data}")
+            i = 1
+            for v_id, v_info in data.get('internal_vars', {}).get('main_vars', {}).items():
+                 v_name = v_info.get('name', f"N")
+                 print(f"  Setting function variable {v_id} for block {block_id} to {v_name}")
+                 setattr(block, f"main_var_{i}_name", v_name)
+                 i += 1
+            i = 1
+            for d_id, d_info in data.get('internal_devs', {}).get('main_devs', {}).items():
+                 d_name = d_info.get('name', f"N")
+                 print(f"  Setting function device {d_id} for block {block_id} to {d_name}")
+                 setattr(block, f"main_dev_{i}_name", d_name)
+                 i += 1
         canvas.scene.addItem(block)
         
         # Store in Utils
@@ -4708,7 +4737,7 @@ class GUI(QWidget):
                         #print(f"Is {to_block_id} in top_infos? {to_block_id in Utils.main_canvas['blocks']}")
                         
                         if from_block_id not in Utils.main_canvas['blocks'] or to_block_id not in Utils.main_canvas['blocks']:
-                            print(f"Connection {conn_id}: Missing block reference!")
+                            #print(f"Connection {conn_id}: Missing block reference!")
                             #print(f"  from_block_id ({from_block_id}) exists: {from_block_id in Utils.main_canvas['blocks']}")
                             #print(f"  to_block_id ({to_block_id}) exists: {to_block_id in Utils.main_canvas['blocks']}")
                             continue
@@ -4778,7 +4807,7 @@ class GUI(QWidget):
                                 #print(f"Is {to_block_id} in top_infos? {to_block_id in Utils.functions[function_id]['blocks']}")
                                 
                                 if from_block_id not in Utils.functions[function_id]['blocks'] or to_block_id not in Utils.functions[function_id]['blocks']:
-                                    print(f"Connection {conn_id}: Missing block reference!")
+                                    #print(f"Connection {conn_id}: Missing block reference!")
                                     #print(f"  from_block_id ({from_block_id}) exists: {from_block_id in Utils.functions[function_id]['blocks']}")
                                     #print(f"  to_block_id ({to_block_id}) exists: {to_block_id in Utils.functions[function_id]['blocks']}")
                                     continue
@@ -4841,13 +4870,13 @@ class GUI(QWidget):
                 for var_id, var_info in list(Utils.project_data.variables['main_canvas'].items()):
                     #print(f"  Recreating variable {var_id} on main canvas")
                     self.add_variable_row(var_id, var_info, canvas)
-                print(f"Variables after main canvas rebuild: {Utils.variables['main_canvas']}")
+                #print(f"Variables after main canvas rebuild: {Utils.variables['main_canvas']}")
             elif canvas_info['ref'] == 'function':
                 #print(f" Recreating variables for function canvas: {canvas_info['name']}")
                 for var_id, var_info in list(Utils.project_data.variables['function_canvases'][canvas_info['id']].items()):
                     #print(f"  Recreating variable {var_id} on function canvas")
                     self.add_internal_variable_row(var_id, var_info, canvas)
-                print(f"Variables after function canvas rebuild: {Utils.variables['function_canvases'][canvas_info['id']]}")
+                #print(f"Variables after function canvas rebuild: {Utils.variables['function_canvases'][canvas_info['id']]}")
 
     def _rebuild_devices_panel(self):
         """Recreate devices in the side panel"""
@@ -4860,10 +4889,10 @@ class GUI(QWidget):
                 for dev_id, dev_info in list(Utils.project_data.devices['main_canvas'].items()):
                     #print(f"  Recreating device {dev_id} on main canvas")
                     self.add_device_row(dev_id, dev_info, canvas)
-                print(f"Devices after main canvas rebuild: {Utils.devices['main_canvas']}")
+                #print(f"Devices after main canvas rebuild: {Utils.devices['main_canvas']}")
             elif canvas_info['ref'] == 'function':
                 #print(f" Recreating devices for function canvas: {canvas_info['name']}")
                 for dev_id, dev_info in list(Utils.project_data.devices['function_canvases'][canvas_info['id']].items()):
                     #print(f"  Recreating device {dev_id} on function canvas")
                     self.add_internal_device_row(dev_id, dev_info, canvas)
-                print(f"Devices after function canvas rebuild: {Utils.devices['function_canvases'][canvas_info['id']]}")
+                #print(f"Devices after function canvas rebuild: {Utils.devices['function_canvases'][canvas_info['id']]}")

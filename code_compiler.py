@@ -34,11 +34,22 @@ class CodeCompiler:
             'RGB_LED': self.handle_LED_block,
             'LED_ON': self.handle_LED_block,
             'LED_OFF': self.handle_LED_block,
-            "Basic_operations": self.handle_math_block,
+            "Plus": self.handle_math_block,
+            "Minus": self.handle_math_block,
+            "Multiply": self.handle_math_block,
+            "Divide": self.handle_math_block,
+            "Modulo": self.handle_math_block,
+            "Power": self.handle_math_block,
+            "Root": self.handle_math_block,
             "Plus_one": self.handle_math_block,
             "Minus_one": self.handle_math_block,
-            "Exponential_operations": self.handle_math_block,
             "Random_number": self.handle_rand_block,
+            "Lower": self.handle_logic_block,
+            "Greater": self.handle_logic_block,
+            "Equal": self.handle_logic_block,
+            "Not_equal": self.handle_logic_block,
+            "Greater_equal": self.handle_logic_block,
+            "Lower_equal": self.handle_logic_block,
             "Function": self.handle_function_block,
             "Networks": self.handle_networks_block,
             "Return": self.handle_return_block
@@ -1211,11 +1222,19 @@ class CodeCompiler:
         value_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
         if block['type'] not in ('Plus_one', 'Minus_one'):
             value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'])
-            operator = self.get_math_operator(block['operator'])
+            operators = {
+                'Add': '+',
+                'Subtract': '-',
+                'Multiply': '*',
+                'Divide': '/',
+                'Modulo': '%',
+                'Root': '** 0.5',
+                'Power': '**'
+            }
             result_var = self.resolve_value(block['result_var_name'], block['result_var_type'])
         #print(f"Resolved Math block values: {value_1}, {value_2}, result var: {result_var}")
-        if block['type'] in ('Basic_operations', 'Exponential_operations'):
-            self.writeline(f"{result_var} = {value_1} {operator} {value_2}")
+        if block['type'] not in ('Plus_one', 'Minus_one'):
+            self.writeline(f"{result_var} = {value_1} {operators[block['operator']]} {value_2}")
         elif block['type'] == 'Plus_one':
             self.writeline(f"{value_1} = {value_1} + 1")
         elif block['type'] == 'Minus_one':
@@ -1235,6 +1254,35 @@ class CodeCompiler:
         next_id = self.get_next_block(block['id'])
         if next_id:
             #print(f"Processing next block after Random: {next_id}")
+            pass
+        self.process_block(next_id)
+
+    def handle_logic_block(self, block):
+        value_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
+        value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'])
+        operators = {
+            'Lower': '<',
+            'Lower_equal': '<=',
+            'Greater': '>',
+            'Greater_equal': '>=',
+            'Equal': '==',
+            'Not_equal': '!=',
+        }
+        out_1_id = self.get_next_block_from_output(block['id'], 'out_1')  # True path
+        out_2_id = self.get_next_block_from_output(block['id'], 'out_2')  # False path
+
+        self.writeline(f"if {value_1} {operators[block['operator']]} {value_2}:")
+        self.indent_level += 1
+        self.process_block(out_1_id)
+        self.indent_level -= 1
+        self.writeline("else:")
+        self.indent_level += 1
+        self.process_block(out_2_id)
+        self.indent_level -= 1
+
+        next_id = self.get_next_block(block['id'])
+        if next_id:
+            #print(f"Processing next block after Logic: {next_id}")
             pass
         self.process_block(next_id)
 

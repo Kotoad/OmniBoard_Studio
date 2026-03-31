@@ -223,7 +223,13 @@ class blocksWindow(QDialog):
             (self.t("blocks_window.logic_blocks_tab.While"), "While"),
             (self.t("blocks_window.logic_blocks_tab.While_true"), "While_true"),
             (self.t("blocks_window.logic_blocks_tab.Switch"), "Switch"),
-            (self.t("blocks_window.logic_blocks_tab.For_Loop"), "For_Loop")
+            (self.t("blocks_window.logic_blocks_tab.For_Loop"), "For_Loop"),
+            (self.t("blocks_window.logic_blocks_tab.Lower"), "Lower"),
+            (self.t("blocks_window.logic_blocks_tab.Greater"), "Greater"),
+            (self.t("blocks_window.logic_blocks_tab.Equal"), "Equal"),
+            (self.t("blocks_window.logic_blocks_tab.Not_equal"), "Not_equal"),
+            (self.t("blocks_window.logic_blocks_tab.Greater_equal"), "Greater_equal"),
+            (self.t("blocks_window.logic_blocks_tab.Lower_equal"), "Lower_equal"),
         ]
         
         for label, logic_type in logic_blocks:
@@ -338,11 +344,16 @@ class blocksWindow(QDialog):
         
         # Buttons - MAPPED TO SPAWNING blocks
         math_blocks = [
-            (self.t("blocks_window.math_blocks_tab.basic_operations"), "Basic_operations"),
-            (self.t("blocks_window.math_blocks_tab.plus_one"), "Plus_one"),
-            (self.t("blocks_window.math_blocks_tab.minus_one"), "Minus_one"),
-            (self.t("blocks_window.math_blocks_tab.exponential_operations"), "Exponential_operations"), 
-            (self.t("blocks_window.math_blocks_tab.random_number"), "Random_number")
+            (self.t("blocks_window.math_blocks_tab.Plus"), "Plus"),
+            (self.t("blocks_window.math_blocks_tab.Minus"), "Minus"),
+            (self.t("blocks_window.math_blocks_tab.Multiply"), "Multiply"),
+            (self.t("blocks_window.math_blocks_tab.Divide"), "Divide"),
+            (self.t("blocks_window.math_blocks_tab.Modulo"), "Modulo"),
+            (self.t("blocks_window.math_blocks_tab.Power"), "Power"),
+            (self.t("blocks_window.math_blocks_tab.Root"), "Root"),
+            (self.t("blocks_window.math_blocks_tab.Random_number"), "Random_number"),
+            (self.t("blocks_window.math_blocks_tab.Plus_one"), "Plus_one"),
+            (self.t("blocks_window.math_blocks_tab.Minus_one"), "Minus_one")
         ]
         
         for label, element in math_blocks:

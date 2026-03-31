@@ -397,7 +397,17 @@ class HubWindow(QWidget):
             if i.is_file() and i.suffix == ".project":
                 name = i.name.split(".")[0]
                 project_button = QPushButton(f"Project {name}")
-                project_button.setStyleSheet("text-align: left; padding: 10px;")
+                project_button.setStyleSheet("""
+                    QPushButton {
+                        background-color: transparent;
+                        border: 2px solid palette(window);
+                        padding: 10px;
+                        text-align: left;
+                    }
+                    QPushButton:hover {
+                        background-color: palette(highlight);
+                    }
+                """)
                 recent_layout.addWidget(project_button)
                 project_button.clicked.connect(lambda _, p=name: self.open_file(p))
 
@@ -606,7 +616,7 @@ class MainWindow(QMainWindow):
         toolbar.setStyleSheet("""
             QToolBar {
                 background-color: palette(base);
-                border: none;
+                border-top: 2px solid palette(window);
             }
             QToolButton {
                 background-color: transparent;
@@ -721,7 +731,7 @@ class MainWindow(QMainWindow):
         toolbar.setStyleSheet("""
             QToolBar {
                 background-color: palette(base);
-                border: none;
+                border_top: 2px solid palette(window);
             }
             QToolButton {
                 background-color: transparent;
@@ -934,6 +944,11 @@ class MainWindow(QMainWindow):
                 self.pan_button.setIcon(QIcon("resources/images/Tool_bar/Cursor.png") if checked else QIcon("resources/images/Tool_bar/Hand.png"))
             self.visual_programming_window.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             self.visual_programming_window.current_canvas.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
+            for canvas, canvas_data in Utils.canvas_instances.items():
+                print(f"Checking canvas: {canvas}, current canvas: {self.visual_programming_window.current_canvas}")
+                if canvas_data['canvas'] == self.visual_programming_window.current_canvas:
+                    print(f"Canvas index: {canvas_data['index']}, canvas: {canvas}, Pan mode set to: {checked}")
+                    break
             self.visual_programming_window.current_canvas.pan_mode = checked
             print(f"Pan mode on canvas {self.visual_programming_window.current_canvas} set to: {self.visual_programming_window.current_canvas.pan_mode}")
 
