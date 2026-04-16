@@ -1,4 +1,4 @@
-from Imports import get_Utils
+from Imports import get_Utils, logging
 Utils = get_Utils()
 
 #MARK: Code Compiler
@@ -65,22 +65,22 @@ class CodeCompiler:
         self.function_lines = []
         self.footer_lines = []
         self.current_lines = self.header_lines
-        print("Compiling code to File.py...")
-        #print(f"RPI Model: {Utils.app_settings.rpi_model}")
-        #print(f"RPI Model Index: {Utils.app_settings.rpi_model_index}")
+        #logging.info("Compiling code to File.py...")
+        #logging.info(f"RPI Model: {Utils.app_settings.rpi_model}")
+        #logging.info(f"RPI Model Index: {Utils.app_settings.rpi_model_index}")
         if Utils.app_settings.rpi_model_index == 0:
-            #print(f"RPI Model selected: {Utils.app_settings.rpi_model} (Index: {Utils.app_settings.rpi_model_index})")
+            #logging.info(f"RPI Model selected: {Utils.app_settings.rpi_model} (Index: {Utils.app_settings.rpi_model_index})")
             self.MC_compile = True
         elif Utils.app_settings.rpi_model_index in (1,2,3,4,5,6,7):
-            #print(f"RPI Model selected: {Utils.app_settings.rpi_model} (Index: {Utils.app_settings.rpi_model_index})")
+            #logging.info(f"RPI Model selected: {Utils.app_settings.rpi_model} (Index: {Utils.app_settings.rpi_model_index})")
             self.GPIO_compile = True
 
         self.func_to_compile = {}
 
         for func_id, func_info in Utils.functions.items():
-            print(f"Registering function for compilation: {func_info['name']} (ID: {func_id})")
+            #logging.info(f"Registering function for compilation: {func_info['name']} (ID: {func_id})")
             if func_id not in self.func_to_compile:
-                print(f"Adding function '{func_info['name']}' to compilation list with ID: {func_id}")
+                #logging.info(f"Adding function '{func_info['name']}' to compilation list with ID: {func_id}")
                 self.func_to_compile[func_id] = func_info['name'], "Not Compiled", ""
 
         self.create_hashmap()
@@ -93,7 +93,7 @@ class CodeCompiler:
         # Find Start block
         start_block = self.find_block_by_type('Start')
         if start_block:
-            print(f"Found Start block: {start_block['id']}")
+            #logging.info(f"Found Start block: {start_block['id']}")
             self.writeline("try:")
             self.indent_level += 1
             if self.GPIO_compile:
@@ -113,7 +113,7 @@ class CodeCompiler:
             elif self.MC_compile:
                 self.writeline("_thread.start_new_thread(data_reporter, ())")
             next_id = self.get_next_block(start_block['id'])
-            print(f"Processing blocks starting from: {next_id}")
+            #logging.info(f"Processing blocks starting from: {next_id}")
             self.process_block(next_id)
             self.indent_level -= 1
         self.current_lines = self.footer_lines
@@ -124,9 +124,9 @@ class CodeCompiler:
             file.writelines(self.function_lines)
             file.writelines(self.main_lines)
             file.writelines(self.footer_lines)
-            print("✓ Code written to File.py")
+            #logging.info("Code written to File.py")
         else:
-            print("✗ Error opening File.py for writing")
+            logging.error("Error opening File.py for writing")
         file.close()
             
     
@@ -140,16 +140,16 @@ class CodeCompiler:
         elif self.compiling_what == 'function':
             block = Utils.functions[self.compiling_function]['blocks'][block_id]
 
-        print(f"Processing block {block_id} of type {block['type']}")
+        #logging.info(f"Processing block {block_id} of type {block['type']}")
         
         handler = self.process_map.get(block['type'])
         if handler:
             handler(block)
         else:
-            print(f"⚠ No handler for block type: {block['type']} (Block ID: {block_id})")
+            logging.warning(f"No handler for block type: {block['type']} (Block ID: {block_id})")
     #MARK: Code Setup
     def write_imports(self):
-        #print("Writing import statements...")
+        #logging.info("Writing import statements...")
         if self.GPIO_compile:
             self.writeline("import RPi.GPIO as GPIO")
             self.writeline("import time")
@@ -166,7 +166,7 @@ class CodeCompiler:
             self.writeline("import json\n")
 
     def write_setup(self):
-        #print("Writing setup code...")
+        #logging.info("Writing setup code...")
         self.writeline("shutdown = False\n")
         self.writeline("reporter_running = False  # Flag to control reporter thread\n")
         self.writeline("last_report = ''")
@@ -196,7 +196,7 @@ class CodeCompiler:
             self.writeline("Devices_main = {")
             self.indent_level+=1
             for dev_name, dev_info in Utils.devices['main_canvas'].items():
-                print(f"Compiling device: {dev_info['name']} (PIN: {dev_info['PIN']}, Type Index: {dev_info['type_index']})")
+                #logging.debug(f"Compiling device: {dev_info['name']} (PIN: {dev_info['PIN']}, Type Index: {dev_info['type_index']})")
                 if dev_info['type_index'] == 0:
                     dev_type_str = "Output"
                 elif dev_info['type_index'] == 1:
@@ -264,7 +264,7 @@ class CodeCompiler:
             self.writeline("Devices_main = {")
             self.indent_level+=1
             for dev_name, dev_info in Utils.devices['main_canvas'].items():
-                #print(f"Compiling device: {dev_info['name']} (PIN: {dev_info['PIN']}, Type Index: {dev_info['type_index']})")
+                #logging.debug(f"Compiling device: {dev_info['name']} (PIN: {dev_info['PIN']}, Type Index: {dev_info['type_index']})")
                 if dev_info['type_index'] == 0:
                     dev_type_str = "Output"
                 elif dev_info['type_index'] == 1:
@@ -446,7 +446,7 @@ class CodeCompiler:
 
     #MARK: Device Classes
     def create_btn_class(self):
-        #print("Creating Button class...")
+        #logging.info("Creating Button class...")
         self.writeline("\nclass Button:")
         self.indent_level += 1
         self.writeline("def __init__(self):")
@@ -503,7 +503,7 @@ class CodeCompiler:
             self.indent_level -= 1
     
     def create_led_class(self):
-        #print("Creating LED class...")
+        #logging.info("Creating LED class...")
         self.writeline("\nclass LED:")
         self.indent_level += 1
         self.writeline("def __init__(self):")
@@ -851,24 +851,24 @@ class CodeCompiler:
         return None
     
     def get_next_block(self, current_block_id):
-        print(f"Hashmap for connections: {self.hashmap}")
+        #logging.info(f"Hashmap for connections: {self.hashmap}")
         """Get the block connected to output of current block"""
-        print(f"Getting next block from {current_block_id}")
+        #logging.debug(f"Getting next block from {current_block_id}")
         if self.compiling_what == 'canvas':
-            print(f"Searching in main canvas blocks")
+            #logging.debug(f"Searching in main canvas blocks")
             current_info = Utils.main_canvas['blocks'][current_block_id]
         elif self.compiling_what == 'function':
-            print(f"Searching in function canvas blocks for function {self.compiling_function}")
+            #logging.debug(f"Searching in function canvas blocks for function {self.compiling_function}")
             current_info = Utils.functions[self.compiling_function]['blocks'][current_block_id]
         
         # Get first out_connection
         if current_info['out_connections']:
-            print(f"Current block out_connections: {current_info['out_connections']}")
+            #logging.debug(f"Current block out_connections: {current_info['out_connections']}")
             for conn_id in current_info['out_connections'].keys():
-                print(f"Checking connection ID: {conn_id}")
+                #logging.debug(f"Checking connection ID: {conn_id}")
                 if conn_id in self.hashmap:
                     next_block_id = self.hashmap[conn_id]
-                    print(f"Next block ID: {next_block_id}")
+                    #logging.debug(f"Next block ID: {next_block_id}")
                     return next_block_id
         return None 
     
@@ -877,81 +877,81 @@ class CodeCompiler:
         if self.compiling_what == 'canvas':
             current_info = Utils.main_canvas['blocks'][current_block_id]
             path_info = Utils.main_canvas['paths']
-            #print(f"Current block info: {current_info}")
+            #logging.debug(f"Current block info: {current_info}")
         elif self.compiling_what == 'function':
             current_info = Utils.functions[self.compiling_function]['blocks'][current_block_id]
             path_info = Utils.functions[self.compiling_function]['paths']
-            #print(f"Current block info: {current_info}")
+            #logging.debug(f"Current block info: {current_info}")
 
         # Find connection from specified output circle
 
         for conn_id in current_info['out_connections'].keys():
-            #print(f"Utils.paths: {path_info}")
+            #logging.debug(f"Utils.paths: {path_info}")
             conn_info = path_info.get(conn_id)
-            #print(f"Checking connection ID: {conn_id} with info: {conn_info}")
+            #logging.debug(f"Checking connection ID: {conn_id} with info: {conn_info}")
             if conn_info and conn_info['from_circle_type'] == output_circle:
                 # Find which block this connection goes to 
-                #print(f"Getting next block from output circle '{output_circle}' of block {current_block_id}")
+                #logging.debug(f"Getting next block from output circle '{output_circle}' of block {current_block_id}")
                 if self.compiling_what == 'canvas':
-                    #print(f"Searching in main canvas blocks")
+                    #logging.info(f"Searching in main canvas blocks")
                     search_infos = Utils.main_canvas['blocks']
                 elif self.compiling_what == 'function':
-                    #print(f"Searching in function canvas blocks for function {self.compiling_function}")
+                    #loggin.info(f"Searching in function canvas blocks for function {self.compiling_function}")
                     search_infos = Utils.functions[self.compiling_function]['blocks']
                 for block_id, info in search_infos.items():
                     if conn_id in info['in_connections']:
-                        #print(f"Next block is {block_id}")
+                        #logging.info(f"Next block is {block_id}")
                         return block_id
         return None
     
     def resolve_value(self, value_str, value_type):
         """Convert value to actual value - handle variable or literal"""
         if value_type in ('switch', 'N/A'):
-            #print(f"Resolving value: {value_str}")
+            #logging.debug(f"Resolving value: {value_str}")
             return value_str  # Return as is for switch
         
         if self.is_variable_reference(value_str):
-            #print(f"Resolving variable reference: {value_str}")
+            #logging.debug(f"Resolving variable reference: {value_str}")
             # Look up variable's current runtime value
             if value_type == 'Device':
-                #print(f"Looking up device: {value_str}")
-                #print(f"Utils.devices: {Utils.devices}")
+                #moggin.info(f"Looking up device: {value_str}")
+                #logging.debug(f"Utils.devices: {Utils.devices}")
                 if self.compiling_what == 'canvas':
-                    #print(f"Searching in main canvas devices")
+                    #logging.info(f"Searching in main canvas devices")
                     search_devices = Utils.devices['main_canvas']
                 elif self.compiling_what == 'function':
-                    #print(f"Searching in function canvas devices for function {self.compiling_function}")
+                    #logging.info(f"Searching in function canvas devices for function {self.compiling_function}")
                     search_devices = Utils.devices['function_canvases'][self.compiling_function]
-                #print(f"Devices to search: {search_devices}")
+                #logging.debug(f"Devices to search: {search_devices}")
                 if self.compiling_what == 'canvas':
                     for dev_id, dev_info in search_devices.items():
-                        #print(dev_info)
+                        #logging.debug(dev_info)
                         if dev_info['name'] == value_str:
-                            #print(f"Found device {value_str} with PIN {dev_info['PIN']}")
+                            #logging.debug(f"Found device {value_str} with PIN {dev_info['PIN']}")
                             return f"Devices_main['{value_str}']['PIN']"
                 elif self.compiling_what == 'function':
                     return f"{value_str}"
             elif value_type == 'Variable':
-                print(f"Looking up variable: {value_str}")
-                #print(f"Utils.variables: {Utils.variables}")
+                #logging.info(f"Looking up variable: {value_str}")
+                #logging.debug(f"Utils.variables: {Utils.variables}")
                 if self.compiling_what == 'canvas':
-                    print(f"Searching in main canvas variables")
+                    #logging.info(f"Searching in main canvas variables")
                     search_variables = Utils.variables['main_canvas']
                 elif self.compiling_what == 'function':
-                    #print(f"Searching in function canvas variables for function {self.compiling_function}")
+                    #logging.debug(f"Searching in function canvas variables for function {self.compiling_function}")
                     search_variables = Utils.variables['function_canvases'][self.compiling_function]
-                #print(f"Variables to search: {search_variables}")
+                #logging.debug(f"Variables to search: {search_variables}")
                 if self.compiling_what == 'canvas':
                     for var_id, var_info in search_variables.items():
-                        print(var_info)
+                        #logging.debug(var_info)
                         if var_info['name'] == value_str:
-                            print(f"Found variable {value_str} with value {var_info['value']}")
+                            #logging.debug(f"Found variable {value_str} with value {var_info['value']}")
                             return f"Variables_main['{value_str}']['value']"
                 elif self.compiling_what == 'function':
                     return f"{value_str}"
                 
         else:
-            #print(f"Using literal value: {value_str}")
+            #logging.info(f"Using literal value: {value_str}")
             pass
         return value_str  # It's a literal
     
@@ -959,10 +959,10 @@ class CodeCompiler:
         """Check if value is a variable name (not a number)"""
         try:
             float(value_str)  # Can convert to number?
-            #print(f"{value_str} is a literal number.")
+            #logging.debug(f"{value_str} is a literal number.")
             return False      # It's a literal number
         except ValueError:
-            #print(f"{value_str} is a variable reference.")
+            logging.error(f"{value_str} is a variable reference.")
             return True 
         
     def writeline(self, text):
@@ -973,11 +973,11 @@ class CodeCompiler:
     def write_condition(self, type,  value1, operator, value2):
         """Write condition code - DRY principle"""
         text = f"{type} {value1} {operator} {value2}:"
-        #print(f"Writing condition: {text}")
+        #logging.info(f"Writing condition: {text}")
         self.writeline(text)
     
     def get_comparison_operator(self, combo_value):
-        #print(f"Mapping combo value '{combo_value}' to operator")
+        #logging.info(f"Mapping combo value '{combo_value}' to operator")
         """Map combo box value to Python operator"""
         operators = {
             "==": "==",
@@ -987,7 +987,7 @@ class CodeCompiler:
             ">": ">",
             ">=": ">="
         }
-        #print(f"Mapped to operator: {operators.get(combo_value, '==')}")
+        #logging.info(f"Mapped to operator: {operators.get(combo_value, '==')}")
         return operators.get(combo_value, "==")
     
     def get_math_operator(self, operator):
@@ -1006,7 +1006,7 @@ class CodeCompiler:
 
     #MARK: Block Handlers
     def handle_if_block(self, block):
-        #print(f"Handling If block {block}")
+        #logging.info(f"Handling If block {block}")
         first_values = []
         second_values = []
         operators = []
@@ -1022,46 +1022,46 @@ class CodeCompiler:
         self.write_condition("if", first_values[0], operators[0], second_values[0])
         self.indent_level += 1
         self.process_block(outputs[0])
-        #print(f"Completed If true branch, now handling else branch")
+        #logging.info(f"Completed If true branch, now handling else branch")
         self.indent_level -= 1
         for i in range(1, block['conditions']):
             self.write_condition("elif", first_values[i], operators[i], second_values[i])
             self.indent_level += 1
             self.process_block(outputs[i])
-            #print(f"Completed Elif branch {i}, now checking next condition or else")
+            #logging.info(f"Completed Elif branch {i}, now checking next condition or else")
             self.indent_level -= 1
         if len(outputs) > block['conditions']:
             self.writeline("else:")
-            #print(f"Processing else branch for If block")
+            #logging.info(f"Processing else branch for If block")
             self.indent_level += 1
             self.process_block(outputs[-1])
             self.indent_level -= 1
     
     def handle_while_block(self, block):
         if block['type'] == 'While_true':
-            #print(f"Handling While true block {block}")
+            #logging.info(f"Handling While true block {block}")
             next_id = self.get_next_block(block['id'])
             self.writeline("while True:")
             self.indent_level += 1
-            #print(f"Processing While true branch for While true block")
+            #logging.info(f"Processing While true branch for While true block")
             self.process_block(next_id)
             self.indent_level -= 1
             return
         
         value_1 = self.resolve_value(block['value_1_name'], block['value_1_type'] if block['value_1_type'] in block else 'Variable')
         value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'] if block['value_2_type'] in block else 'Variable')
-        #print(f"Resolved While block values: {value_1}, {value_2}")
+        #logging.debug(f"Resolved While block values: {value_1}, {value_2}")
         operator = self.get_comparison_operator(block['operator'])
-        #print(f"Using operator: {operator}")
+        #logging.debug(f"Using operator: {operator}")
         out1_id = self.get_next_block_from_output(block['id'], 'out_1')  # True path
         out2_id = self.get_next_block_from_output(block['id'], 'out_2')  # False path
-        #print(f"While block outputs: out1 -> {out1_id}, out2 -> {out2_id}")
+        #logging.debug(f"While block outputs: out1 -> {out1_id}, out2 -> {out2_id}")
         self.write_condition("while", value_1, operator, value_2)
         self.indent_level += 1
-        #print(f"Processing While true branch for While block")
+        #logging.info(f"Processing While true branch for While block")
         self.process_block(out1_id)
         self.indent_level -= 1
-        #print(f"Processing While false branch for While block")
+        #logging.info(f"Processing While false branch for While block")
         self.process_block(out2_id)
            
     def handle_timer_block(self, block):
@@ -1069,14 +1069,14 @@ class CodeCompiler:
         
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Timer: {next_id}")
+            #logging.info(f"Processing next block after Timer: {next_id}")
             pass
         self.process_block(next_id)
     
     def handle_switch_block(self, block):
         switch_state = block['switch_state']
     
-    # ✅ Check if it's already a boolean
+    #Check if it's already a boolean
         if isinstance(switch_state, bool):
             switch_state = switch_state 
         else:
@@ -1085,30 +1085,30 @@ class CodeCompiler:
         
         Var_1 = self.resolve_value(block['value_1_name'], 'Device')
         
-        #print(f"Resolved Switch block value: {switch_state} (type: {type(switch_state).__name__})")
+        #logging.info(f"Resolved Switch block value: {switch_state} (type: {type(switch_state).__name__})")
         if self.GPIO_compile:
             if switch_state is True:
-                #print(f"Writing GPIO HIGH for Switch block")
+                #logging.info(f"Writing GPIO HIGH for Switch block")
                 self.writeline(f"GPIO.output({Var_1}, GPIO.HIGH)")
             elif switch_state is False:
-                #print(f"Writing GPIO LOW for Switch block")
+                #logging.info(f"Writing GPIO LOW for Switch block")
                 self.writeline(f"GPIO.output({Var_1}, GPIO.LOW)")
             else:
-                #print(f"Unknown Switch value {switch_state}, defaulting to LOW")
+                #logging.warninig(f"Unknown Switch value {switch_state}, defaulting to LOW")
                 self.writeline(f"GPIO.output({Var_1}, GPIO.LOW)")
         elif self.MC_compile:
             if switch_state is True:
-                #print(f"Writing PIN HIGH for Switch block")
+                #logging.info(f"Writing PIN HIGH for Switch block")
                 self.writeline(f"{Var_1}.value(1)")
             elif switch_state is False:
-                #print(f"Writing PIN LOW for Switch block")
+                #logging.info(f"Writing PIN LOW for Switch block")
                 self.writeline(f"{Var_1}.value(0)")
             else:
-                #print(f"Unknown Switch value {switch_state}, defaulting to LOW")
+                #logging.warninig(f"Unknown Switch value {switch_state}, defaulting to LOW")
                 self.writeline(f"{Var_1}.value(0)")
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Switch: {next_id}")
+            #logging.info(f"Processing next block after Switch: {next_id}")
             pass
         self.process_block(next_id)
     
@@ -1116,26 +1116,26 @@ class CodeCompiler:
         DEV_1 = self.resolve_value(block['value_1_name'], block['value_1_type'])
         out1_id = self.get_next_block_from_output(block['id'], 'out_1')  # ON path
         out2_id = self.get_next_block_from_output(block['id'], 'out_2')
-        #print(f"Resolved Button block device: {DEV_1}")
+        #logging.debug(f"Resolved Button block device: {DEV_1}")
         if self.GPIO_compile:
             self.writeline(f"if Button().is_pressed({DEV_1}):")
             self.indent_level += 1
-            #print(f"Processing Button ON branch for Button block")
+            #logging.debug(f"Processing Button ON branch for Button block")
             self.process_block(out1_id)
             self.indent_level -= 1
             self.writeline("else:")
-            #print(f"Processing Button OFF branch for Button block")
+            #logging.debug(f"Processing Button OFF branch for Button block")
             self.indent_level += 1
             self.process_block(out2_id)
             self.indent_level -= 1
         elif self.MC_compile:
             self.writeline(f"if Button().is_pressed({DEV_1}):")
             self.indent_level += 1
-            #print(f"Processing Button ON branch for Button block")
+            #logging.debug(f"Processing Button ON branch for Button block")
             self.process_block(out1_id)
             self.indent_level -= 1
             self.writeline("else:")
-            #print(f"Processing Button OFF branch for Button block")
+            #logging.debug(f"Processing Button OFF branch for Button block")
             self.indent_level += 1
             self.process_block(out2_id)
             self.indent_level -= 1
@@ -1155,20 +1155,20 @@ class CodeCompiler:
                     self.writeline("")  # Blank line before function
                     self.writeline(f"def {func_name}(")
                     self.indent_level += 1
-                    #print(f"ref_vars: {block['internal_vars']['ref_vars']}")
-                    #print(f"ref_devs: {block['internal_devs']['ref_devs']}")
+                    #logging.debug(f"ref_vars: {block['internal_vars']['ref_vars']}")
+                    #logging.debug(f"ref_devs: {block['internal_devs']['ref_devs']}")
                     for l_widget, v_info in block['internal_vars']['ref_vars'].items():
-                        #print(f"Function variable parameter: {v_info['name']}")
+                        #logging.debug(f"Function variable parameter: {v_info['name']}")
                         self.writeline(f"{v_info['name']},")
                     for l_widget, d_info in block['internal_devs']['ref_devs'].items():
-                        #print(f"Function device parameter: {d_info['name']}")
+                        #logging.debug(f"Function device parameter: {d_info['name']}")
                         self.writeline(f"{d_info['name']},")
                     self.indent_level -= 1
                     self.writeline("):")
                     self.indent_level += 1
                     self.compiling_what = 'function'
                     for fu_id, fu_info in Utils.functions.items():
-                        #print(f"{f_id}: {f_info}")
+                        #logging.debug(f"{f_id}: {f_info}")
                         if fu_info['name'] == func_name:
                             self.compiling_function = fu_info['id']
                             break
@@ -1177,32 +1177,32 @@ class CodeCompiler:
                         next_id = self.get_next_block(start_block['id'])
                         self.process_block(next_id)
 
-                print(f"Function block return var name: {block.get('return_var_name')}, compiling what: {self.compiling_what}")
+                #logging.debug("Function block return var name: %s, compiling what: %s", block.get('return_var_name'), self.compiling_what)
                 target_var = self.resolve_value(block['return_var_name'], 'Variable') if 'return_var_name' in block else None
-                print(f"Resolved target variable for function return: {target_var}")
+                #logging.debug("Resolved target variable for function return: %s", target_var)
                 if target_var:
                     self.writeline(f"{target_var} = {func_name}(")
                 else:
                     self.writeline(f"{func_name}(")
-                #print(f"block internal vars: {block['internal_vars']}")
-                #print(f"block internal devs: {block['internal_devs']}")
+                #logging.debug(f"block internal vars: {block['internal_vars']}")
+                #logging.debug(f"block internal devs: {block['internal_devs']}")
                 self.indent_level += 1
                 for l_widget, v_info in block['internal_vars']['main_vars'].items():
-                    #print(f"Function argument: {v_info['name']}")
+                    #logging.debug(f"Function argument: {v_info['name']}")
                     resolved_value = self.resolve_value(v_info['name'], v_info['type'])
-                    #print(f"Resolved argument value: {resolved_value}")
+                    #logging.info(f"Resolved argument value: {resolved_value}")
                     self.writeline(f"{resolved_value},")
                 for l_widget, d_info in block['internal_devs']['main_devs'].items():
-                    #print(f"Function device argument: {d_info['name']}")
+                    #logging.debug(f"Function device argument: {d_info['name']}")
                     resolved_value = self.resolve_value(d_info['name'], d_info['type'])
-                    #print(f"Resolved device argument value: {resolved_value}")
+                    #logging.info(f"Resolved device argument value: {resolved_value}")
                     self.writeline(f"{resolved_value},")
                 self.indent_level -= 1
                 self.writeline(")")
                 
                 next_id = self.get_next_block(block['id'])
                 if next_id:
-                    #print(f"Processing next block after Function call: {next_id}")
+                    #logging.info(f"Processing next block after Function call: {next_id}")
                     pass
 
                 self.process_block(next_id)
@@ -1214,7 +1214,7 @@ class CodeCompiler:
             self.func_to_compile[self.compiling_function] = (self.func_to_compile[self.compiling_function][0], "Compiled", return_value)
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Return: {next_id}")
+            #logging.info(f"Processing next block after Return: {next_id}")
             pass
         self.process_block(next_id)
 
@@ -1232,7 +1232,7 @@ class CodeCompiler:
                 'Power': '**'
             }
             result_var = self.resolve_value(block['result_var_name'], block['result_var_type'])
-        #print(f"Resolved Math block values: {value_1}, {value_2}, result var: {result_var}")
+        #logging.info(f"Resolved Math block values: {value_1}, {value_2}, result var: {result_var}")
         if block['type'] not in ('Plus_one', 'Minus_one'):
             self.writeline(f"{result_var} = {value_1} {operators[block['operator']]} {value_2}")
         elif block['type'] == 'Plus_one':
@@ -1241,7 +1241,7 @@ class CodeCompiler:
             self.writeline(f"{value_1} = {value_1} - 1")
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Math: {next_id}")
+            #logging.info(f"Processing next block after Math: {next_id}")
             pass
         self.process_block(next_id)
     
@@ -1253,7 +1253,7 @@ class CodeCompiler:
         self.writeline(f"{result_var} = random.randint({value_1}, {value_2})")
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Random: {next_id}")
+            #logging.info(f"Processing next block after Random: {next_id}")
             pass
         self.process_block(next_id)
 
@@ -1282,7 +1282,7 @@ class CodeCompiler:
 
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after Logic: {next_id}")
+            #logging.info(f"Processing next block after Logic: {next_id}")
             pass
         self.process_block(next_id)
 
@@ -1313,7 +1313,7 @@ class CodeCompiler:
         
         next_id = self.get_next_block(block['id'])
         if next_id:
-            #print(f"Processing next block after LED: {next_id}")
+            #logging.info(f"Processing next block after LED: {next_id}")
             pass
         self.process_block(next_id)
 
@@ -1321,26 +1321,26 @@ class CodeCompiler:
         outputs = []
         for i in range(1, block['networks']+1):
             outputs.append(self.get_next_block_from_output(block['id'], f'out_{i}'))
-        print(f"Handling Networks block {block['id']} with outputs: {outputs}, length: {len(outputs)}")
+        #logging.info("Handling Networks block %s with outputs: %s (count=%s)", block['id'], outputs, len(outputs))
         for i in range(block['networks']):
-            print(f"Processing network block output {i} with next block ID: {outputs[i]}")
+            #logging.debug("Processing network block output %s with next block ID: %s", i, outputs[i])
             self.process_block(outputs[i])
 
     def handle_end_block(self, block):
-        #print(f"Handling End block {block['id']}")
+        #logging.info(f"Handling End block {block['id']}")
         if self.compiling_what == 'function':
-            #print(f"Ending function compilation for {self.compiling_function}")
+            #logging.info(f"Ending function compilation for {self.compiling_function}")
             self.compiling_what = 'canvas'
             self.compiling_function = None
             self.writeline("")  # Blank line after function
             self.current_lines = self.main_lines
             self.indent_level = self.memory_indent_level+1
-            #print(f"Resuming canvas compilation at indent level {self.indent_level}")
-            #print(f"Last block was function call: {self.last_block}")
+            #logging.info(f"Resuming canvas compilation at indent level {self.indent_level}")
+            #logging.info(f"Last block was function call: {self.last_block}")
             next_id = self.get_next_block(self.last_block['id'])
             self.process_block(next_id)
         else:
-            #print("End block reached in canvas - no action needed")
+            #logging.info("End block reached in canvas - no action needed")
             pass
         return
     

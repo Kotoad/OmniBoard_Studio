@@ -1,14 +1,6 @@
-from Imports import (QWidget, QLabel, QLineEdit, math,
-QComboBox, QApplication, QStyleOptionComboBox,
-pyqtProperty, QEasingCurve, QRectF,
-Qt, QPoint, QPropertyAnimation, QRect,
-pyqtSignal, QObject, QRegularExpression,
-QPainter, QPen, QBrush, QColor, QGraphicsObject,
-QPixmap, QImage, QMouseEvent, QStandardItem,
-QIntValidator, QRegularExpressionValidator,
-QPainterPath, QFont, QStyledItemDelegate, QSortFilterProxyModel,
-QStandardItemModel, QListWidget, QEvent, ctypes, sys, time,
-QGraphicsPixmapItem, QGraphicsItem, QPointF, QCursor)
+from Imports import (math, QApplication, QRectF, Qt, QEvent,
+    pyqtSignal, QObject, QPainter, QPen, QBrush, QColor, QGraphicsObject,
+    QPixmap, QMouseEvent, QFont, time, QGraphicsItem, QPointF, QCursor, logging)
 import random
 from Imports import get_Utils, get_Commands
 Utils = get_Utils()
@@ -30,7 +22,7 @@ class BlockGraphicsItem(QGraphicsObject):
 
     def __init__(self, x, y, block_id, block_type, parent_canvas, GUI=None, name=None, conditions=1, networks=2):
         super().__init__()
-        print(f'Initializing BlockGraphicsItem: {block_id} of type {block_type} at ({x}, {y}) on canvas {parent_canvas}, name: {name if name else "N/A"}')
+        #logging.info(f'Initializing BlockGraphicsItem: {block_id} of type {block_type} at ({x}, {y}) on canvas {parent_canvas}, name: {name if name else "N/A"}')
         self.signals = BlockSignals()
         self.state_manager = Utils.state_manager
         self.canvas = parent_canvas
@@ -40,7 +32,7 @@ class BlockGraphicsItem(QGraphicsObject):
             self.GUI = parent_canvas.GUI
         else:
             self.GUI = QApplication.instance().activeWindow()
-        #print(f"GUI window in BlockGraphicsItem: {self.GUI}")
+        #logging.info(f"GUI window in BlockGraphicsItem: {self.GUI}")
         self._drag_start_pos = None  # For tracking drag start position
         self.border_color = QColor("black")
         self.block_id = block_id
@@ -55,7 +47,7 @@ class BlockGraphicsItem(QGraphicsObject):
         self.network_count = networks
         self.width_changed = False
         self.font = "Consolas"
-        #print(f"self.canvas: {self.canvas}, self.block_id: {self.block_id}, self.block_type: {self.block_type}, self.x: {x}, self.y: {y}, self.name: {self.name}")
+        #logging.info(f"self.canvas: {self.canvas}, self.block_id: {self.block_id}, self.block_type: {self.block_type}, self.x: {x}, self.y: {y}, self.name: {self.name}")
         self.value_1_name = "N"
         if self.block_type in ("If", "While", "Switch"):
             self.operator = "=="
@@ -76,7 +68,7 @@ class BlockGraphicsItem(QGraphicsObject):
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
         self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemSendsGeometryChanges, True)
         
-        print(f"✓ BlockGraphicsItem created: {block_id} ({block_type}) at ({x}, {y})")
+        #logging.info(f"BlockGraphicsItem created: {block_id} ({block_type}) at ({x}, {y})")
 
     def boundingRect(self):
         """Define the bounding rectangle for the item"""
@@ -87,19 +79,19 @@ class BlockGraphicsItem(QGraphicsObject):
 
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
         painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
-        #print("Calculating dimensions for block:", self.block_id)
+        #logging.info("Calculating dimensions for block:", self.block_id)
         self._calculate_dimensions(painter)
 
         # Draw main block body
-        #print("Drawing block body for:", self.block_id)
+        #logging.info("Drawing block body for:", self.block_id)
         self._draw_block_body(painter)
         
         # Draw text
-        #print("Drawing text for:", self.block_id)
+        #logging.info("Drawing text for:", self.block_id)
         self._draw_text(painter)
         
         # Draw connection circles
-        #print("Drawing connection circles for:", self.block_id)
+        #logging.info("Drawing connection circles for:", self.block_id)
         self._draw_connection_circles(painter)
 
     def recalculate_size(self):
@@ -141,12 +133,12 @@ class BlockGraphicsItem(QGraphicsObject):
         elif self.block_type == "Function":
             v_count = 0
             d_count = 0
-            #print(f"Utils.variables['function_canvases']: {Utils.variables['function_canvases']}")
+            #logging.debug(f"Utils.variables['function_canvases']: {Utils.variables['function_canvases']}")
             for canvas, canvas_info in Utils.canvas_instances.items():
                 if canvas_info.get('ref') == 'function' and canvas_info.get('name') == self.name:
                     self.canvas_id = canvas_info.get('id')
                     break
-            #print(f"Calculating dimensions for function block: {self.name} in canvas {self.canvas_id}")
+            #logging.info(f"Calculating dimensions for function block: {self.name} in canvas {self.canvas_id}")
             for f_id, f_info in Utils.variables['function_canvases'][self.canvas_id].items():
                 v_count += 1
             for f_id, f_info in Utils.devices['function_canvases'][self.canvas_id].items():
@@ -168,10 +160,10 @@ class BlockGraphicsItem(QGraphicsObject):
             self.width = 100
             self.height = 100
         else:  #Fallback for other blocks
-            print(f"[Warning] Unknown block type '{self.block_type}', using default dimensions.")
+            logging.warning(f"Unknown block type '{self.block_type}', using default dimensions.")
             self.width = 100
             self.height = 50
-        #print(f"Set dimensions for block '{self.block_id}' ({self.block_type}): width={self.width}, height={self.height}")
+        #logging.info(f"Set dimensions for block '{self.block_id}' ({self.block_type}): width={self.width}, height={self.height}")
 
     def _calculate_width_from_text(self, painter):
         """Calculate required width based on text content"""
@@ -277,7 +269,7 @@ class BlockGraphicsItem(QGraphicsObject):
             self.width = max(self.width, text_width)
             if self.width != width:
                 self.width_changed = True
-            #print(f"Calculated text width for block '{self.block_id}' ({self.block_type}): {text_width}, setting block width to: {self.width}")
+            #logging.info(f"Calculated text width for block '{self.block_id}' ({self.block_type}): {text_width}, setting block width to: {self.width}")
 
     def _get_block_color(self):
         """Get color for block type"""
@@ -331,7 +323,7 @@ class BlockGraphicsItem(QGraphicsObject):
 
     def _draw_text(self, painter):
         """Draw block label text"""
-        #print("Drawing text for block:", self.block_type)
+        #logging.info(f"Drawing text for block: {self.block_type}")
         painter.setPen(QPen(QColor("black")))
         font = QFont(self.font, 8, QFont.Weight.Normal)
         painter.setFont(font)
@@ -358,7 +350,7 @@ class BlockGraphicsItem(QGraphicsObject):
             painter.drawText(ON_rect, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight, "ON")
             painter.drawText(OFF_rect, Qt.AlignmentFlag.AlignBottom | Qt.AlignmentFlag.AlignRight, "OFF")
         elif self.block_type == "Function":
-            #print(f"Drawing function block text for: {self.block_type}")
+            #logging.info(f"Drawing function block text for: {self.block_type}")
             name_rect = QRectF(self.radius, 0, self.width, self.height)
             painter.drawText(name_rect, Qt.AlignmentFlag.AlignHCenter, self.name)
 
@@ -369,14 +361,14 @@ class BlockGraphicsItem(QGraphicsObject):
 
             # Draw internal variables and devices on left
             for v_id, v_info in Utils.variables['function_canvases'][self.canvas_id].items():
-                #print(f"   Drawing variable: {v_info['name']}")
+                #logging.info(f"Drawing variable: {v_info['name']}")
                 var_text = f"{v_info['name']}"
                 var_rect = QRectF(self.radius + 10, y_offset, self.width - 20, 15)
                 painter.drawText(var_rect, Qt.AlignmentFlag.AlignLeft, var_text)
                 y_offset += 25
             y_offset = 25
             for d_id, d_info in Utils.devices['function_canvases'][self.canvas_id].items():
-                #print(f"   Drawing device: {d_info['name']}")
+                #logging.info(f"Drawing device: {d_info['name']}")
                 dev_text = f"{d_info['name']}"
                 dev_rect = QRectF(self.radius + 10, y_offset, self.width - 20, 15)
                 painter.drawText(dev_rect, Qt.AlignmentFlag.AlignRight, dev_text)
@@ -387,7 +379,7 @@ class BlockGraphicsItem(QGraphicsObject):
 
             if self.canvas.reference == 'canvas':
                 if Utils.main_canvas['blocks'].get(self.block_id, {}).get('internal_vars', {}).get('main_vars') is None:
-                    #print(f"Warning: No main_vars found in block_data for block '{self.name}'")
+                    #logging.warninig(f"No main_vars found in block_data for block '{self.name}'")
                     if self.canvas.reference == 'canvas':
                         data = Utils.project_data.main_canvas['blocks'].get(self.block_id, {})
                 else:
@@ -396,13 +388,13 @@ class BlockGraphicsItem(QGraphicsObject):
                 for f_id, f_info in Utils.functions.items():
                     if self.canvas == f_info.get('canvas'):
                         if f_info['blocks'].get(self.block_id, {}).get('internal_vars', {}).get('main_vars') is None:
-                            #print(f"Warning: No main_vars found in block_data for block '{self.name}' in function canvas")
+                            #logging.warninig(f"No main_vars found in block_data for block '{self.name}' in function canvas")
                             data = f_info['blocks'].get(self.block_id, {})
                         else:
                             data = f_info['blocks'].get(self.block_id, {})
                         break
             
-            #print(f"Data for function block '{self.name}': {data}")
+            #logging.info(f"Data for function block '{self.name}': {data}")
             # Draw main variables and devices on right
             for i in range(1, len(Utils.variables['function_canvases'][self.canvas_id]) + 1):
                 main_var_text = f"{getattr(self, f'main_var_{i}_name', 'N')}"
@@ -417,7 +409,7 @@ class BlockGraphicsItem(QGraphicsObject):
                 y_offset += 25
 
         elif self.block_type == "If":
-            #print(f"Drawing text for If block with {self.condition_count} conditions")
+            #logging.info(f"Drawing text for If block with {self.condition_count} conditions")
             large_font = QFont(self.font, 15, QFont.Weight.Bold)
             painter.setFont(large_font)
             painter.drawText(QRectF(self.radius + 10, 0, self.width, 25), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, "+")
@@ -426,7 +418,7 @@ class BlockGraphicsItem(QGraphicsObject):
             painter.setFont(small_font)
             y_offset = 17.5
             for i in range(1, self.condition_count + 1):
-                #print(f"Drawing main condition for If block")
+                #logging.info(f"Drawing main condition for If block")
                 val_a = getattr(self, f"value_{i}_1_name", "N")
                 op    = getattr(self, f"operator_{i}", "==")
                 val_b = getattr(self, f"value_{i}_2_name", "N")
@@ -453,9 +445,9 @@ class BlockGraphicsItem(QGraphicsObject):
         elif self.block_type == "Switch":
             small_font = QFont(self.font, 8)
             painter.setFont(small_font)
-            #print(f"Drawing Switch labels, state: {self.switch_state}")
-            #print(f"Current block data: {Utils.main_canvas['blocks'].get(self.block_id, {})}")
-            
+            #logging.info(f"Drawing Switch labels, state: {self.switch_state}")
+            #logging.info(f"Current block data: {Utils.main_canvas['blocks'].get(self.block_id, {})}")
+
             dev_text = f"{self.value_1_name}"
             dev_rect = QRectF(self.radius, 0, self.width, self.height)
             painter.drawText(dev_rect, Qt.AlignmentFlag.AlignCenter, dev_text)
@@ -607,23 +599,23 @@ class BlockGraphicsItem(QGraphicsObject):
                     self.signals.Add_network.connect(events.on_add_network)
                     self.signals.Remove_network.connect(events.on_remove_network)
                     
-                print(f"✓ Signals successfully connected for {self.block_id}")
+                #logging.info(f"Signals successfully connected for {self.block_id}")
             except Exception as e:
-                print(f"Error connecting signals for {self.block_id}: {e}")
+                logging.error(f"Error connecting signals for {self.block_id}: {e}")
 
     def snap_to_grid(self, x, y):
         #Snap coordinates to the nearest grid intersection
         
         height = self.height     
         grid_height = (round(height/self.grid_size))*self.grid_size
-        #print(f"Widget height: {height}, Calculated grid height: {grid_height}")
+        #logging.debug(f"Widget height: {height}, Calculated grid height: {grid_height}")
         if height > grid_height:
-            #print("Increasing grid height by one grid size")
+            #logging.info("Increasing grid height by one grid size")
             grid_height += self.grid_size
         elif height < self.grid_size:
-            #print("Height less than grid size, setting to grid size")
+            #logging.info("Height less than grid size, setting to grid size")
             grid_height += self.grid_size
-        #print(f"Height: {height}, Grid height: {grid_height}")
+        #logging.debug(f"Height: {height}, Grid height: {grid_height}")
         """round_x = round(x / self.grid_size)
         round_y = round(y / self.grid_size) 
         Grid_rounded_x = (round_x * self.grid_size)
@@ -631,22 +623,22 @@ class BlockGraphicsItem(QGraphicsObject):
         Grid_rounded_y_height_offset = Grid_rounded_y + height_offset
         snapped_x = int(Grid_rounded_x)
         snapped_y = int(Grid_rounded_y_height_offset)
-        print(f"snapped before adjustment: {snapped_x}, {snapped_y}")
-        print(f"Differences: {abs(x - snapped_x)}, {abs(y - snapped_y)}")"""
+        #logging.debug(f"snapped before adjustment: {snapped_x}, {snapped_y}")
+        #logging.debug(f"Differences: {abs(x - snapped_x)}, {abs(y - snapped_y)}")"""
         
             
         snapped_x = int(round(x / self.grid_size) * self.grid_size - self.radius)
-        #print(f"Snapped X before adjustment: {snapped_x}, Difference: {abs(x - snapped_x)}")
+        #logging.debug(f"Snapped X before adjustment: {snapped_x}, Difference: {abs(x - snapped_x)}")
         snapped_y = int((round(y / self.grid_size) * self.grid_size))
-        #print(f"Snapped Y before adjustment: {snapped_y}, Difference: {abs(y - snapped_y)}")
+        #logging.debug(f"Snapped Y before adjustment: {snapped_y}, Difference: {abs(y - snapped_y)}")
         if (abs(y - snapped_y)) > (self.grid_size/2):
-            #print("Adjusting snapped_y upwards")
+            #logging.info("Adjusting snapped_y upwards")
             snapped_y = int(snapped_y - self.grid_size)
-        """print(f"Original {x}, {y}") 
-        print(f"Rounded {round_x}, {round_y}")
-        print(f"Grid {Grid_rounded_x, Grid_rounded_y}")
-        print(f"Grid + height_offset {Grid_rounded_y_height_offset}")"""
-        #print(f"Snapped {snapped_x}, {snapped_y}")
+        """#logging.info(f"Original {x}, {y}") 
+        #logging.info(f"Rounded {round_x}, {round_y}")
+        #logging.info(f"Grid {Grid_rounded_x, Grid_rounded_y}")
+        #logging.info(f"Grid + height_offset {Grid_rounded_y_height_offset}")"""
+        #logging.info(f"Snapped {snapped_x}, {snapped_y}")
         return snapped_x, snapped_y
 
     def itemChange(self, change, value):
@@ -659,10 +651,10 @@ class BlockGraphicsItem(QGraphicsObject):
 
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionHasChanged:
             if self.state_manager.canvas_state.on_moving_item():
-                #print(f"Block {self.block_id} moved to {value}")
-                #print(f"Z value before move: {self.zValue()}")
+                #logging.info(f"Block {self.block_id} moved to {value}")
+                #logging.info(f"Z value before move: {self.zValue()}")
                 self.setZValue(1)  # Bring to front while moving
-                #print(f"Z value {self.zValue()} set for moving block {self.block_id}")
+                #logging.info(f"Z value {self.zValue()} set for moving block {self.block_id}")
                 pos = self.pos()
                 pos_x = pos.x()
                 pos_y = pos.y()
@@ -696,7 +688,7 @@ class BlockGraphicsItem(QGraphicsObject):
         
         self._drag_start_pos = self.pos()  # Store initial position for potential move
 
-        print(f"Mouse press at {local_pos}, detected circle: {clicked}")
+        #logging.info(f"Mouse press at {local_pos}, detected circle: {clicked}")
         
         if event.button() == Qt.MouseButton.LeftButton:
             if clicked and (clicked.startswith('out') or clicked.startswith('in')):
@@ -705,29 +697,29 @@ class BlockGraphicsItem(QGraphicsObject):
                     circle_center = QPointF(circle_center[0], circle_center[1])
                 
                 if clicked.startswith('in'):
-                    print(f" → Input circle clicked: {clicked} at {circle_center}")
+                    #logging.info(f" → Input circle clicked: {clicked} at {circle_center}")
                     self.signals.input_clicked.emit(self, circle_center, clicked)
                 elif clicked.startswith('out'):
-                    print(f" → Output circle clicked: {clicked} at {circle_center}")
+                    #logging.info(f" → Output circle clicked: {clicked} at {circle_center}")
                     self.signals.output_clicked.emit(self, circle_center, clicked)
                 self.ungrabMouse()
                 event.accept()
                 return  # Prevent further processing if circle clicked
             elif clicked in ('add_condition', 'remove_condition'):
                 if clicked == 'add_condition':
-                    #print(" → Add condition clicked")
+                    #logging.info(" → Add condition clicked")
                     self.signals.Add_condition.emit(self)
                 else:
-                    #print(" → Remove condition clicked")
+                    #logging.info(" → Remove condition clicked")
                     self.signals.Remove_condition.emit(self)
                 event.accept()
                 return  # Prevent further processing if add/remove clicked
             elif clicked in ('add_network', 'remove_network'):
                 if clicked == 'add_network':
-                    #print(" → Add network clicked")
+                    #logging.info(" → Add network clicked")
                     self.signals.Add_network.emit(self)
                 else:
-                    #print(" → Remove network clicked")
+                    #logging.info(" → Remove network clicked")
                     self.signals.Remove_network.emit(self)
                 event.accept()
                 return  # Prevent further processing if add/remove clicked
@@ -743,9 +735,9 @@ class BlockGraphicsItem(QGraphicsObject):
             command = MoveBlockCommand(self, self._drag_start_pos, self.pos())
             self.GUI.main_window.undo_stack.push(command)
 
-        print("Current state before release:", self.state_manager.canvas_state.current_state())
+        #logging.info("Current state before release: {}".format(self.state_manager.canvas_state.current_state()))
         if self.state_manager.canvas_state.current_state() == 'MOVING_ITEM':
-            print("Setting state to IDLE after move")
+            #logging.info("Setting state to IDLE after move")
             self.setZValue(0)  # Reset Z value after moving
             self.state_manager.canvas_state.on_idle()
         super().mouseReleaseEvent(event)
@@ -753,7 +745,7 @@ class BlockGraphicsItem(QGraphicsObject):
     #MARK: - Hover Events
     def hoverEnterEvent(self, event):
         # Change color or show handle when mouse touches block
-        #print("Mouse entered block!")
+        #logging.info("Mouse entered block!")
         self.setCursor(Qt.CursorShape.OpenHandCursor)
         self.border_color = QColor("blue")
         self.update()
@@ -761,7 +753,7 @@ class BlockGraphicsItem(QGraphicsObject):
 
     def hoverLeaveEvent(self, event):
         # Reset color when mouse leaves
-        #print("Mouse left block!")
+        #logging.info("Mouse left block!")
         self.setCursor(Qt.CursorShape.ArrowCursor)
         self.border_color = QColor("black")
         self.update()
@@ -773,13 +765,13 @@ class BlockGraphicsItem(QGraphicsObject):
         add_remove_condition = self._check_click_on_add_remove_condition(pos)
         add_remove_network = self._check_click_on_add_remove_network(pos)
         if circle_type:
-            #print(f"Click detected on circle: {circle_type}")
+            #logging.info(f"Click detected on circle: {circle_type}")
             return circle_type
         if add_remove_condition:
-            #print(f"Click detected on add/remove condition: {add_remove_condition}")
+            #logging.info(f"Click detected on add/remove condition: {add_remove_condition}")
             return add_remove_condition
         if add_remove_network:
-            #print(f"Click detected on add/remove network: {add_remove_network}")
+            #logging.info(f"Click detected on add/remove network: {add_remove_network}")
             return add_remove_network
 
     def _check_click_on_add_remove_condition(self, click_pos):
@@ -829,12 +821,12 @@ class BlockGraphicsItem(QGraphicsObject):
                         if self.block_id in f_info['blocks']:
                             outputs = Utils.functions[f_id]['blocks'][self.block_id].get('outputs', 1)
             number = int(circle_type.split('_')[1])
-            print(f"Calculating circle center for output {number} of {outputs} outputs")
+            #logging.info(f"Calculating circle center for output {number} of {outputs} outputs")
             local_x = self.width
             local_y = self.grid_size * (number)
         
         # Convert to scene coordinates
-        print(f"Local coordinates for {circle_type} circle: ({local_x}, {local_y})")
+        #logging.info(f"Local coordinates for {circle_type} circle: ({local_x}, {local_y})")
         scene_pos = self.mapToScene(local_x, local_y)
         return (scene_pos.x(), scene_pos.y())
 
@@ -869,7 +861,7 @@ class BlockGraphicsItem(QGraphicsObject):
             # Multiple output circles based on condition count
             helper = 1
             for i in reversed(range(1, self.condition_count + 2)):
-                print(i, helper)
+                #logging.debug(f"Checking output circle {i} for condition count {self.condition_count}")
                 out_y = self.grid_size * ((self.height / self.grid_size) - (i))
                 dist_out = ((click_pos.x() - out_x)**2 + (click_pos.y() - out_y)**2)**0.5
                 if dist_out <= effective_radius:
@@ -908,21 +900,21 @@ class spawning_blocks:
 
     def start(self, parent, element_type, name=None):
         """Start placing an element"""
-        #print(f"Before: {parent.mousePressEvent}")
+        #logging.info(f"Before: {parent.mousePressEvent}")
         if not hasattr(self, 'old_mousePressEvent'):
             self.old_mousePressEvent = parent.mousePressEvent
             parent.mousePressEvent = self.on_mouse_press
         elif self.placing_active == False:
             self.old_mousePressEvent = parent.mousePressEvent
             parent.mousePressEvent = self.on_mouse_press
-        #print(f"After: {parent.mousePressEvent}")
+        #logging.info(f"After: {parent.mousePressEvent}")
         self.type = element_type
         self.name = name
         self.perm_stop = False
         self.parent = parent
         self.placing_active = True
-        #print("Start placement")
-        #print(f"parent: {parent}, element_type: {element_type}")
+        #logging.info("Start placement")
+        #logging.info(f"parent: {parent}, element_type: {element_type}")
         if self.blocks_window and self.blocks_window.isVisible():
             self.blocks_window.is_hidden = True
             self.blocks_window.hide()
@@ -939,9 +931,9 @@ class spawning_blocks:
         self.ghost_block.setZValue(1000)
 
         parent.setFocus()
-        #print(f"Canvas enabled: {parent.isEnabled()}")
+        #logging.info(f"Canvas enabled: {parent.isEnabled()}")
         parent.raise_()
-        #print("Canvas raised to top")
+        #logging.info("Canvas raised to top")
 
     def update_position(self, scene_pos):
         """Update position of the floating block (called by Canvas MouseMove)"""
@@ -951,13 +943,13 @@ class spawning_blocks:
             self.ghost_block.setPos(snapped_x, snapped_y)
 
     def on_mouse_press(self, event):
-        #print("Mouse Pressed")
+        #logging.info("Mouse Pressed")
         if event.button() == Qt.MouseButton.LeftButton:
             self.place(event)
 
     def place(self, event):
         """Place the element at clicked position"""
-        #print("Placement started")
+        #logging.info("Placement started")
         
         if self.perm_stop:
             return
@@ -971,7 +963,7 @@ class spawning_blocks:
             self.parent.remove_block(block_id)
             self.ghost_block = None
             
-            print(f"self.parent: {self.parent} type: {type(self.parent)}, self.type: {self.type} type {type(self.type)}, final_pos: ({final_pos.x()} type {type(final_pos.x())}, {final_pos.y()} type {type(final_pos.y())}), block_id: {block_id} type {type(block_id)}, name: {self.name} type {type(self.name)}")
+            #logging.info(f"self.parent: {self.parent} type: {type(self.parent)}, self.type: {self.type} type {type(self.type)}, final_pos: ({final_pos.x()} type {type(final_pos.x())}, {final_pos.y()} type {type(final_pos.y())}), block_id: {block_id} type {type(block_id)}, name: {self.name} type {type(self.name)}")
         
             command = AddBlockCommand(
                 canvas=self.parent,
@@ -999,25 +991,25 @@ class spawning_blocks:
 
     def stop_placing(self, parent):
         """Stop placement mode"""
-        #print("Placement stopped")
+        #logging.info("Placement stopped")
         
         # 1. Remove the floating block if it exists
         if self.ghost_block:
-            #print(f"Removing cancelled block: {self.ghost_block.block_id}")
+            #logging.info(f"Removing cancelled block: {self.ghost_block.block_id}")
             parent.remove_block(self.ghost_block.block_id)
             self.ghost_block = None
 
         self.perm_stop = True
         self.placing_active = False
         
-        #print("Current state before idle:", self.state_manager.canvas_state.current_state())
+        #logging.info("Current state before idle:", self.state_manager.canvas_state.current_state())
         self.state_manager.canvas_state.on_idle()
-        #print("Current state after idle:", self.state_manager.canvas_state.current_state())
-        #print(f"Current mousePressEvent: {parent.mousePressEvent}, Restoring old mousePressEvent: {self.old_mousePressEvent}")
+        #logging.info("Current state after idle:", self.state_manager.canvas_state.current_state())
+        #logging.info(f"Current mousePressEvent: {parent.mousePressEvent}, Restoring old mousePressEvent: {self.old_mousePressEvent}")
         parent.mousePressEvent = self.old_mousePressEvent
-        #print(f"mousePressEvent restored: {parent.mousePressEvent}")
+        #logging.info(f"mousePressEvent restored: {parent.mousePressEvent}")
         if self.blocks_window:
-            #print("Re-opening blocksWindow")
+            #logging.info("Re-opening blocksWindow")
             self.blocks_window.is_hidden = True
             self.blocks_window.open()
 
@@ -1027,35 +1019,35 @@ class blocks_events(QObject):
     def __init__(self, canvas):
         super().__init__()
         self.canvas = canvas
-        print(f"[BlocksEvents]Initializing blocksEvents for canvas: {canvas}")
+        #logging.info(f"[BlocksEvents]Initializing blocksEvents for canvas: {canvas}")
         self.path_manager = canvas.path_manager if hasattr(canvas, 'path_manager') else None
-        print(f"[BlocksEvents]path_manager: {self.path_manager}, canvas path_manager: {getattr(canvas, 'path_manager', 'No path manager')}")
+        #logging.info(f"[BlocksEvents]path_manager: {self.path_manager}, canvas path_manager: {getattr(canvas, 'path_manager', 'No path manager')}")
         self.state_manager = Utils.state_manager
-        #print(f"Instantiating blocksEvents for canvas: {canvas}")
-        #print(f" → inspector_panel: {self.inspector_frame_visible}")
-        #print("✓ blocksEvents initialized")
-        print(f"[BlocksEvents]path_manager: {self.path_manager}")
+        #logging.info(f"Instantiating blocksEvents for canvas: {canvas}")
+        #logging.info(f" → inspector_panel: {self.inspector_frame_visible}")
+        #logging.info("blocksEvents initialized")
+        #logging.info(f"path_manager: {self.path_manager}")
 
     def on_input_clicked(self, block, circle_center, circle_type):
         """Handle input circle clicks"""
-        #print(f"✓ on_input_clicked: {block.block_id} ({circle_type})")
+        #logging.info(f"on_input_clicked: {block.block_id} ({circle_type})")
         if self.path_manager:
-            #print("Current state before finalizing connection:", self.state_manager.canvas_state.current_state())
+            #logging.info("Current state before finalizing connection:", self.state_manager.canvas_state.current_state())
             self.path_manager.finalize_connection(block, circle_center, circle_type)
             
 
     def on_output_clicked(self, block, circle_center, circle_type):
         """Handle output circle clicks"""
-        print(f"✓ on_output_clicked: {block.block_id} ({circle_type})")
+        #logging.info(f"on_output_clicked: {block.block_id} ({circle_type})")
         if self.path_manager:
-            print("Current state before adding path:", self.state_manager.canvas_state.current_state())
+            #logging.info("Current state before adding path:", self.state_manager.canvas_state.current_state())
             if self.state_manager.canvas_state.on_adding_path():
-                print("Adding path...")
+                #logging.info("Adding path...")
                 self.path_manager.start_connection(block, circle_center, circle_type)
         
     def on_add_condition(self, block):
         """Handle adding condition to If block"""
-        #print(f"✓ on_add_condition for block: {block.block_id}")
+        #logging.info(f"on_add_condition for block: {block.block_id}")
         block.condition_count += 1
         block.recalculate_size()
 
@@ -1070,12 +1062,12 @@ class blocks_events(QObject):
                 data['operators'][str_2] = '=='
                 data['second_vars'][str_3] = 'N'
                 for path_id, path_info in list(Utils.main_canvas['paths'].items()):
-                    #print(f"Checking path {path_id} for update: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
+                    #logging.info(f"Checking path {path_id} for update: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
                     if path_info['from'] == block.block_id and path_info['from_circle_type'] == f'out_{block.condition_count}':
-                        #print(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count+1}")
+                        #logging.info(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count+1}")
                         Utils.main_canvas['paths'][path_id]['from_circle_type'] = f'out_{block.condition_count+1}'
                         data['out_connections'][path_id] = f'out_{block.condition_count+1}'
-                        #print(f"Updated path {path_id} in main canvas to new output circle out_{block.condition_count+1}")
+                        #logging.info(f"Updated path {path_id} in main canvas to new output circle out_{block.condition_count+1}")
         elif self.canvas.reference == 'function':
             for f_id, f_info in list(Utils.functions.items()):
                 if self.canvas == f_info.get('canvas'):
@@ -1083,9 +1075,9 @@ class blocks_events(QObject):
                     if data:
                         data['conditions'] = block.condition_count
                         for path_id, path_info in list(Utils.functions[f_id]['paths'].items()):
-                            #print(f"Checking path {path_id} for update: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
+                            #logging.info(f"Checking path {path_id} for update: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
                             if path_info['from'] == block.block_id and path_info['from_circle_type'] == f'out_{block.condition_count}':
-                                #print(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count+1}")
+                                #logging.info(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count+1}")
                                 Utils.functions[f_id]['paths'][path_id]['from_circle_type'] = f'out_{block.condition_count+1}'
                                 data['out_connections'][path_id] = f'out_{block.condition_count+1}'
                     break
@@ -1094,12 +1086,12 @@ class blocks_events(QObject):
 
         block.update()
         if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
-            #print(f"Updating inspector for block {block.block_id} after adding condition")
+            #logging.info(f"Updating inspector for block {block.block_id} after adding condition")
             self.canvas.GUI.update_inspector_content(block)
         
     def on_remove_condition(self, block):
         """Handle removing condition from If block"""
-        #print(f"✓ on_remove_condition for block: {block.block_id}")
+        #logging.info(f"on_remove_condition for block: {block.block_id}")
         if block.condition_count > 1:
             if self.canvas.reference == 'canvas':
                 data = Utils.main_canvas['blocks'].get(block.block_id)
@@ -1108,7 +1100,7 @@ class blocks_events(QObject):
                     str_1 = 'value_{}_1_name'.format(block.condition_count)
                     str_2 = 'operator_{}'.format(block.condition_count)
                     str_3 = 'value_{}_2_name'.format(block.condition_count)
-                    #print(f"data before deletion: {data}")
+                    #logging.info(f"data before deletion: {data}")
                     if str_1 in data['first_vars']:
                         del data['first_vars'][str_1]
                     if str_2 in data['operators']:
@@ -1119,19 +1111,19 @@ class blocks_events(QObject):
                     block.str_2 = '=='
                     block.str_3 = 'N'
                     for path_id, path_info in list(Utils.main_canvas['paths'].items()):
-                        #print(f"Checking path {path_id} for removal: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
+                        #logging.info(f"Checking path {path_id} for removal: {path_info}, looking for from {block.block_id} and from_circle out_{block.condition_count}")
                         if path_info['from'] == block.block_id and path_info['from_circle_type'] == f'out_{block.condition_count}':
                             self.path_manager.remove_path(path_id)
                             del Utils.main_canvas['paths'][path_id]
                             out_part, in_part = path_id.split('-')
                             if in_part in Utils.main_canvas['blocks']:
-                                #print(f"Removing path from block {in_part} in main_canvas")
+                                #logging.info(f"Removing path from block {in_part} in main_canvas")
                                 del Utils.main_canvas['blocks'][in_part]['in_connections'][path_id]
                             if out_part in Utils.main_canvas['blocks']:
-                                #print(f"Removing path from block {out_part} in main_canvas")
+                                #logging.info(f"Removing path from block {out_part} in main_canvas")
                                 del Utils.main_canvas['blocks'][out_part]['out_connections'][path_id]
                         if path_info['from'] == block.block_id and path_info['from_circle_type'] == f'out_{block.condition_count+1}':
-                            #print(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count}")
+                            #logging.info(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count}")
                             Utils.main_canvas['paths'][path_id]['from_circle_type'] = f'out_{block.condition_count}'
                             Utils.main_canvas['blocks'][block.block_id]['out_connections'][path_id] = f'out_{block.condition_count}'
                     
@@ -1159,13 +1151,13 @@ class blocks_events(QObject):
                                     del Utils.functions[f_id]['paths'][path_id]
                                     out_part, in_part = path_id.split('-')
                                     if in_part in Utils.functions[f_id]['blocks']:
-                                        #print(f"Removing path from block {in_part} in function {f_id}")
+                                        #logging.info(f"Removing path from block {in_part} in function {f_id}")
                                         del Utils.functions[f_id]['blocks'][in_part]['in_connections'][path_id]
                                     if out_part in Utils.functions[f_id]['blocks']:
-                                        #print(f"Removing path from block {out_part} in function {f_id}")
+                                        #logging.info(f"Removing path from block {out_part} in function {f_id}")
                                         del Utils.functions[f_id]['blocks'][out_part]['out_connections'][path_id]
                                 if path_info['from'] == block.block_id and path_info['from_circle_type'] == f'out_{block.condition_count+1}':
-                                    #print(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count}")
+                                    #logging.info(f"Updating path {path_id} from block {block.block_id} to new output circle out_{block.condition_count}")
                                     Utils.functions[f_id]['paths'][path_id]['from_circle_type'] = f'out_{block.condition_count}'
                                     Utils.functions[f_id]['blocks'][block.block_id]['out_connections'][path_id] = f'out_{block.condition_count}'
                         break
@@ -1174,12 +1166,12 @@ class blocks_events(QObject):
             self.path_manager.update_paths_for_widget(block)
             block.update()
             if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
-                #print(f"Updating inspector for block {block.block_id} after removing condition")
+                #logging.info(f"Updating inspector for block {block.block_id} after removing condition")
                 self.canvas.GUI.update_inspector_content(block)
     
     def on_add_network(self, block):
         """Handle adding network to Networks block"""
-        #print(f"✓ on_add_network for block: {block.block_id}")
+        #logging.info(f"on_add_network for block: {block.block_id}")
         block.network_count += 1
         block.recalculate_size()
         if self.canvas.reference == 'canvas':
@@ -1196,12 +1188,12 @@ class blocks_events(QObject):
         self.path_manager.update_paths_for_widget(block)
         block.update()
         if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
-            print(f"Updating inspector for block {block.block_id} after adding network")
+            #logging.info(f"Updating inspector for block {block.block_id} after adding network")
             self.canvas.GUI.update_inspector_content(block)
         
     def on_remove_network(self, block):
         """Handle removing network from Networks block"""
-        #print(f"✓ on_remove_network for block: {block.block_id}")
+        #logging.info(f"on_remove_network for block: {block.block_id}")
         if block.network_count > 1:
             if self.canvas.reference == 'canvas':
                 data = Utils.main_canvas['blocks'].get(block.block_id)
@@ -1213,10 +1205,10 @@ class blocks_events(QObject):
                             del Utils.main_canvas['paths'][path_id]
                             out_part, in_part = path_id.split('-')
                             if in_part in Utils.main_canvas['blocks']:
-                                #print(f"Removing path from block {in_part} in function {f_id}")
+                                #logging.info(f"Removing path from block {in_part} in function {f_id}")
                                 del Utils.main_canvas['blocks'][in_part]['in_connections'][path_id]
                             if out_part in Utils.main_canvas['blocks']:
-                                #print(f"Removing path from block {out_part} in function {f_id}")
+                                #logging.info(f"Removing path from block {out_part} in function {f_id}")
                                 del Utils.main_canvas['blocks'][out_part]['out_connections'][path_id]
 
             elif self.canvas.reference == 'function':
@@ -1231,10 +1223,10 @@ class blocks_events(QObject):
                                     del Utils.functions[f_id]['paths'][path_id]
                                     out_part, in_part = path_id.split('-')
                                     if in_part in Utils.functions[f_id]['blocks']:
-                                        #print(f"Removing path from block {in_part} in function {f_id}")
+                                        #logging.info(f"Removing path from block {in_part} in function {f_id}")
                                         del Utils.functions[f_id]['blocks'][in_part]['in_connections'][path_id]
                                     if out_part in Utils.functions[f_id]['blocks']:
-                                        #print(f"Removing path from block {out_part} in function {f_id}")
+                                        #logging.info(f"Removing path from block {out_part} in function {f_id}")
                                         del Utils.functions[f_id]['blocks'][out_part]['out_connections'][path_id]
     
                         break
@@ -1243,7 +1235,7 @@ class blocks_events(QObject):
             self.path_manager.update_paths_for_widget(block)
             block.update()
             if hasattr(self.canvas, 'inspector_frame_visible') and self.canvas.inspector_frame_visible:
-                print(f"Updating inspector for block {block.block_id} after removing network")
+                #logging.info(f"Updating inspector for block {block.block_id} after removing network")
                 self.canvas.GUI.update_inspector_content(block)
 
 #MARK: - Element_spawn
@@ -1253,7 +1245,7 @@ class Element_spawn:
 
     def custom_shape_spawn(self, parent, element_type, event, name=None):
         """Spawn a custom shape at the clicked position"""
-        #print(f"Spawning element: {element_type}")
+        #logging.info(f"Spawning element: {element_type}")
         block_id = f"{element_type}_{int(time.time() * 1000)}"
         scene_pos = parent.mapToScene(event.pos())
         x, y = scene_pos.x(), scene_pos.y()

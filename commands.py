@@ -1,4 +1,4 @@
-from Imports import (QUndoCommand, get_Utils)
+from Imports import (QUndoCommand, get_Utils, logging)
 
 Utils = get_Utils()
 
@@ -27,7 +27,7 @@ class AddBlockCommand(QUndoCommand):
                 self.block_id, 
                 self.name
             )
-            print(f"Blocks events {self.block_widget.signals}")
+            #logging.info(f"Blocks events {self.block_widget.signals}")
         else:
             # Redo execution: Safely re-add the preserved object to the scene
             self.canvas.scene.addItem(self.block_widget)
@@ -79,7 +79,7 @@ class RemoveBlockCommand(QUndoCommand):
         # Store the block being removed so we can restore it on undo
         if self.removed_block_utils_data is None:
             if self.block_id not in self.blocks_dict:
-                print(f"Error: Block ID {self.block_id} not found in Utils for removal.")
+                logging.error(f"Error: Block ID {self.block_id} not found in Utils for removal.")
                 return
 
             self.removed_block_utils_data = self.blocks_dict.pop(self.block_id)
@@ -116,7 +116,7 @@ class RemoveBlockCommand(QUndoCommand):
                             'is_out': is_out
                         }
 
-                        
+                        #logging.info(f"Block {self.block_id} removed and its connections updated.")
                         
         else:
             self.blocks_dict.pop(self.block_id, None)

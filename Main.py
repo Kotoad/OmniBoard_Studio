@@ -2,7 +2,7 @@ from Imports import (QThread, pyqtSignal, QSplashScreen, QPixmap, QColor, QProgr
                      QTimer, QMessageBox, QApplication, QPalette, QObject, sys, time, QStackedWidget, QWidget,
                      json, os, threading, warnings, QProgressDialog, QMainWindow, QIcon, QVBoxLayout, QLabel,
                      QAction, QFont, QToolBar, QSize, QSizePolicy, QSlider, QShortcut, QKeySequence, QHBoxLayout,
-                     QPushButton, QScrollArea, QListWidget, QSplitter, QInputDialog, QLineEdit, QUndoStack)
+                     QPushButton, QScrollArea, QListWidget, QSplitter, QInputDialog, QLineEdit, QUndoStack, logging)
 import urllib.request, ssl, certifi, tempfile, traceback as tb, glob, webbrowser
 from Imports import (get_Utils, get_Code_Compiler, get_State_Manager, get_File_Manager, get_Data_Control, get_Translation_Manager,
                      get_Graphic_Programing_Window, get_Code_Editor_Window, get_Device_Settings_Mindow, get_Blocks_Window,
@@ -135,6 +135,54 @@ class NativeSplash(QSplashScreen):
     def update_status(self, text):
         self.loading_text = text
         self.repaint()
+
+import logging
+import sys
+
+class ColoredConsoleFormatter(logging.Formatter):
+    """Custom formatter to add colors to console logs based on severity."""
+    
+    # ANSI color codes
+    GREY = "\x1b[38;20m"
+    BLUE = "\x1b[34;20m"
+    GREEN = "\x1b[32;20m"
+    YELLOW = "\x1b[33;20m"
+    RED = "\x1b[31;20m"
+    BOLD_RED = "\x1b[31;1m"
+    RESET = "\x1b[0m"
+    
+    # The standard format string for the logs
+    format_str = "%(asctime)s | %(levelname)-8s | [%(filename)s:%(lineno)d -> %(funcName)s()]\n%(message)s\n"
+
+    # Map log levels to colors
+    FORMATS = {
+        logging.DEBUG: GREY + format_str + RESET,
+        logging.INFO: BLUE + format_str + RESET,
+        logging.WARNING: YELLOW + format_str + RESET,
+        logging.ERROR: RED + format_str + RESET,
+        logging.CRITICAL: BOLD_RED + format_str + RESET
+    }
+
+    def format(self, record):
+        log_fmt = self.FORMATS.get(record.levelno, self.format_str)
+        formatter = logging.Formatter(log_fmt, datefmt="%H:%M:%S")
+        return formatter.format(record)
+
+
+def setup_colored_logging():
+    """Initializes the root logger with the colored console handler."""
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG) # Capture all levels of logs
+
+    # Prevent adding multiple handlers if called twice
+    if not logger.handlers:
+        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler.setLevel(logging.DEBUG)
+        console_handler.setFormatter(ColoredConsoleFormatter())
+        logger.addHandler(console_handler)
+        
+    return logger
+
 #MARK: - Update Checker
 def _get_or_create_install_id() -> str:
     """Returns a persistent anonymous UUID for this installation."""
@@ -167,38 +215,38 @@ def check_for_updates():
         req = urllib.request.Request(url, headers={'User-Agent': 'OmniBoard-Updater'})
         context = ssl.create_default_context(cafile=certifi.where())
         with urllib.request.urlopen(req, timeout=5, context=context) as response:
-            print(f"Update check HTTP response code: {response.status}")
+            #logging.debug(f"Update check HTTP response code: {response.status}")
             raw_response = response.read().decode()
-            print(f"Raw server response: '{raw_response}'") # Look at this output to see what is breaking the parser
+            #logging.debug(f"Raw server response: '{raw_response}'") # Look at this output to see what is breaking the parser
             data = json.loads(raw_response)
-            print(f"Parsed JSON data: {data}, type: {type(data)}")
+            #logging.debug(f"Parsed JSON data: {data}, type: {type(data)}")
             if isinstance(data, dict):
-                print(f"Latest release data: {data}")
+                #logging.debug(f"Latest release data: {data}")
                 latest_version = data.get("tag_name", "")
                 assets = data.get("assets", [])
-                print(f"Latest version: {latest_version}, Assets: {assets}")
+                #logging.debug(f"Latest version: {latest_version}, Assets: {assets}")
                 if latest_version:
                     main_version, sub_version, patch_version = Utils.config['CURRENT_VERSION'].split(".")
-                    print(f"Current version: {main_version}.{sub_version}.{patch_version}")
+                    #logging.debug(f"Current version: {main_version}.{sub_version}.{patch_version}")
                     latest_main, latest_sub, latest_patch = latest_version.split(".")
-                    print(f"Latest version parts: {latest_main}.{latest_sub}.{latest_patch}")
+                    #logging.debug(f"Latest version parts: {latest_main}.{latest_sub}.{latest_patch}")
                     main_version = main_version.strip("vV")  # Remove leading 'v' if present
-                    print(f"Stripped current main version: {main_version}")
+                    #logging.debug(f"Stripped current main version: {main_version}")
                     latest_main = latest_main.strip("vV")  # Remove leading 'v' if present
-                    print(f"Stripped latest main version: {latest_main}")
+                    #logging.debug(f"Stripped latest main version: {latest_main}")
 
                     if (int(latest_main), int(latest_sub), int(latest_patch)) > (int(main_version), int(sub_version), int(patch_version)):
-                        print("Update available!")
+                        #logging.info("Update available!")
                         return True, latest_version, assets, "Update available"
                     else:
-                        print("No update available.")
+                        #logging.info("No update available.")
                         return False, latest_version, assets, "Up to date"
     except urllib.error.URLError as e:
-        print(f"Update check failed (URL error): {e}")
+        logging.error(f"Update check failed (URL error): {e}")
         return False, None, None, "Network error"
     except Exception as e:
-        print(f"Update check failed: {e}")
-        #print(f"has_update = {has_update}, latest_version = {latest_version}, assets = {assets}, status = {str(e)}, current_version = {Utils.config['CURRENT_VERSION']}")
+        logging.error(f"Update check failed: {e}")
+        #logging.debug(f"has_update = {has_update}, latest_version = {latest_version}, assets = {assets}, status = {str(e)}, current_version = {Utils.config['CURRENT_VERSION']}")
         return False, None, None, str(e)
     
     return False, None, None, "No releases found"
@@ -210,8 +258,8 @@ class UpdateCheckerThread(QThread):
 
     def run(self):
         has_update, version, assets, status = check_for_updates()
-        print(f"Update check result: has_update={has_update}, version={version}, assets={assets}, status={status}")
-        print(f"Current version: {Utils.config['CURRENT_VERSION']}")
+        #logging.info("Update check result: has_update=%s, version=%s, assets_count=%s, status=%s", has_update, version, len(assets) if isinstance(assets, list) else 0, status)
+        #logging.debug("Current version: %s", Utils.config.get('CURRENT_VERSION'))
         if status == "Network error":
             self.connection_error.emit()
         if has_update:
@@ -232,7 +280,7 @@ class DownloadUpdateThread(QThread):
         temp_dir = tempfile.gettempdir()
         ext = ".exe" if sys.platform == "win32" else ".tar.gz"
         save_path = os.path.join(temp_dir, f"OmniBoard_Update{int(time.time())}{ext}")
-        print(f"Downloading update to: {save_path}", flush=True)
+        #logging.info("Downloading update to: %s", save_path)
 
         try:
             req = urllib.request.Request(self.url, headers={'User-Agent': 'OmniBoard-Updater'})
@@ -265,7 +313,7 @@ class DownloadUpdateThread(QThread):
             self.finished.emit(save_path)
             
         except Exception as e:
-            print(f"Download failed: {e}", flush=True)
+            logging.error("Download failed")
             self.error.emit(str(e))
 
 #MARK: - Universal Error Handler
@@ -306,16 +354,18 @@ class UniversalErrorHandler(QObject):
             return
 
         error_msg = "".join(tb.format_exception(exc_type, exc_value, exc_traceback))
-        print(error_msg, file=sys.stderr)  # Also print to console for logging
+        logging.critical("Unhandled exception:\n%s", error_msg)
+        self.write_to_log(f"Unhandled Exception: {error_msg}")
         self.error_occurred.emit("Critical Error", error_msg, QMessageBox.Icon.Critical)
 
     def handle_warning(self, message, category, filename, lineno, file=None, line=None):
         """Catch warnings (e.g., DeprecationWarning)."""
         msg = f"{category.__name__}:\n{message}\n\nFile: {filename}\nLine: {lineno}"
         self.error_occurred.emit("Warning", msg, QMessageBox.Icon.Warning)
-        print(f"Warning captured: {msg}", file=sys.stderr)  # Also print to console
+        logging.warning("Warning captured: %s", msg)
+        self.write_to_log(f"Warning: {msg}")
         if self._original_showwarning:
-            print("Original Warning Handler Output:")
+            #logging.debug("Delegating warning to original warning handler")
             self._original_showwarning(message, category, filename, lineno, file, line)
 
     def handle_threading_exception(self, args):
@@ -324,7 +374,8 @@ class UniversalErrorHandler(QObject):
         if args.exc_type:
             error_msg += "".join(tb.format_exception(args.exc_type, args.exc_value, args.exc_traceback))
         
-        print(error_msg, file=sys.stderr)
+        logging.critical("Unhandled threading exception:\n%s", error_msg)
+        self.write_to_log(f"Thread Error: {error_msg}")
         self.error_occurred.emit("Thread Error", error_msg, QMessageBox.Icon.Critical)
 
     # Optional: Handle Qt internal C++ messages
@@ -334,6 +385,11 @@ class UniversalErrorHandler(QObject):
     #     elif mode == QtMsgType.QtCriticalMsg: msg_type = "Qt Critical"
     #     elif mode == QtMsgType.QtFatalMsg: msg_type = "Qt Fatal"
     #     self.error_occurred.emit(msg_type, message, QMessageBox.Icon.Information)
+
+    def write_to_log(self, message):
+        """Allow this handler to be used as a stream for logging."""
+        with open("error_log.txt", "a") as log_file:
+            log_file.write(message + "\n")
 
     def show_error_dialog(self, title, body, icon):
         """Slot to show the GUI dialog. Must run on Main Thread."""
@@ -383,12 +439,12 @@ class HubWindow(QWidget):
 
         projects_path = Utils.get_base_path()/"projects"
 
-        print(f"Looking for projects in: {projects_path}")
+        #logging.debug("Looking for projects in: %s", projects_path)
         os.makedirs(projects_path, exist_ok=True)
-        print(f"Ensured projects directory exists at: {projects_path}")
+        #logging.debug("Ensured projects directory exists at: %s", projects_path)
 
         for i in projects_path.iterdir():
-            print(f"Found file in projects directory: {i.name}")
+            #logging.debug("Found file in projects directory: %s", i.name)
             if i.is_file() and i.suffix == ".project":
                 name = i.name.split(".")[0]
                 project_button = QPushButton(f"Project {name}")
@@ -500,7 +556,7 @@ class MainWindow(QMainWindow):
     
     def create_shortcuts(self):
         """Create Ctrl+S keyboard shortcut for saving"""
-        #print("Creating save shortcut (Ctrl+S)")
+        #loggin.info("Creating save shortcut (Ctrl+S)")
         save_shortcut = QShortcut(QKeySequence.StandardKey.Save, self)
         save_shortcut.activated.connect(self.on_save_file)
 
@@ -524,7 +580,7 @@ class MainWindow(QMainWindow):
         # 5 minutes = 300,000 milliseconds
         self.auto_save_timer.start(300000)  # 300000 ms = 5 minutes
         
-        #print("Auto-save timer started (every 5 minutes)")
+        #logging.info("Auto-save timer started (every 5 minutes)")
 
     def reset_file(self):
         try:
@@ -535,13 +591,24 @@ class MainWindow(QMainWindow):
                 with open("File.py", "x") as f:
                     f.write("")
         except Exception as e:
-            print(f"Error resetting File.py: {e}")
-        Reports_path = Utils.get_base_path()/"resources"
+            logging.error("Error resetting File.py")
+
         try:
-            with open(Reports_path/"last_report.json", "w") as f:
+            with open("last_report.txt", "w") as f:
                 f.write("")
         except Exception as e:
-            print(f"Error resetting last_report.json: {e}")
+            logging.error("Error resetting last_report.txt")
+
+        try:
+            if os.path.exists("error_log.txt") and os.path.getsize("error_log.txt") > 5 * 1024 * 1024:  # If log file is larger than 5MB
+                with open("error_log.txt", "w") as f:
+                    f.write("")
+            elif not os.path.exists("error_log.txt"):
+                with open("error_log.txt", "x") as f:
+                    f.write("")
+        except Exception as e:
+            logging.error("Error resetting error_log.txt")
+
 
     def create_stacked_widget(self):
         self.stacked_widget = QStackedWidget()
@@ -588,7 +655,7 @@ class MainWindow(QMainWindow):
                 background-color: palette(highlight);
             }
         """)
-        #print(f"Menubar Height: {menubar.height()}")
+        #logging.info(f"Menubar Height: {menubar.height()}")
         # File menu
         file_menu = self.menubar.addMenu(self.t("main_GUI.menu.file"))
         
@@ -845,7 +912,7 @@ class MainWindow(QMainWindow):
 
     def on_new_file(self):
         # Placeholder for new file logic
-        print("New file action triggered")
+        #logging.info("New file action triggered")
         has_content = (
                 len(Utils.main_canvas.get("blocks", {})) > 0 or
                 len(Utils.functions) > 0 or
@@ -867,10 +934,10 @@ class MainWindow(QMainWindow):
             if ok and text:
                 Utils.project_data.metadata['name'] = text
                 if Utils.file_manager.save_project(text):
-                    print(f"Project saved as '{text}'")
+                    #logging.info("Project saved as '%s'", text)
                     self.visual_programming_window.on_new_file()  # Clear current project after saving
             elif not ok:
-                print("New file action cancelled by user")
+                #logging.info("New file action cancelled by user")
                 self.visual_programming_window.on_new_file()  # Clear current project without saving
         elif has_content and Utils.config['opend_project'] is not None and Utils.config['opend_project'] in items:
             reply = QMessageBox.question(
@@ -881,7 +948,8 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.StandardButton.Yes:
                 self.visual_programming_window.on_new_file()
             else:
-                print("New file action cancelled by user")
+                #logging.info("New file action cancelled by user")
+                pass
         elif has_content and Utils.config['opend_project'] is None:
             text, ok = QInputDialog.getText(
                 self,
@@ -893,47 +961,47 @@ class MainWindow(QMainWindow):
             if ok and text:
                 Utils.project_data.metadata['name'] = text
                 if Utils.file_manager.save_project(text):
-                    print(f"Project saved as '{text}'")
+                    #logging.info("Project saved as '%s'", text)
                     self.visual_programming_window.on_new_file()  # Clear current project after saving
             elif not ok:
-                print("New file action cancelled by user")
+                #logging.info("New file action cancelled by user")
                 self.visual_programming_window.on_new_file()  # Clear current project without saving
         self.switch_widget(1)  # Switch back to Visual Programming for now
         
 
     def on_open_file(self):
         # Placeholder for open file logic
-        print("Open file action triggered")
+        #logging.info("Open file action triggered")
         self.switch_widget(1)  # Switch back to Visual Programming for now
         self.visual_programming_window.on_open_file()
 
     def on_save_file(self):
         # Placeholder for save file logic
-        print("Save file action triggered")
+        #logging.info("Save file action triggered")
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
             self.visual_programming_window.on_save_file()
         # Implement save logic here
     
     def on_save_file_as(self):
         # Placeholder for save as logic
-        print("Save As action triggered")
+        #logging.info("Save As action triggered")
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
             self.visual_programming_window.on_save_file_as()
         # Implement save as logic here
     
     def open_blocks_window(self):
         """Open the blocks window"""
-        #print("Opening blocks window")
+        #logging.info("Opening blocks window")
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
             blocks_window = BlocksWindow.get_instance(parent=self.visual_programming_window.current_canvas)
-            print("blocks window instance:", blocks_window)
+            #logging.debug("Blocks window instance: %s", blocks_window)
             try:
-                print("Checking if blocks dialog can be opened...")
+                #logging.debug("Checking if blocks dialog can be opened")
                 if Utils.state_manager.app_state.on_blocks_dialog_open():
-                    print("Opening blocks dialog...")
+                    #logging.info("Opening blocks dialog")
                     blocks_window.open()
             except Exception as e:
-                print(f"Error opening blocks window: {e}")
+                logging.error("Error opening blocks window")
 
     def open_help_window(self, which):
         """Open the help window"""
@@ -944,7 +1012,7 @@ class MainWindow(QMainWindow):
         }
 
         url = urls.get(which, "https://www.omniboardstudio.cz")
-        print(f"Opening help URL: {url}")
+        #logging.info("Opening help URL: %s", url)
         webbrowser.open(url)    
     
     def open_settings_window(self):
@@ -956,26 +1024,26 @@ class MainWindow(QMainWindow):
 
     def compile_and_upload(self):
         # Placeholder for compile and upload logic
-        print("Compile and Upload action triggered")
+        #logging.info("Compile and upload action triggered")
         self.visual_programming_window.compile_and_upload()
         # Implement compile and upload logic here
 
     def execute_on_rpi_ssh_background(self):
         # Placeholder for SSH execution logic
-        print("Execute on Raspberry Pi via SSH action triggered")
+        #logging.info("Execute on Raspberry Pi via SSH action triggered")
         if Utils.app_settings.rpi_model_index != 0:
             self.visual_programming_window.execute_on_rpi_ssh_background()
         # Implement SSH execution logic here   
 
     def stop_execution(self):
         # Placeholder for stopping execution logic
-        print("Stop Execution action triggered")
+        #logging.info("Stop execution action triggered")
         self.visual_programming_window.stop_execution()
         # Implement logic to stop execution on Raspberry Pi here 
 
     def toggle_pan_mode(self, checked):
         if self.stacked_widget.currentWidget() == self.visual_programming_window:
-            print(f"Pan mode toggled: {'ON' if checked else 'OFF'}")
+            #logging.debug("Pan mode toggled: %s", "ON" if checked else "OFF")
             self.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             if Utils.app_settings.theme == 'light':
                 self.pan_button.setIcon(QIcon("resources/images/Tool_bar/Cursor_black.png") if checked else QIcon("resources/images/Tool_bar/Hand_black.png"))
@@ -984,20 +1052,20 @@ class MainWindow(QMainWindow):
             self.visual_programming_window.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             self.visual_programming_window.current_canvas.setCursor(Qt.CursorShape.OpenHandCursor if checked else Qt.CursorShape.ArrowCursor)
             for canvas, canvas_data in Utils.canvas_instances.items():
-                print(f"Checking canvas: {canvas}, current canvas: {self.visual_programming_window.current_canvas}")
+                #logging.debug("Checking canvas: %s, current canvas: %s", canvas, self.visual_programming_window.current_canvas)
                 if canvas_data['canvas'] == self.visual_programming_window.current_canvas:
-                    print(f"Canvas index: {canvas_data['index']}, canvas: {canvas}, Pan mode set to: {checked}")
+                    #logging.debug("Canvas index: %s, canvas: %s, pan mode set to: %s", canvas_data['index'], canvas, checked)
                     break
             self.visual_programming_window.current_canvas.pan_mode = checked
-            print(f"Pan mode on canvas {self.visual_programming_window.current_canvas} set to: {self.visual_programming_window.current_canvas.pan_mode}")
+            #logging.debug("Pan mode on canvas %s set to: %s", self.visual_programming_window.current_canvas, self.visual_programming_window.current_canvas.pan_mode)
 
     def keyPressEvent(self, event):
-        print(f"[MainWindow] Key Pressed: {event.key()} (Text: '{event.text()}')")
+        #logging.debug("[MainWindow] Key pressed: %s (Text: '%s')", event.key(), event.text())
         if event.key() == Qt.Key.Key_F1:
-            print("F1 pressed - opening help window")
+            #logging.info("F1 pressed - opening help window")
             self.open_help_window(0)  # Open "Get Started" tab
         elif event.key() == Qt.Key.Key_Escape:
-            print("Escape pressed - toggling pan mode")
+            #logging.info("Escape pressed - toggling pan mode")
             if self.visual_programming_window.current_canvas.pan_mode:
                 self.pan_button.setChecked(False)  # This will toggle pan mode off
         else:
@@ -1034,16 +1102,16 @@ class MainWindow(QMainWindow):
     def auto_save_project(self):
         """Auto-save current project"""
         name = Utils.project_data.metadata.get('name', 'Untitled')
-        print(f"Auto-saving project '{name}'")
+        #logging.info("Auto-saving project '%s'", name)
         Utils.config['opend_project'] = name
         try:
             if Utils.file_manager.save_project(name, is_autosave=True):
-                print(f"Auto-saved '{name}' at {self.get_current_time()}")
+                #logging.info("Auto-saved '%s' at %s", name, self.get_current_time())
                 pass
             else:
-                print(f" Auto-save failed for '{name}'")
+                logging.warning("Auto-save failed for '%s'", name)
         except Exception as e:
-            print(f" Auto-save error: {e}")
+            logging.error("Auto-save error for '%s'", name)
 
     def get_current_time(self):
         """Get current time for logging"""
@@ -1089,7 +1157,7 @@ class MainWindow(QMainWindow):
                     break
             
             if download_url:
-                print(f"Starting update download from: {download_url}")
+                #logging.info("Starting update download from: %s", download_url)
                 self.show_update_progress(download_url)
 
     def show_update_progress(self, url):
@@ -1117,7 +1185,7 @@ class MainWindow(QMainWindow):
     #MARK: - Cleanup on Close
     def closeEvent(self, event):
         """Handle window close event - prompt to save if there are unsaved changes"""
-        print("Close event triggered - checking for unsaved changes")
+        #logging.info("Close event triggered - checking for unsaved changes")
         # Stop auto-save timer
         if hasattr(self, 'auto_save_timer') and self.auto_save_timer.isActive():
             self.auto_save_timer.stop()
@@ -1164,10 +1232,10 @@ class MainWindow(QMainWindow):
         else:
             # Compare with saved version
             comparison = Utils.file_manager.compare_projects(name)
-            print(f"Comparison result for '{name}': {comparison}")
-            print(f"Has changes: {comparison}")
+            #logging.debug("Comparison result for '%s': %s", name, comparison)
+            #logging.debug("Has changes: %s", comparison)
             if comparison == True:
-                print("Unsaved changes detected, prompting user")
+                #logging.info("Unsaved changes detected, prompting user")
                 
                 reply = QMessageBox.question(
                     self, self.t("main_GUI.dialogs.file_dialogs.save_project"),
@@ -1193,23 +1261,23 @@ def apply_scale():
     with open(Utils.get_base_path()/"app_settings.json", "r") as f:
         app_settings = json.load(f)
     scale = app_settings.get("ui_scale", "medium")
-    print(f"Applying UI scale: {scale}")
+    #logging.info("Applying UI scale: %s", scale)
 
     if scale == 'small':
-        print("Setting QT_SCALE_FACTOR to 0.8 for small UI scale")
+        #logging.debug("Setting QT_SCALE_FACTOR to 0.8 for small UI scale")
         os.environ["QT_SCALE_FACTOR"] = "0.8"
     elif scale == 'medium':
-        print("Setting QT_SCALE_FACTOR to 1.0 for medium UI scale")
+        #logging.debug("Setting QT_SCALE_FACTOR to 1.0 for medium UI scale")
         os.environ["QT_SCALE_FACTOR"] = "1.0"
     elif scale == 'large':
-        print("Setting QT_SCALE_FACTOR to 1.2 for large UI scale")
+        #logging.debug("Setting QT_SCALE_FACTOR to 1.2 for large UI scale")
         os.environ["QT_SCALE_FACTOR"] = "1.2"
 
 def apply_theme(app):
     with open(Utils.get_base_path()/"app_settings.json", "r") as f:
         app_settings = json.load(f)
     theme = app_settings.get("theme", "dark")
-    print(f"Applying theme: {theme}")
+    #logging.info("Applying theme: %s", theme)
 
     palette = QPalette()
 
@@ -1285,6 +1353,7 @@ def apply_theme(app):
 
 
 def main():
+    setup_colored_logging()
 
     apply_scale()
 

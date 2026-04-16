@@ -1,4 +1,4 @@
-from Imports import get_State_Machine
+from Imports import get_State_Machine, logging
 
 AppStateMachine, CanvasStateMachine = get_State_Machine()
 
@@ -8,21 +8,21 @@ class StateManager:
     
     def __new__(cls):
         if cls._instance is None:
-            print("Creating StateManager instance")
+            #logging.info("Creating StateManager instance")
             cls._instance = super().__new__(cls)
-        print("Returning StateManager instance")
+        #logging.info("Returning StateManager instance")
         return cls._instance
     
     def __init__(self):
         if not hasattr(self, 'initialized'):
-            print("Initializing StateManager")
+            #logging.info("Initializing StateManager")
             self.canvas_state = CanvasStateMachine()
             self.app_state = AppStateMachine(canvas_state_machine=self.canvas_state)
-            print(f"StateManager canvas_state id: {id(self.canvas_state)}")
-            print(f"AppStateMachine canvas_state_machine id: {id(self.app_state.canvas_state_machine)}")
+            #logging.info(f"StateManager canvas_state id: {id(self.canvas_state)}")
+            #logging.info(f"AppStateMachine canvas_state_machine id: {id(self.app_state.canvas_state_machine)}")
             self.initialized = True
     
     @classmethod
     def get_instance(cls):
-        print("Getting StateManager instance")
+        #logging.info("Getting StateManager instance")
         return cls()

@@ -3,11 +3,10 @@ from microdot.websocket import with_websocket
 import machine
 import time
 import network
-
 #import subprocess
-#import logging
+import logging
 #import os
-
+    
 ADC_KONST = 65536
 #MOT1_PIN = [10, 11]
 #MOT2_PIN = [12, 13]

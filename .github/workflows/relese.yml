@@ -93,10 +93,10 @@ jobs:
           (Get-content OmniBoard_Studio_Installer.iss) `
             -replace 'download_url', 'https://omniboardstudio.cz/downloads/${{ inputs.version }}/OmniBoard_Studio_Windows.zip' `
             -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename=OmniBoard_Online_Installer_${{ inputs.version }}' `
-            | Set-Content OmniBoard_Studio_Installer.iss
+            | Set-Content OmniBoard_Studio_Installer_specific.iss
 
           # Setup latest version installer
-          (Get-content OmniBoard_Studio_Installer_latest.iss) `
+          (Get-content OmniBoard_Studio_Installer.iss) `
             -replace 'download_url', 'https://omniboardstudio.cz/downloads/latest/OmniBoard_Studio_Windows.zip' `
             -replace 'OutputBaseFilename=OmniBoard_Online_Installer', 'OutputBaseFilename=OmniBoard_Online_Installer_latest' `
             | Set-Content OmniBoard_Studio_Installer_latest.iss
@@ -104,7 +104,7 @@ jobs:
       - name: Compile Inno Setup installers
         run: |
           choco install innosetup --no-progress -y
-          iscc OmniBoard_Studio_Installer.iss
+          iscc OmniBoard_Studio_Installer_specific.iss
           iscc OmniBoard_Studio_Installer_latest.iss
 
       - name: Upload Windows artifacts

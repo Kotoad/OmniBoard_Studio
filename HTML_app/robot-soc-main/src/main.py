@@ -8,7 +8,9 @@ from time import sleep
 #import rp2
 import sys
 import stepper
+import logging
 
+logging.basicConfig(level=logging.DEBUG)
 ssid = 'name-rsoc'
 password = 'idk123456'
 
@@ -60,7 +62,7 @@ async def index(request):
         #file_path = os.path.join(os.path.dirname(__file__), 'index.html')
         return send_file('index.html')
     except Exception as e:
-        #logging.error(f"Error in index route: {e}")
+        logging.error(f"Error in index route: {e}")
         return "Internal Server Error", 500
 
 
@@ -102,7 +104,7 @@ async def prijem(request, ws):
             pohyb(command, smer, rychlost)
             
     except Exception as e:
-        #logging.error(f"Error in prijem route: {e}")
+        logging.error(f"Error in prijem route: {e}")
         pass
 
 def pohyb(command, smer, rychlost):

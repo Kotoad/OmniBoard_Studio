@@ -4,7 +4,7 @@ FileManager.py - Complete Save/Load System for Visual Programming Projects
 Handles serialization and deserialization of projects with proper separation
 of persistent data (JSON-safe) and runtime references (QWidget objects).
 """
-from Imports import (json, os, datetime, Path, get_Utils, ProjectData)
+from Imports import (json, os, datetime, Path, get_Utils, ProjectData, logging)
 
 Utils = get_Utils()
         
@@ -65,11 +65,11 @@ class FileManager:
                 with open(filename2, 'w', encoding='utf-8') as f:
                     json.dump(project_dict, f, indent=2, ensure_ascii=False)
 
-            print(f"✓ Project saved: {filename}")
+            #logging.info(f"Project saved: {filename}")
             return True
             
         except Exception as e:
-            print(f"✗ Error saving project: {e}")
+            logging.error(f"Error saving project: {e}")
             return False
     
     @classmethod
@@ -87,24 +87,24 @@ class FileManager:
         }
         functions = {}
         for canvas in Utils.canvas_instances:
-            #print(f"Processing canvas: {canvas}")
+            #logging.info(f"Processing canvas: {canvas}")
             if canvas.reference == 'canvas':
-                #print("Processing main canvas blocks")
+                #logging.info("Processing main canvas blocks")
                 for block_id, block_info in Utils.main_canvas['blocks'].items():
                     info = Utils.data_control.save_data(block_id, block_info)
 
                     if info:
                         main_canvas['blocks'][block_id] = info
             elif canvas.reference == 'function':
-                #print("Processing function canvas blocks")
+                #logging.info("Processing function canvas blocks")
                 for f_id, f_info in Utils.functions.items():
                     if canvas == f_info.get('canvas'):
                         functions[f_id] = {'blocks': {},
                                            'paths': {}}
                         for block_id, block_info in f_info['blocks'].items():
-                            #print(f"Processing block {block_id} in function {f_id}, type {block_info['type']}, name: {block_info.get('name', 'N/A')}")
+                            #logging.info(f"Processing block {block_id} in function {f_id}, type {block_info['type']}, name: {block_info.get('name', 'N/A')}")
                             if f_id not in functions:
-                                #print(f"Creating new function entry for {f_id}")
+                                #logging.info(f"Creating new function entry for {f_id}")
                                 functions[f_id] = {'blocks': {}}
                             
                             info = Utils.data_control.save_data(block_id, block_info)
@@ -113,11 +113,11 @@ class FileManager:
                                 functions[f_id]['blocks'][block_id] = info
         # Build connections data (using block IDs, NOT widget references)
         for canvas in Utils.canvas_instances:
-            #print(f"Processing connections for canvas: {canvas}")
+            #logging.info(f"Processing connections for canvas: {canvas}")
             if canvas.reference == 'canvas':
-                #print("Processing main canvas connections")
+                #logging.info("Processing main canvas connections")
                 for conn_id, conn_info in Utils.main_canvas['paths'].items():
-                    #print(f"Processing connection {conn_id} on main canvas")
+                    #logging.info(f"Processing connection {conn_id} on main canvas")
                     if conn_info.get('canvas') == canvas:
                         main_canvas['paths'][conn_id] = {
                             'from': conn_info['from'],
@@ -127,18 +127,18 @@ class FileManager:
                             'waypoints': conn_info.get('waypoints', []),
                         }
             elif canvas.reference == 'function':
-                #print("Processing function canvas connections")
+                #logging.info("Processing function canvas connections")
                 for f_id, f_info in Utils.functions.items():
                     if canvas == f_info.get('canvas'):
-                        #print(f"Processing connections for function {f_id}")
-                        #print(f" Function connections: {Utils.functions[f_id]['paths']}")
+                        #logging.info(f"Processing connections for function {f_id}")
+                        #logging.info(f" Function connections: {Utils.functions[f_id]['paths']}")
                         if f_id not in functions:
-                            #print(f"Creating new function entry for connections for {f_id}")
+                            #logging.info(f"Creating new function entry for connections for {f_id}")
                             functions[f_id] = {'blocks': {}, 'paths': {}}
                         for conn_id, conn_info in Utils.functions[f_id]['paths'].items():
-                            #print(f"Conn_info: {conn_info}")
+                            #logging.info(f"Conn_info: {conn_info}")
                             if conn_info.get('canvas') == canvas:
-                                #print(f"Processing connection {conn_id} in function {f_id}")
+                                #logging.info(f"Processing connection {conn_id} in function {f_id}")
                                 functions[f_id]['paths'][conn_id] = {
                                     'from': conn_info['from'],
                                     'from_circle_type': conn_info.get('from_circle_type', 'out'),
@@ -146,32 +146,32 @@ class FileManager:
                                     'to_circle_type': conn_info.get('to_circle_type', 'in'),
                                     'waypoints': conn_info.get('waypoints', []),
                                 }
-        #print(f"Saved main canvas paths : {main_canvas['paths']}")
+        #logging.info(f"Saved main canvas paths : {main_canvas['paths']}")
         #for function_id, function_info in functions.items():
-            #print(f"Saved function {function_id} paths : {function_info['paths']}")       
+            #logging.info(f"Saved function {function_id} paths : {function_info['paths']}")       
         # Build variables data (pure data, no widget references)
         variables_data = {
             'main_canvas': {},      
             'function_canvases': {} 
         }
         for canvas in Utils.canvas_instances:
-            #print(f"Processing variables for canvas: {canvas}")
+            #logging.info(f"Processing variables for canvas: {canvas}")
             if canvas.reference == 'canvas':
-                #print("Processing main canvas variables")
+                #logging.info("Processing main canvas variables")
                 for var_id, var_info in Utils.variables['main_canvas'].items():
-                    #print(f" Processing variable {var_id} for main canvas")
-                    #print(f"  Var info: {var_info}")
+                    #logging.info(f" Processing variable {var_id} for main canvas")
+                    #logging.info(f"  Var info: {var_info}")
                     variables_data['main_canvas'][var_id] = {
                         'name': var_info.get('name', ''),
                         'type': var_info.get('type', ''),
                         'value': var_info.get('value', ''),
                     }
             elif canvas.reference == 'function':
-                #print("Processing function canvas variables")
+                #logging.info("Processing function canvas variables")
                 for f_id, f_info in Utils.functions.items():
                     if canvas == f_info.get('canvas'):
                         variables_data['function_canvases'][f_id] = {}
-                        #print(f" Processing variables for function {f_id}")
+                        #logging.info(f" Processing variables for function {f_id}")
                         for var_id, var_info in Utils.variables['function_canvases'][f_id].items():
                             variables_data['function_canvases'][f_id][var_id] = {
                                 'name': var_info.get('name', ''),
@@ -185,12 +185,12 @@ class FileManager:
             'function_canvases': {} 
         }
         for canvas in Utils.canvas_instances:
-            #print(f"Processing devices for canvas: {canvas}")
+            #logging.info(f"Processing devices for canvas: {canvas}")
             if canvas.reference == 'canvas':
-                #print("Processing main canvas devices")
+                #logging.info("Processing main canvas devices")
                 for dev_id, dev_info in Utils.devices['main_canvas'].items():
-                    #print(f" Processing device {dev_id} for main canvas")
-                    #print(f"  Device info: {dev_info}")
+                    #logging.info(f" Processing device {dev_id} for main canvas")
+                    #logging.info(f"  Device info: {dev_info}")
                     devices_data['main_canvas'][dev_id] = {
                         'name': dev_info.get('name', ''),
                         'type': dev_info.get('type', ''),
@@ -198,11 +198,11 @@ class FileManager:
                         'PIN': dev_info.get('PIN', ''),
                     }
             elif canvas.reference == 'function':
-                #print("Processing function canvas devices")
+                #logging.info("Processing function canvas devices")
                 for f_id, f_info in Utils.functions.items():
                     if canvas == f_info.get('canvas'):
                         devices_data['function_canvases'][f_id] = {}
-                        #print(f" Processing devices for function {f_id}")
+                        #logging.info(f"Processing devices for function {f_id}")
                         for dev_id, dev_info in Utils.devices['function_canvases'][f_id].items():
                             devices_data['function_canvases'][f_id][dev_id] = {
                                 'name': dev_info.get('name', ''),
@@ -274,21 +274,21 @@ class FileManager:
         """
         try:
             filename = os.path.join(Utils.get_base_path(), "app_settings.json")
-            print(f"Loading app settings from: {filename}")
+            #logging.info(f"Loading app settings from: {filename}")
             with open(filename, 'r') as f:
-                print("App settings file opened successfully.")
+                #logging.info("App settings file opened successfully.")
                 settings_dict = json.load(f)
             
-            print(f"App settings JSON loaded: {settings_dict}")
+            #logging.info(f"App settings JSON loaded: {settings_dict}")
             cls._populate_app_settings_from_save(settings_dict)
-            #print(f"✓ App settings loaded: {settings_filename}")
+            #logging.info(f"App settings loaded: {settings_filename}")
             return True
             
         except json.JSONDecodeError as e:
-            print(f"✗ Invalid JSON file: {e}")
+            logging.error(f"Invalid JSON file: {e}")
             return False
         except Exception as e:
-            print(f"✗ Error loading app settings: {e}")
+            logging.error(f"Error loading app settings: {e}")
             return False
 
     @classmethod
@@ -319,18 +319,18 @@ class FileManager:
 
             if not os.path.exists(filename):
                 if os.path.exists(appdata_filename):
-                    print(f"⚠️  Project not found in main folder, loading from AppData backup...")
+                    logging.warning(f"Project not found in main folder, loading from AppData backup...")
                     filename = appdata_filename
                 else:
-                    print(f"✗ Project file not found: {filename}")
+                    logging.error(f"Project file not found: {filename}")
                     return False
             
             if not os.path.exists(app_settings_filename):
                 if os.path.exists(appdata_app_settings_filename):
-                    print(f"⚠️  App settings not found in main folder, loading from AppData backup...")
+                    logging.warning(f"App settings not found in main folder, loading from AppData backup...")
                     app_settings_filename = appdata_app_settings_filename
                 else:
-                    print(f"✗ App settings file not found: {app_settings_filename}")
+                    logging.error(f"App settings file not found: {app_settings_filename}")
                     return False
 
             # Load JSON
@@ -344,14 +344,14 @@ class FileManager:
             cls._populate_utils_from_save(project_dict)
             cls._populate_app_settings_from_save(app_settings_dict)
             
-            #print(f"✓ Project loaded: {filename}")
+            #logging.info(f"Project loaded: {filename}")
             return True
             
         except json.JSONDecodeError as e:
-            print(f"✗ Invalid JSON file: {e}")
+            logging.error(f"Invalid JSON file: {e}")
             return False
         except Exception as e:
-            print(f"✗ Error loading project: {e}")
+            logging.error(f"Error loading project: {e}")
             return False
     
     @classmethod
@@ -386,7 +386,7 @@ class FileManager:
         # Load devices
         Utils.project_data.devices = project_dict.get('devices', {})
         
-        #print(f"✓ Data loaded: {len(Utils.project_data.main_canvas)} blocks, "
+        #logging.debug(f"Data loaded: {len(Utils.project_data.main_canvas)} blocks, "
         #      f"{len(Utils.project_data.functions)} functions, "
         #      f"{len(Utils.project_data.canvases)} connections, "
         #      f"{len(Utils.project_data.variables)} variables, "
@@ -437,13 +437,13 @@ class FileManager:
             filepath = os.path.join(cls.PROJECTS_DIR, project_name + cls.PROJECT_EXTENSION)
             if os.path.exists(filepath):
                 os.remove(filepath)
-                #print(f"✓ Project deleted: {project_name}")
+                #logging.info(f"Project deleted: {project_name}")
                 return True
             else:
-                print(f"✗ Project not found: {project_name}")
+                #logging.warninig(f"Project not found: {project_name}")
                 return False
         except Exception as e:
-            print(f"✗ Error deleting project: {e}")
+            logging.error(f"Error deleting project: {e}")
             return False
     
     @classmethod
@@ -480,7 +480,7 @@ class FileManager:
             'modified': datetime.now().isoformat(),
         }
         
-        #print("✓ New project created")
+        #logging.info("New project created")
     #MARK: - compare project
     @classmethod
     def compare_projects(cls, name: str) -> bool:
@@ -499,66 +499,66 @@ class FileManager:
         Returns:
             True if changes are detected, False otherwise
         """
-        print(f"Comparing current project against saved project: {name}")
+        #logging.info(f"Comparing current project against saved project: {name}")
         try:
             has_changes = False
             # Load the saved project data
             compare_dict = cls._load_project_dict(name)
             if not compare_dict:
-                print(" No saved project data found for comparison.")
+                #logging.info("No saved project data found for comparison.")
                 return True
             
             saved_data = ProjectData.from_dict(compare_dict)
             cls._build_save_data(name, for_dict=False)
             current_data = Utils.project_data
-            print(f"current_data: {current_data}\nsaved_data: {saved_data}")
+            #logging.debug(f"current_data: {current_data}\nsaved_data: {saved_data}")
             # =====================================================
             # 1. COMPARE MAIN CANVAS BLOCKS & CONNECTIONS
             # =====================================================
             if cls._compare_main_canvas_blocks(saved_data, current_data) and has_changes == False:
-                print(" Main canvas blocks have changes.")
+                #logging.info("Main canvas blocks have changes.")
                 has_changes = True
             
             # =====================================================
             # 1b. COMPARE MAIN CANVAS CONNECTIONS (separately to blocks)
             # =====================================================
             elif cls._compare_main_canvas_connections(saved_data, current_data) and has_changes == False:
-                print(" Main canvas connections have changes.")
+                #logging.info("Main canvas connections have changes.")
                 has_changes = True
             # =====================================================
             # 2. COMPARE FUNCTION CANVASES (blocks + connections)
             # =====================================================
             elif cls._compare_function_canvases(saved_data, current_data) and has_changes == False:
-                print(" Function canvases have changes.")
+                #logging.info("Function canvases have changes.")
                 has_changes = True
             
             # =====================================================
             # 3. COMPARE VARIABLES (main + all functions)
             # =====================================================
             elif cls._compare_variables_all(saved_data, current_data) and has_changes == False:
-                print(" Variables have changes.")
+                #logging.info("Variables have changes.")
                 has_changes = True
             
             # =====================================================
             # 4. COMPARE DEVICES (main + all functions)
             # =====================================================
             elif cls._compare_devices_all(saved_data, current_data) and has_changes == False:
-                print(" Devices have changes.")
+                #logging.info("Devices have changes.")
                 has_changes = True
                 
             # =====================================================
             # 5. COMPARE SETTINGS
             # =====================================================
             elif cls._compare_settings(saved_data, current_data) and has_changes == False:
-                print(" Settings have changes.")
+                #logging.info("Settings have changes.")
                 has_changes = True
             
             # Final tally
-            print(f"Comparison complete. Changes detected: {has_changes}")
+            #logging.info(f"Comparison complete. Changes detected: {has_changes}")
             return has_changes
             
         except Exception as e:
-            print(f"Comparison error: {e}")
+            logging.error(f"Comparison error: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -576,7 +576,7 @@ class FileManager:
         # Find added blocks
         for bid, c_block in current_blocks.items():
             if bid not in saved_blocks:
-                print(f" New block detected: {bid}")
+                #logging.info(f"New block detected: {bid}")
                 return True
             else:
                 # Check for modifications
@@ -613,7 +613,7 @@ class FileManager:
                     val_c = c_block.get(prop, "")
                     val_s = s_block.get(prop, "")
                     if val_c != val_s:
-                        print(f" Block {bid} property '{prop}' changed: saved='{val_s}' vs current='{val_c}'")
+                        #logging.debug(f"Block {bid} property '{prop}' changed: saved='{val_s}' vs current='{val_c}'")
                         return True
                 
                 # Check connections
@@ -623,13 +623,13 @@ class FileManager:
                 s_out = s_block.get('out_connections', [])
                 
                 if c_in != s_in or c_out != s_out:
-                    print(f" Block {bid} connections changed: saved_in={s_in}, current_in={c_in}, saved_out={s_out}, current_out={c_out}")
+                    #logging.debug(f"Block {bid} connections changed: saved_in={s_in}, current_in={c_in}, saved_out={s_out}, current_out={c_out}")
                     return True
     
         # Find removed blocks
         for bid in saved_blocks:
             if bid not in current_blocks:
-                print(f" Block removed: {bid}")
+                #logging.info(f"Block removed: {bid}")
                 return True
         
         return False
@@ -639,7 +639,7 @@ class FileManager:
         """Compare connections/paths in main canvas"""
         saved_paths = saved_data.main_canvas.get("paths", {})
         current_paths = current_data.main_canvas.get("paths", {})
-        #print(f"Comparing main canvas connections: saved {saved_paths}, current {current_paths}")
+        #logging.debug(f"Comparing main canvas connections: saved {saved_paths}, current {current_paths}")
         for connid, c_conn in current_paths.items():
             if connid not in saved_paths:
                 return True
@@ -889,7 +889,7 @@ class FileManager:
             with open(filepath, 'r') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"Error loading project dict: {e}")
+            logging.error(f"Error loading project dict: {e}")
             return None
 
     
@@ -907,12 +907,12 @@ if __name__ == "__main__":
     
     # Load existing project
     if FileManager.load_project("motor_control"):
-        print("Project loaded successfully")
+        #logging.info("Project loaded successfully")
     
     # List all projects
     projects = FileManager.list_projects()
     for project in projects:
-        print(f"{project['name']} - Modified: {project['modified']}")
+        #logging.info(f"{project['name']} - Modified: {project['modified']}")
     
     # Delete a project
     FileManager.delete_project("old_project")

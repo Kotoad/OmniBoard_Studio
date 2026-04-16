@@ -54,7 +54,7 @@ async def rt_ovladani(request):
 @with_websocket
 async def prijem(request, ws):
     try:
-        logging.info("WebSocket connected")
+        #logging.info("WebSocket connected")
         await ws.send('Connected')
         
         while True:
@@ -64,7 +64,7 @@ async def prijem(request, ws):
                     logging.warning("Received empty message")
                     continue
                     
-                logging.debug(f"Received message: {prijem}")
+                #logging.debug(f"Received message: {prijem}")
                 parts = prijem.split()
                 print(type(parts))
                 
@@ -79,7 +79,7 @@ async def prijem(request, ws):
                     command, smer, rychlost, cekani = parts
                 
                 print(type(command), type(smer), type(rychlost), type(cekani))
-                logging.info(f"Command: {command}, smer: {smer}, rychlost: {rychlost}, cekani: {cekani}")
+                #logging.info(f"Command: {command}, smer: {smer}, rychlost: {rychlost}, cekani: {cekani}")
                 try:
                     rychlost = int((int(rychlost)/100)*65535)
                     await ws.send('ok')

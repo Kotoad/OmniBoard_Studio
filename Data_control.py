@@ -1,4 +1,4 @@
-from Imports import get_Utils
+from Imports import get_Utils, logging
 Utils = get_Utils()
 
 
@@ -9,7 +9,7 @@ class DataControl:
     def inicilize_date(self, block, block_type, block_id, x, y, name=None):
         """Load data from a block into the application state."""
         # Placeholder for loading data logic
-        print(f"Loading data from block: {block_id} of type {block_type}")
+        #logging.info(f"Loading data from block: {block_id} of type {block_type}")
         if block_type in ('While'):
             info = {
                 'type': block_type.split('_')[0],
@@ -287,7 +287,7 @@ class DataControl:
                 'canvas': self
             }
         else:
-            print(f"Error: Unknown block type {block_type}")
+            logging.warning(f"Unknown block type {block_type}")
             info = {
                 'type': block_type,
                 'id': block_id,
@@ -315,7 +315,7 @@ class DataControl:
                     data = Utils.project_data.functions[function_id]['blocks'][block_id]
                     break
         if data is None:
-            print(f"Error: Block ID {block_id} not found in any function for the given canvas.")
+            logging.warning(f"Block ID {block_id} not found in any function for the given canvas.")
             return None
         if block_type in ('While'):
             info = {
@@ -594,7 +594,7 @@ class DataControl:
                 'canvas': canvas
             }
         else:
-            print(f"Error: Unknown block type {block_type}")
+            logging.warning(f"Unknown block type {block_type}")
             info = {
                 'type': block_type,
                 'id': block_id,
@@ -856,7 +856,7 @@ class DataControl:
                 'out_connections': block_info.get('out_connections', {}),
             }
         else:
-            print(f"Error: Unknown block type {block_info['type']}")
+            logging.warning(f"Unknown block type {block_info['type']}")
             info = {
                 'type': block_info['type'],
                 'id': block_id,

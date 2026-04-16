@@ -3,7 +3,7 @@ from Imports import get_Utils
 Utils = get_Utils()
 from Imports import (QDialog, QVBoxLayout, QLabel, QTabWidget, QWidget, QMessageBox, QPushButton, QHBoxLayout,
 QComboBox, Qt, QEvent, QFont, QMouseEvent, json, QLineEdit, QApplication, QProgressDialog, QPoint, QRect,
-QObject, pyqtSignal, QTimer, sys, os, subprocess, time, QIcon, QPropertyAnimation, QEasingCurve,  QAction)
+QObject, pyqtSignal, QTimer, sys, os, subprocess, time, QIcon, QPropertyAnimation, QEasingCurve,  QAction, logging)
 from rpi_autodiscovery import RPiAutoDiscovery, RPiConnectionWizard
 
 class DetectionWorker(QObject):
@@ -95,7 +95,7 @@ class DeviceSettingsWindow(QDialog):
                 cls._instance = None
             
             except Exception as e:
-                print(f"Error accessing existing DeviceSettingsWindow instance: {e}")
+                logging.error(f"Error accessing existing DeviceSettingsWindow instance: {e}")
                 cls._instance = None
         
         if cls._instance is None:
@@ -365,20 +365,20 @@ class DeviceSettingsWindow(QDialog):
             # Show auto-detect for other models
             if hasattr(self, 'auto_detect_btn'):
                 self.auto_detect_btn.show()
-        #print(f"Model changed to: {Utils.app_settings.rpi_model}")
+        #logging.info(f"Model changed to: {Utils.app_settings.rpi_model}")
 
     def toggle_password_visibility(self):
-        print("Toggling password visibility")
-        print(f"Current echo mode: {self.rpi_password_input.echoMode()}")
+        #logging.info("Toggling password visibility")
+        #logging.info(f"Current echo mode: {self.rpi_password_input.echoMode()}")
         if self.rpi_password_input.echoMode() == QLineEdit.EchoMode.Password:
-            print("Showing password")
+            #logging.info("Showing password")
             self.rpi_password_input.setEchoMode(QLineEdit.EchoMode.Normal)
             if Utils.app_settings.theme == 'light':
                 self.toggle_password_action.setIcon(QIcon("resources/images/Settings/eye_open_icon_black.png"))
             else:
                 self.toggle_password_action.setIcon(QIcon("resources/images/Settings/eye_open_icon.png"))
         else:
-            print("Hiding password")
+            #logging.info("Hiding password")
             self.rpi_password_input.setEchoMode(QLineEdit.EchoMode.Password)
             if Utils.app_settings.theme == 'light':
                 self.toggle_password_action.setIcon(QIcon("resources/images/Settings/eye_closed_icon_black.png"))
@@ -391,15 +391,15 @@ class DeviceSettingsWindow(QDialog):
 
         app_settings_dict = self.build_save_data()
 
-        print("Saving settings:", app_settings_dict)
+        #logging.info("Saving settings: %s", app_settings_dict)
         with open(filename, 'w', encoding='utf-8') as f:
             json.dump(app_settings_dict, f, indent=2)
         
-        print("Settings saved.")
+        #logging.info("Settings saved.")
 
     def build_save_data(self):
 
-        print(f"Theme {self.theme_combo.currentData()} selected, scale {self.size_combo.currentData()}")
+        #logging.info(f"Theme {self.theme_combo.currentData()} selected, scale {self.size_combo.currentData()}")
         data = {
             'rpi_model': self.rpi_model_combo.currentText(),
             'rpi_model_index': self.rpi_model_combo.currentIndex(),
@@ -436,7 +436,7 @@ class DeviceSettingsWindow(QDialog):
 
     def auto_detect_rpi(self):
         """Auto-detect Raspberry Pi on network"""
-        #print("🔍 Starting auto-detection...")
+        #logging.info("Starting auto-detection...")
         self.lower()
         self.process = QProgressDialog(self.t("setting_window.auto_detect_dialog.process"), self.t("setting_window.auto_detect_dialog.cancel"), 0, 0, self)
         self.process.setWindowModality(Qt.WindowModality.WindowModal)
@@ -445,7 +445,7 @@ class DeviceSettingsWindow(QDialog):
         try:
             def detect():
                 result = RPiConnectionWizard.auto_detect_rpi()
-                #print("🔍 Auto-detection result:", result)
+                #logging.info("Auto-detection result: %s", result)
                 return result
             
             # Create worker
@@ -460,10 +460,10 @@ class DeviceSettingsWindow(QDialog):
             thread = threading.Thread(target=self.worker.run, daemon=True)
             thread.start()
             
-            #print("Starting auto-detection thread...")
+            #logging.info("Starting auto-detection thread...")
         
         except Exception as e:
-            print(f"❌ Error starting thread: {e}")
+            logging.error(f"Error starting thread: {e}")
             self.process.cancel()
             self.lower()
             QMessageBox.critical(
@@ -477,12 +477,12 @@ class DeviceSettingsWindow(QDialog):
 
     def _on_detection_success(self, result):
         """SLOT - Called on main thread when detection succeeds"""
-        #print("🔍 Detection completed on main thread")
+        #logging.info("Detection completed on main thread")
         
         try:
             # Validate result
             if result is None:
-                #print("No Raspberry Pi found")
+                #logging.warninig("No Raspberry Pi found")
                 self.rpi_status_label.setText(self.t("setting_window.rpi_settings_tab.status_not_detected"))
                 self.rpi_status_label.setStyleSheet("color: palette(link); font-size: 10px;")
                 self.lower()
@@ -497,12 +497,13 @@ class DeviceSettingsWindow(QDialog):
             
             # Validate result is a dict
             if not isinstance(result, dict):
-                #print(f"Invalid result type: {type(result)}")
+                logging.error(f"Invalid result type: {type(result)}")
                 self._on_detection_error(self.t("setting_window.auto_detect_dialog.invalid_result"))
                 return
             
             if 'ip' not in result or 'hostname' not in result:
-                #print("❌ Result missing required keys")
+                logging.critical("Result missing required keys")
+
                 self.rpi_status_label.setText(self.t("setting_window.rpi_settings_tab.status_incomplete"))
                 self.rpi_status_label.setStyleSheet("color: palette(link); font-size: 10px;")
                 self.lower()
@@ -525,20 +526,20 @@ class DeviceSettingsWindow(QDialog):
             
 
             model.strip()  # Remove whitespace
-            print(f"Raw model from detection: '{model}'")
+            #logging.debug(f"Raw model from detection: '{model}'")
             model = model.replace("Raspberry Pi", "RPI")  # Normalize name
-            print(f"Normalized model: '{model}'")
+            #logging.debug(f"Normalized model: '{model}'")
             model = model.split("with")[0].strip()  # Remove "with Raspbian" suffix if present
-            print(f"Model after removing OS suffix: '{model}'")
+            #logging.debug(f"Model after removing OS suffix: '{model}'")
             model = model.split("Rev")[0].strip()  # Remove "Rev 1.2" suffix if present
-            print(f"Detected model: {model}")
+            #logging.debug(f"Detected model: {model}")
             if model in self.models.keys():
                 self.rpi_model_combo.setCurrentIndex(self.models[model]["index"])
             else:
-                print(f"Unknown model detected: {model}")          
+                logging.warning(f"Unknown model detected: {model}")
 
 
-            #print(f"✓ Got valid result - IP: {ip}, User: {username}")
+            #logging.info(f"Got valid result - IP: {ip}, User: {username}")
             
             # Block signals and update UI
             self.rpi_host_input.blockSignals(True)
@@ -553,7 +554,7 @@ class DeviceSettingsWindow(QDialog):
             self.rpi_user_input.blockSignals(False)
             self.rpi_password_input.blockSignals(False)
             
-            #print("✓ Updated UI fields")
+            #logging.info("Updated UI fields")
             
             # Update settings
             Utils.app_settings.rpi_host = ip
@@ -562,14 +563,14 @@ class DeviceSettingsWindow(QDialog):
             Utils.app_settings.rpi_model_name = model
             Utils.app_settings.auto_detected = True
             
-            #print("✓ Updated settings")
+            #logging.info("Updated settings")
             
             # Update status
             status_text = (self.t("setting_window.rpi_settings_tab.status_connected").format(hostname=hostname, ip=ip, model=model))
             self.rpi_status_label.setText(status_text)
             self.rpi_status_label.setStyleSheet("color: palette(link); font-size: 10px;")
             
-            #print("✓ Updated status label")
+            #logging.info("Updated status label")
             self.process.cancel()
             # Show success message
             self.lower()
@@ -582,19 +583,19 @@ class DeviceSettingsWindow(QDialog):
             self.raise_()
 
             self.save_settings()
-            #print("✓✓✓ Auto-detection completed successfully ✓✓✓\n")
+            #logging.info("Auto-detection completed successfully")
         
         except Exception as e:
-            print(f"❌ Exception: {type(e).__name__}: {e}")
+            logging.error(f"Exception: {type(e).__name__}: {e}")
             self._on_detection_error(str(e))
 
 
     def _on_detection_error(self, error_msg):
         """SLOT - Called on main thread when detection fails"""
-        print(f"❌ Detection error: {error_msg}")
+        logging.critical(f"Detection error: {error_msg}")
         
         self.rpi_status_label.setText(self.t("setting_window.rpi_settings_tab.status_error"))
-        self.rpi_status_label.setStyleSheet("color: pallete(error); font-size: 10px;")
+        self.rpi_status_label.setStyleSheet("color: palette(error); font-size: 10px;")
         
         self.lower()
         self.process.cancel()
@@ -656,15 +657,15 @@ class DeviceSettingsWindow(QDialog):
         toggle_style(0)
 
     def open(self):
-        #print("Opening DeviceSettingsWindow")
+        #logging.info("Opening DeviceSettingsWindow")
         if self.is_hidden:
-            #print("Initially hidden, showing window")
+            #logging.info("Initially hidden, showing window")
             self.is_hidden = False
             self.show()
             self.raise_()
             self.activateWindow()
         else:
-            #print("DeviceSettingsWindow already open, raising to front")
+            #logging.info("DeviceSettingsWindow already open, raising to front")
             self.setWindowState(self.windowState() & ~Qt.WindowState.WindowMinimized | Qt.WindowState.WindowActive)
             self.raise_()           # Brings the widget to the top of the stack
             self.activateWindow()    # Gives the window keyboard focus   

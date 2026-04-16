@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-from Imports import pyqtSignal, QObject
+from Imports import pyqtSignal, QObject, logging
 
 
 class CanvasState(Enum):
@@ -15,9 +15,9 @@ class CanvasStateMachine(QObject):
 
     def __init__(self):
         super().__init__()
-        print("canvas state machine initilized")
+        #logging.info("canvas state machine initialized with IDLE state")
         self.state = CanvasState.IDLE
-        print(f"{self.state}")
+        #logging.info(f"Current state: {self.state.name}")
     
     def can_place_block(self):
         return self.state == CanvasState.IDLE
@@ -68,10 +68,11 @@ class CanvasStateMachine(QObject):
         if self.state != new_state:
             self.state = new_state
             self.state_changed.emit(self.state)
-            print(f"State changed to: {self.state.name}")
+            #logging.info(f"State changed to: {self.state.name}")
         else:
-            print(f"State remains: {self.state.name}")
-    
+            #logging.info(f"State remains: {self.state.name}")
+            pass
+
     def current_state(self):
         if self.state.name:
             return self.state.name
@@ -98,8 +99,6 @@ class AppStateMachine(QObject):
         self.current_tab_reference = None
     
     def can_open_window(self, window_name: str):
-        #print(f"can_open_window: {window_name}, open_windows: {self.open_windows}, canvas_state: {self.canvas_state_machine.current_state()}")
-        #print(f"can_open_window check: {window_name not in self.open_windows and self.canvas_state_machine.current_state() == 'IDLE'}")
         return self.canvas_state_machine.current_state() == 'IDLE'
     
     def can_close_window(self, window_name: str):
@@ -153,14 +152,14 @@ class AppStateMachine(QObject):
         return False
 
     def on_blocks_dialog_open(self):
-        print(f"Attempting to open Blocks dialog from tab: {self.current_tab_reference}")
+        #logging.debug(f"Attempting to open Blocks dialog from tab: {self.current_tab_reference}")
         if self.can_open_window('Blocks') and self.current_tab_reference in ('canvas', 'function'):
-            print(f"Opening Blocks dialog from tab: {self.current_tab_reference}")
+            #logging.info(f"Opening Blocks dialog from tab: {self.current_tab_reference}")
             self.open_windows.add('Blocks')
             self.window_opened.emit('Blocks')
             self.change_state(AppStates.BLOCKS_DIALOG)
             return True
-        print("Cannot open Blocks dialog: either already open or invalid tab.")
+        logging.warning("Cannot open Blocks dialog: either already open or invalid tab.")
         return False
     
     def on_blocks_dialog_close(self):
@@ -212,8 +211,8 @@ class AppStateMachine(QObject):
         return False
 
     def on_tab_changed(self):
-        print(f"Check {self.state != AppStates.BLOCKS_DIALOG and self.canvas_state_machine.current_state() == 'IDLE'} to go to MAIN_WINDOW")
-        print(f"Current state: {self.state}, Canvas state: {self.canvas_state_machine.current_state()}")
+        #logging.debug(f"Check {self.state != AppStates.BLOCKS_DIALOG and self.canvas_state_machine.current_state() == 'IDLE'} to go to MAIN_WINDOW")
+        #logging.debug(f"Current state: {self.state}, Canvas state: {self.canvas_state_machine.current_state()}")
         if self.can_change_tab():
             self.change_state(AppStates.MAIN_WINDOW)
             return True
@@ -228,6 +227,7 @@ class AppStateMachine(QObject):
         if self.state != new_state:
             self.state = new_state
             self.state_changed.emit(self.state)
-            print(f"App state changed to: {self.state.name}")
+            #logging.info(f"App state changed to: {self.state.name}")
         else:
-            print(f"App state remains: {self.state.name}")
+            #logging.info(f"App state remains: {self.state.name}")
+            pass
