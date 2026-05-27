@@ -13,6 +13,7 @@ New Folder/
 Node_modules/
 Config/
 deps/
+debug/
 
 # Python cache files
 __pycache__/
@@ -29,11 +30,12 @@ env/
 # IDE specific files
 .vscode/
 .vs/
-.fingerprint/
 .idea/
 *.swp
 *.swo
 
+# Rust specific files
+target/
 
 # OS specific files
 .DS_Store
