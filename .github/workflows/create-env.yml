@@ -42,6 +42,9 @@ jobs:
           echo "DB_PASS=${{ secrets.DB_PASS }}" >> .env
           echo "ACTION_API_TOKEN=${{ secrets.ACTION_API_TOKEN }}" >> .env
 
+      - name: install lftp
+        run: sudo apt-get update && sudo apt-get install -y lftp
+
       - name: Move .env to Web_page/Admin
         run: |
           lftp -c "
