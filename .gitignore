@@ -12,6 +12,7 @@ dist/
 New Folder/
 Node_modules/
 Config/
+deps/
 
 # Python cache files
 __pycache__/
@@ -27,9 +28,12 @@ env/
 
 # IDE specific files
 .vscode/
+.vs/
+.fingerprint/
 .idea/
 *.swp
 *.swo
+
 
 # OS specific files
 .DS_Store
