@@ -17,6 +17,15 @@ RewriteCond %{HTTP_HOST} ^admin\.omniboardstudio\.cz [NC]
 RewriteCond %{REQUEST_URI} !^/Admin/
 RewriteRule ^(.*$) /Admin/$1 [L,QSA]
 
+# Redirect explicit requests for /Testing to the subdomain
+RewriteCond %{THE_REQUEST} \s/+testing(?:/([^\s?]*))? [NC]
+RewriteRule ^ https://testing.omniboardstudio.cz/%1 [R=301,L]
+
+# Redirect testing.omniboardstudio.cz to testing folder
+RewriteCond %{HTTP_HOST} ^testing\.omniboardstudio\.cz [NC]
+RewriteCond %{REQUEST_URI} !^/testing/
+RewriteRule ^(.*$) /testing/$1 [L,QSA]
+
 # Remove trailing slash from URLs (unless it is an actual, existing directory)
 # This prevents the server from forcing a directory redirect if a folder is deleted or moved.
 RewriteCond %{REQUEST_FILENAME} !-d
@@ -32,6 +41,9 @@ RewriteRule ^data(/.*)?$ - [F,L]
 
 # Route /Admin/ and /Admin/index to Admin/index.php
 RewriteRule ^Admin/?$ Admin/index.php [L]
+
+# Route /Testing/ and /Testing/index to Testing/index.php
+RewriteRule ^Testing/?$ Testing/index.php [L]
 
 # Route /Auth/* to Auth/*.php (OAuth callbacks)
 RewriteCond %{REQUEST_FILENAME} !-f

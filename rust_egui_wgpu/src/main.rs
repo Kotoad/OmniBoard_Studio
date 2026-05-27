@@ -6,10 +6,9 @@
 // Draggable "blocks" on a pannable canvas, connected by bezier "wires" between
 // output→input ports, with a sidebar that adds blocks and generates Python.
 //
-// Unlike a pure painter-drawn canvas, each block here is a real `egui::Area`
-// hosting *interactive* widgets — text inputs, numeric selectors, combo boxes
-// and checkboxes. The painter is only used for the non-interactive scenery
-// (grid, wires, ports).
+// Each block is a real `egui::Area` hosting *interactive* widgets — text
+// inputs, numeric selectors, combo boxes and checkboxes. The painter is only
+// used for the non-interactive scenery (grid, wires, ports).
 //
 //   Drag a block's title bar         = move it
 //   Type / click inside a block      = edit its widgets
@@ -22,6 +21,9 @@ use egui::{Color32, Pos2, Rect, Stroke, Vec2};
 
 /// GPIO pins offered by the combo box on a GPIO block.
 const GPIO_PINS: [u8; 6] = [17, 18, 22, 23, 24, 27];
+
+/// Fixed on-screen width of a block, in points.
+const BLOCK_W: f32 = 170.0;
 
 fn main() -> eframe::Result<()> {
     let options = eframe::NativeOptions {
@@ -54,10 +56,10 @@ struct Block {
     pos: Pos2, // canvas-space top-left (pan offset added at draw time)
 
     // ── per-block interactive widget state ──
-    text: String,    // Print: the message
-    seconds: i32,    // Timer: delay
-    pin_idx: usize,  // GPIO: index into GPIO_PINS
-    high: bool,      // GPIO: drive high / low
+    text: String,   // Print: the message
+    seconds: i32,   // Timer: delay
+    pin_idx: usize, // GPIO: index into GPIO_PINS
+    high: bool,     // GPIO: drive high / low
 
     // Last on-screen rect (filled in each frame after the Area lays out).
     // Used to anchor wires and ports. Starts as an estimate.
@@ -74,7 +76,7 @@ impl Block {
             seconds: 1,
             pin_idx: 1, // pin 18
             high: true,
-            screen_rect: Rect::from_min_size(pos, Vec2::new(170.0, 80.0)),
+            screen_rect: Rect::from_min_size(pos, Vec2::new(BLOCK_W, 80.0)),
         }
     }
 
@@ -97,6 +99,104 @@ impl Block {
     /// Centre of the left-side input port (screen coords).
     fn in_port(&self) -> Pos2 {
         Pos2::new(self.screen_rect.left(), self.screen_rect.center().y)
+    }
+
+    /// Draw the block as a self-contained, interactive `Area`.
+    ///
+    /// Updates `self.pos` (when the title bar is dragged) and records the
+    /// resulting on-screen rect in `self.screen_rect`.
+    fn show(&mut self, ctx: &egui::Context, canvas_offset: Vec2, canvas_rect: Rect) {
+        let screen_pos = self.pos + canvas_offset;
+        let area_id = egui::Id::new(("block", self.id));
+        let header_color = self.header_color();
+
+        let area = egui::Area::new(area_id)
+            .fixed_pos(screen_pos)
+            .order(egui::Order::Middle)
+            .show(ctx, |ui| {
+                // Clip the block's painting to the canvas so it disappears
+                // *behind* the sidebar instead of floating on top of it.
+                ui.set_clip_rect(canvas_rect);
+                egui::Frame::none()
+                    .fill(Color32::from_rgb(35, 44, 58))
+                    .rounding(6.0)
+                    .stroke(Stroke::new(1.0, Color32::from_white_alpha(40)))
+                    .inner_margin(egui::Margin::same(0.0))
+                    .show(ui, |ui| {
+                        ui.set_width(BLOCK_W);
+                        self.title_bar(ui, area_id, header_color);
+                        self.body(ui, area_id);
+                    });
+            });
+
+        self.screen_rect = area.response.rect;
+    }
+
+    /// The coloured title bar, which doubles as the drag handle.
+    fn title_bar(&mut self, ui: &mut egui::Ui, area_id: egui::Id, color: Color32) {
+        let title = egui::Frame::none()
+            .fill(color)
+            .rounding(egui::Rounding { nw: 6.0, ne: 6.0, sw: 0.0, se: 0.0 })
+            .inner_margin(egui::Margin::symmetric(8.0, 5.0))
+            .show(ui, |ui| {
+                ui.set_width(BLOCK_W - 16.0);
+                ui.add(
+                    egui::Label::new(
+                        egui::RichText::new(self.kind).strong().color(Color32::WHITE),
+                    )
+                    .selectable(false),
+                );
+            });
+
+        let drag = ui.interact(title.response.rect, area_id.with("drag"), egui::Sense::drag());
+        if drag.dragged() {
+            self.pos += drag.drag_delta();
+        }
+        if drag.hovered() {
+            ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
+        }
+    }
+
+    /// The block body: interactive widgets that depend on the block kind.
+    fn body(&mut self, ui: &mut egui::Ui, area_id: egui::Id) {
+        egui::Frame::none()
+            .inner_margin(egui::Margin::same(8.0))
+            .show(ui, |ui| {
+                ui.set_width(BLOCK_W - 16.0);
+                match self.kind {
+                    "Print" => {
+                        ui.label("Message:");
+                        ui.text_edit_singleline(&mut self.text);
+                    }
+                    "Timer" => {
+                        ui.horizontal(|ui| {
+                            ui.label("Wait:");
+                            ui.add(
+                                egui::DragValue::new(&mut self.seconds)
+                                    .clamp_range(0..=60)
+                                    .suffix(" s"),
+                            );
+                        });
+                    }
+                    "GPIO" => {
+                        egui::ComboBox::from_id_source(area_id.with("pin"))
+                            .selected_text(format!("Pin {}", GPIO_PINS[self.pin_idx]))
+                            .show_ui(ui, |ui| {
+                                for (idx, pin) in GPIO_PINS.iter().enumerate() {
+                                    ui.selectable_value(&mut self.pin_idx, idx, format!("Pin {pin}"));
+                                }
+                            });
+                        ui.checkbox(&mut self.high, "Drive HIGH");
+                    }
+                    "Start" => {
+                        ui.label(egui::RichText::new("entry point").italics().weak());
+                    }
+                    "End" => {
+                        ui.label(egui::RichText::new("stop").italics().weak());
+                    }
+                    _ => {}
+                }
+            });
     }
 }
 
@@ -121,14 +221,14 @@ struct NodeApp {
 
 impl NodeApp {
     fn new() -> Self {
-        let blocks = vec![
+        let blocks: Vec<Block> = vec![
             Block::new(0, "Start", Pos2::new(60.0, 200.0)),
             Block::new(1, "Timer", Pos2::new(260.0, 200.0)),
             Block::new(2, "GPIO", Pos2::new(470.0, 120.0)),
             Block::new(3, "Print", Pos2::new(470.0, 320.0)),
             Block::new(4, "End", Pos2::new(700.0, 220.0)),
         ];
-        let wires = vec![
+        let wires: Vec<Wire> = vec![
             Wire { from: 0, to: 1 },
             Wire { from: 1, to: 2 },
             Wire { from: 1, to: 3 },
@@ -147,14 +247,16 @@ impl NodeApp {
         }
     }
 
+    // ── Code generation ──────────────────────────────────────────────────────
+
     fn generate_code(&self) -> String {
-        let mut lines = vec![
+        let mut lines: Vec<String> = vec![
             "import time".to_string(),
             "import RPi.GPIO as GPIO".to_string(),
             "".to_string(),
             "def main():".to_string(),
         ];
-        let mut any = false;
+        let mut any: bool = false;
         for b in &self.blocks {
             match b.kind {
                 "Timer" => {
@@ -183,24 +285,18 @@ impl NodeApp {
         lines.push("main()".into());
         lines.join("\n")
     }
-}
 
-impl eframe::App for NodeApp {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        // ── Sidebar ──────────────────────────────────────────────────────────
+    // ── Sidebar ───────────────────────────────────────────────────────────────
+
+    fn sidebar(&mut self, ctx: &egui::Context) {
         egui::SidePanel::left("sidebar").exact_width(180.0).show(ctx, |ui| {
             ui.add_space(10.0);
             ui.heading("Blocks");
             ui.separator();
 
-            let kinds: &[&'static str] = &["Start", "Timer", "GPIO", "Print", "End"];
-            for kind in kinds {
+            for kind in &["Start", "Timer", "GPIO", "Print", "End"] {
                 if ui.button(format!("+ {kind}")).clicked() {
-                    let id = self.next_id;
-                    self.next_id += 1;
-                    let pos = Pos2::new(120.0 + (id as f32 * 18.0), 120.0);
-                    self.blocks.push(Block::new(id, kind, pos));
-                    self.log.push(format!("Added {kind} block (id={id})"));
+                    self.add_block(kind);
                 }
             }
 
@@ -215,9 +311,7 @@ impl eframe::App for NodeApp {
             if ui.button("Generate Code").clicked() {
                 let code = self.generate_code();
                 self.log.push("-- Generated --".into());
-                for line in code.lines() {
-                    self.log.push(line.to_string());
-                }
+                self.log.extend(code.lines().map(str::to_string));
             }
 
             ui.separator();
@@ -237,264 +331,180 @@ impl eframe::App for NodeApp {
             ui.small("RMB on port    = start wire");
             ui.small("MMB drag       = pan canvas");
         });
+    }
 
-        // ── Canvas ───────────────────────────────────────────────────────────
+    fn add_block(&mut self, kind: &'static str) {
+        let id = self.next_id;
+        self.next_id += 1;
+        let pos = Pos2::new(120.0 + (id as f32 * 18.0), 120.0);
+        self.blocks.push(Block::new(id, kind, pos));
+        self.log.push(format!("Added {kind} block (id={id})"));
+    }
+
+    // ── Canvas ────────────────────────────────────────────────────────────────
+
+    fn canvas(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default()
             .frame(egui::Frame::none().fill(Color32::from_rgb(15, 22, 33)))
             .show(ctx, |ui| {
                 let canvas_rect = ui.max_rect();
-                let _bg = ui.allocate_rect(canvas_rect, egui::Sense::click_and_drag());
+                ui.allocate_rect(canvas_rect, egui::Sense::click_and_drag());
 
                 let pointer = ctx.input(|i| i.pointer.hover_pos());
-                let rmb_pressed = ctx.input(|i| i.pointer.secondary_pressed());
-                let rmb_released = ctx.input(|i| i.pointer.secondary_released());
-                let mmb = ctx.input(|i| i.pointer.middle_down());
+                self.handle_pan(ctx, pointer);
 
-                // ── Pan with middle mouse button ─────────────────────────────
-                if mmb {
-                    if let Some(p) = pointer {
-                        if !self.panning {
-                            self.panning = true;
-                            self.pan_start = p;
-                        } else {
-                            self.canvas_offset += p - self.pan_start;
-                            self.pan_start = p;
-                        }
-                    }
-                } else {
-                    self.panning = false;
-                }
-
-                // ── Grid (background painter) ────────────────────────────────
+                // Background painter, clipped to the canvas (so grid/wires/HUD
+                // never spill over the sidebar).
                 let painter = ui.painter_at(canvas_rect);
-                let grid_color = Color32::from_rgba_unmultiplied(255, 255, 255, 12);
-                let step = 32.0;
-                let ox = self.canvas_offset.x.rem_euclid(step);
-                let oy = self.canvas_offset.y.rem_euclid(step);
-                let mut x = canvas_rect.left() + ox;
-                while x < canvas_rect.right() {
-                    painter.line_segment(
-                        [Pos2::new(x, canvas_rect.top()), Pos2::new(x, canvas_rect.bottom())],
-                        Stroke::new(1.0, grid_color),
-                    );
-                    x += step;
-                }
-                let mut y = canvas_rect.top() + oy;
-                while y < canvas_rect.bottom() {
-                    painter.line_segment(
-                        [Pos2::new(canvas_rect.left(), y), Pos2::new(canvas_rect.right(), y)],
-                        Stroke::new(1.0, grid_color),
-                    );
-                    y += step;
+                draw_grid(&painter, canvas_rect, self.canvas_offset);
+
+                // Blocks paint themselves into their own Areas (on top of grid).
+                let offset = self.canvas_offset;
+                for block in &mut self.blocks {
+                    block.show(ctx, offset, canvas_rect);
                 }
 
-                // ── Blocks as interactive Areas ──────────────────────────────
-                // Each block is its own Area, pinned to its (panned) position.
-                // We drive the position ourselves via the title-bar drag, so
-                // panning and dragging both stay under our control.
-                for i in 0..self.blocks.len() {
-                    let screen_pos = self.blocks[i].pos + self.canvas_offset;
-                    let area_id = egui::Id::new(("block", self.blocks[i].id));
-                    let header_color = self.blocks[i].header_color();
-                    let block = &mut self.blocks[i];
-
-                    let area = egui::Area::new(area_id)
-                        .fixed_pos(screen_pos)
-                        .constrain_to(canvas_rect) // keep blocks off the sidebar
-                        .order(egui::Order::Middle)
-                        .show(ctx, |ui| {
-                            egui::Frame::none()
-                                .fill(Color32::from_rgb(35, 44, 58))
-                                .rounding(6.0)
-                                .stroke(Stroke::new(1.0, Color32::from_white_alpha(40)))
-                                .inner_margin(egui::Margin::same(0.0))
-                                .show(ui, |ui| {
-                                    ui.set_width(170.0);
-
-                                    // ── Title bar = drag handle ──────────────
-                                    let title = egui::Frame::none()
-                                        .fill(header_color)
-                                        .rounding(egui::Rounding {
-                                            nw: 6.0,
-                                            ne: 6.0,
-                                            sw: 0.0,
-                                            se: 0.0,
-                                        })
-                                        .inner_margin(egui::Margin::symmetric(8.0, 5.0))
-                                        .show(ui, |ui| {
-                                            ui.set_width(170.0 - 16.0);
-                                            ui.add(
-                                                egui::Label::new(
-                                                    egui::RichText::new(block.kind)
-                                                        .strong()
-                                                        .color(Color32::WHITE),
-                                                )
-                                                .selectable(false),
-                                            );
-                                        });
-                                    let drag = ui.interact(
-                                        title.response.rect,
-                                        area_id.with("drag"),
-                                        egui::Sense::drag(),
-                                    );
-                                    if drag.dragged() {
-                                        block.pos += drag.drag_delta();
-                                    }
-                                    if drag.hovered() {
-                                        ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
-                                    }
-
-                                    // ── Body: interactive widgets per kind ───
-                                    egui::Frame::none()
-                                        .inner_margin(egui::Margin::same(8.0))
-                                        .show(ui, |ui| {
-                                            ui.set_width(170.0 - 16.0);
-                                            match block.kind {
-                                                "Print" => {
-                                                    ui.label("Message:");
-                                                    ui.text_edit_singleline(&mut block.text);
-                                                }
-                                                "Timer" => {
-                                                    ui.horizontal(|ui| {
-                                                        ui.label("Wait:");
-                                                        ui.add(
-                                                            egui::DragValue::new(&mut block.seconds)
-                                                                .clamp_range(0..=60)
-                                                                .suffix(" s"),
-                                                        );
-                                                    });
-                                                }
-                                                "GPIO" => {
-                                                    egui::ComboBox::from_id_source(
-                                                        area_id.with("pin"),
-                                                    )
-                                                    .selected_text(format!(
-                                                        "Pin {}",
-                                                        GPIO_PINS[block.pin_idx]
-                                                    ))
-                                                    .show_ui(ui, |ui| {
-                                                        for (idx, pin) in
-                                                            GPIO_PINS.iter().enumerate()
-                                                        {
-                                                            ui.selectable_value(
-                                                                &mut block.pin_idx,
-                                                                idx,
-                                                                format!("Pin {pin}"),
-                                                            );
-                                                        }
-                                                    });
-                                                    ui.checkbox(&mut block.high, "Drive HIGH");
-                                                }
-                                                "Start" => {
-                                                    ui.label(
-                                                        egui::RichText::new("entry point")
-                                                            .italics()
-                                                            .weak(),
-                                                    );
-                                                }
-                                                "End" => {
-                                                    ui.label(
-                                                        egui::RichText::new("stop")
-                                                            .italics()
-                                                            .weak(),
-                                                    );
-                                                }
-                                                _ => {}
-                                            }
-                                        });
-                                });
-                        });
-
-                    // Record the on-screen rect for wire/port anchoring.
-                    self.blocks[i].screen_rect = area.response.rect;
-                }
-
-                // ── Wire creation (right-click drag between ports) ───────────
-                if let Some(pos) = pointer {
-                    if rmb_pressed {
-                        for b in &self.blocks {
-                            if pos.distance(b.out_port()) < 14.0 {
-                                self.wire_from = Some(b.id);
-                                break;
-                            }
-                        }
-                    }
-                    if rmb_released {
-                        if let Some(from) = self.wire_from.take() {
-                            for b in &self.blocks {
-                                if pos.distance(b.in_port()) < 14.0 && b.id != from {
-                                    let dup =
-                                        self.wires.iter().any(|w| w.from == from && w.to == b.id);
-                                    if !dup {
-                                        self.wires.push(Wire { from, to: b.id });
-                                        self.log.push(format!("Wire: {from} -> {}", b.id));
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // ── Wires (background painter, drawn behind the block Areas) ──
-                for wire in &self.wires {
-                    if let (Some(from_b), Some(to_b)) = (
-                        self.blocks.iter().find(|b| b.id == wire.from),
-                        self.blocks.iter().find(|b| b.id == wire.to),
-                    ) {
-                        let p0 = from_b.out_port();
-                        let p1 = to_b.in_port();
-                        let ctrl = ((p1.x - p0.x) * 0.5).max(40.0);
-                        let c0 = Pos2::new(p0.x + ctrl, p0.y);
-                        let c1 = Pos2::new(p1.x - ctrl, p1.y);
-                        let pts: Vec<Pos2> = (0..=16)
-                            .map(|i| {
-                                let t = i as f32 / 16.0;
-                                let a = p0.lerp(c0, t);
-                                let b = c0.lerp(c1, t);
-                                let c = c1.lerp(p1, t);
-                                a.lerp(b, t).lerp(b.lerp(c, t), t)
-                            })
-                            .collect();
-                        for seg in pts.windows(2) {
-                            painter.line_segment(
-                                [seg[0], seg[1]],
-                                Stroke::new(2.5, Color32::from_rgb(80, 200, 160)),
-                            );
-                        }
-                    }
-                }
-
-                // ── Ports + live wire (foreground, so they sit on top) ───────
-                let top = ctx.layer_painter(egui::LayerId::new(
-                    egui::Order::Foreground,
-                    egui::Id::new("ports"),
-                ));
-                for b in &self.blocks {
-                    let op = b.out_port();
-                    top.circle_filled(op, 6.0, Color32::WHITE);
-                    top.circle_stroke(op, 6.0, Stroke::new(1.5, Color32::BLACK));
-                    let ip = b.in_port();
-                    top.circle_filled(ip, 6.0, Color32::from_rgb(180, 220, 200));
-                    top.circle_stroke(ip, 6.0, Stroke::new(1.5, Color32::BLACK));
-                }
-                if let (Some(from_id), Some(pos)) = (self.wire_from, pointer) {
-                    if let Some(b) = self.blocks.iter().find(|b| b.id == from_id) {
-                        top.line_segment(
-                            [b.out_port(), pos],
-                            Stroke::new(2.0, Color32::from_rgb(255, 200, 60)),
-                        );
-                    }
-                }
-
-                // ── HUD ──────────────────────────────────────────────────────
-                painter.text(
-                    canvas_rect.right_bottom() - Vec2::new(10.0, 10.0),
-                    egui::Align2::RIGHT_BOTTOM,
-                    format!("blocks={} wires={}", self.blocks.len(), self.wires.len()),
-                    egui::FontId::monospace(11.0),
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 60),
-                );
+                self.handle_wires(ctx, pointer);
+                self.draw_wires(&painter);
+                self.draw_ports(ctx, canvas_rect, pointer);
+                draw_hud(&painter, canvas_rect, self.blocks.len(), self.wires.len());
             });
     }
+
+    /// Pan the canvas while the middle mouse button is held.
+    fn handle_pan(&mut self, ctx: &egui::Context, pointer: Option<Pos2>) {
+        if ctx.input(|i| i.pointer.middle_down()) {
+            if let Some(p) = pointer {
+                if self.panning {
+                    self.canvas_offset += p - self.pan_start;
+                }
+                self.pan_start = p;
+                self.panning = true;
+            }
+        } else {
+            self.panning = false;
+        }
+    }
+
+    /// Right-click an output port and release on an input port to wire them.
+    fn handle_wires(&mut self, ctx: &egui::Context, pointer: Option<Pos2>) {
+        let Some(pos) = pointer else { return };
+
+        if ctx.input(|i| i.pointer.secondary_pressed()) {
+            if let Some(b) = self.blocks.iter().find(|b| pos.distance(b.out_port()) < 14.0) {
+                self.wire_from = Some(b.id);
+            }
+        }
+
+        if ctx.input(|i| i.pointer.secondary_released()) {
+            if let Some(from) = self.wire_from.take() {
+                if let Some(target) = self
+                    .blocks
+                    .iter()
+                    .find(|b| b.id != from && pos.distance(b.in_port()) < 14.0)
+                    .map(|b| b.id)
+                {
+                    let dup = self.wires.iter().any(|w| w.from == from && w.to == target);
+                    if !dup {
+                        self.wires.push(Wire { from, to: target });
+                        self.log.push(format!("Wire: {from} -> {target}"));
+                    }
+                }
+            }
+        }
+    }
+
+    /// Bezier wires, drawn on the background painter (behind the blocks).
+    fn draw_wires(&self, painter: &egui::Painter) {
+        for wire in &self.wires {
+            let (Some(from_b), Some(to_b)) = (self.block(wire.from), self.block(wire.to)) else {
+                continue;
+            };
+            draw_bezier(painter, from_b.out_port(), to_b.in_port());
+        }
+    }
+
+    /// Port circles and the in-progress "live" wire, on a foreground layer so
+    /// they sit on top of the blocks (but still clipped behind the sidebar).
+    fn draw_ports(&self, ctx: &egui::Context, canvas_rect: Rect, pointer: Option<Pos2>) {
+        let top = ctx
+            .layer_painter(egui::LayerId::new(egui::Order::Foreground, egui::Id::new("ports")))
+            .with_clip_rect(canvas_rect);
+
+        for b in &self.blocks {
+            let op = b.out_port();
+            top.circle_filled(op, 6.0, Color32::WHITE);
+            top.circle_stroke(op, 6.0, Stroke::new(1.5, Color32::BLACK));
+            let ip = b.in_port();
+            top.circle_filled(ip, 6.0, Color32::from_rgb(180, 220, 200));
+            top.circle_stroke(ip, 6.0, Stroke::new(1.5, Color32::BLACK));
+        }
+
+        if let (Some(from_id), Some(pos)) = (self.wire_from, pointer) {
+            if let Some(b) = self.block(from_id) {
+                top.line_segment([b.out_port(), pos], Stroke::new(2.0, Color32::from_rgb(255, 200, 60)));
+            }
+        }
+    }
+
+    fn block(&self, id: usize) -> Option<&Block> {
+        self.blocks.iter().find(|b| b.id == id)
+    }
+}
+
+impl eframe::App for NodeApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.sidebar(ctx);
+        self.canvas(ctx);
+    }
+}
+
+// ── Free-standing painters (no app state needed) ──────────────────────────────
+
+/// Draw the faint background grid, offset by the current pan.
+fn draw_grid(painter: &egui::Painter, rect: Rect, offset: Vec2) {
+    let grid_color = Color32::from_rgba_unmultiplied(255, 255, 255, 12);
+    let step = 32.0;
+    let stroke = Stroke::new(1.0, grid_color);
+
+    let mut x = rect.left() + offset.x.rem_euclid(step);
+    while x < rect.right() {
+        painter.line_segment([Pos2::new(x, rect.top()), Pos2::new(x, rect.bottom())], stroke);
+        x += step;
+    }
+    let mut y = rect.top() + offset.y.rem_euclid(step);
+    while y < rect.bottom() {
+        painter.line_segment([Pos2::new(rect.left(), y), Pos2::new(rect.right(), y)], stroke);
+        y += step;
+    }
+}
+
+/// Draw a cubic bezier between two ports as a 16-segment polyline.
+fn draw_bezier(painter: &egui::Painter, p0: Pos2, p1: Pos2) {
+    let ctrl = ((p1.x - p0.x) * 0.5).max(40.0);
+    let c0 = Pos2::new(p0.x + ctrl, p0.y);
+    let c1 = Pos2::new(p1.x - ctrl, p1.y);
+    let pts: Vec<Pos2> = (0..=16)
+        .map(|i| {
+            let t = i as f32 / 16.0;
+            let a = p0.lerp(c0, t);
+            let b = c0.lerp(c1, t);
+            let c = c1.lerp(p1, t);
+            a.lerp(b, t).lerp(b.lerp(c, t), t)
+        })
+        .collect();
+    for seg in pts.windows(2) {
+        painter.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(80, 200, 160)));
+    }
+}
+
+/// Bottom-right heads-up display showing block / wire counts.
+fn draw_hud(painter: &egui::Painter, rect: Rect, blocks: usize, wires: usize) {
+    painter.text(
+        rect.right_bottom() - Vec2::new(10.0, 10.0),
+        egui::Align2::RIGHT_BOTTOM,
+        format!("blocks={blocks} wires={wires}"),
+        egui::FontId::monospace(11.0),
+        Color32::from_rgba_unmultiplied(255, 255, 255, 60),
+    );
 }
