@@ -15,16 +15,20 @@ RewriteRule ^ https://admin.omniboardstudio.cz/%1 [R=301,L]
 # Redirect admin.omniboardstudio.cz to Admin folder
 RewriteCond %{HTTP_HOST} ^admin\.omniboardstudio\.cz [NC]
 RewriteCond %{REQUEST_URI} !^/Admin/
+# Exclude global shared directories from the internal rewrite
+RewriteCond %{REQUEST_URI} !^/(Auth|API|assets|data|downloads)/ [NC]
 RewriteRule ^(.*$) /Admin/$1 [L,QSA]
 
 # Redirect explicit requests for /Testing to the subdomain
-RewriteCond %{THE_REQUEST} \s/+testing(?:/([^\s?]*))? [NC]
+RewriteCond %{THE_REQUEST} \s/+Testing(?:/([^\s?]*))? [NC]
 RewriteRule ^ https://testing.omniboardstudio.cz/%1 [R=301,L]
 
-# Redirect testing.omniboardstudio.cz to testing folder
+# Redirect testing.omniboardstudio.cz to Testing folder
 RewriteCond %{HTTP_HOST} ^testing\.omniboardstudio\.cz [NC]
-RewriteCond %{REQUEST_URI} !^/testing/
-RewriteRule ^(.*$) /testing/$1 [L,QSA]
+RewriteCond %{REQUEST_URI} !^/Testing/
+# Exclude global shared directories from the internal rewrite
+RewriteCond %{REQUEST_URI} !^/(Auth|API|assets|data|downloads)/ [NC]
+RewriteRule ^(.*$) /Testing/$1 [L,QSA]
 
 # Remove trailing slash from URLs (unless it is an actual, existing directory)
 # This prevents the server from forcing a directory redirect if a folder is deleted or moved.

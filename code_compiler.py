@@ -147,7 +147,7 @@ class CodeCompiler:
         elif self.compiling_what == 'function':
             block = Utils.functions[self.compiling_function]['blocks'][block_id]
 
-        #logging.info(f"Processing block {block_id} of type {block['type']}")
+        logging.info(f"Processing block {block_id} of type {block['type']}")
         
         handler = self.process_map.get(block['type'])
         if handler:
@@ -1230,8 +1230,8 @@ class CodeCompiler:
         if block['type'] not in ('Plus_one', 'Minus_one'):
             value_2 = self.resolve_value(block['value_2_name'], block['value_2_type'])
             operators = {
-                'Add': '+',
-                'Subtract': '-',
+                'Plus': '+',
+                'Minus': '-',
                 'Multiply': '*',
                 'Divide': '/',
                 'Modulo': '%',
@@ -1241,7 +1241,7 @@ class CodeCompiler:
             result_var = self.resolve_value(block['result_var_name'], block['result_var_type'])
         #logging.info(f"Resolved Math block values: {value_1}, {value_2}, result var: {result_var}")
         if block['type'] not in ('Plus_one', 'Minus_one'):
-            self.writeline(f"{result_var} = {value_1} {operators[block['operator']]} {value_2}")
+            self.writeline(f"{result_var} = {value_1} {operators[block['type']]} {value_2}")
         elif block['type'] == 'Plus_one':
             self.writeline(f"{value_1} = {value_1} + 1")
         elif block['type'] == 'Minus_one':

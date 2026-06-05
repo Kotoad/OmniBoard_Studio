@@ -894,7 +894,6 @@ class MainWindow(QMainWindow):
             self.visual_programming_window.current_canvas.zoom_change(value)
 
     def on_new_file(self):
-        # Placeholder for new file logic
         #logging.info("New file action triggered")
         has_content = (
                 len(Utils.main_canvas.get("blocks", {})) > 0 or

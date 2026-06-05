@@ -3014,6 +3014,11 @@ class GUI(QWidget):
                 else:
                     block_data['value_2_type'] = 'Device'
                 break
+        if int(text) if text.isdigit() else None is not None:
+            if block_data['type'] in ('If', 'RGB_LED'):
+                block_data['second_vars'][f'value_{idx if idx is not None else 2}_2_type'] = 'Variable'
+            else:
+                block_data['value_2_type'] = 'Variable'
         if len(text) > 20:
             text = text[:20]
         if block_data['type'] in ('If', 'RGB_LED'):
