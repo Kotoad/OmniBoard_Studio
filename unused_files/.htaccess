@@ -1,4 +1,0 @@
-AuthType Basic
-AuthName "Private"
-AuthUserFile /data/2/6/26ff3baf-40c3-4f50-9f3d-f293257caecc/omniboardstudio.cz/web/.htpasswd
-Require valid-user

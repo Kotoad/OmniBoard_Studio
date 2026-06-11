@@ -5,11 +5,15 @@
       "version": "1.0",
       "app_title": "OmniBoard Studio"
     },
+    "hub": {
+      "file_sidebar_title": "Projects"
+    },
     "menu": {
+      "menu": "Menu bar",
       "file": "File",
       "new": "New",
       "open": "Open",
-      "save": "Save",
+      "save": "Save", 
       "save_as": "Save As",
       "exit": "Exit",
       "edit": "Edit",
