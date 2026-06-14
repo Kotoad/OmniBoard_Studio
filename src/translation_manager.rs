@@ -4,7 +4,7 @@ use std::path::{PathBuf, Path};
 use serde_json::Value;
 use std::sync::{OnceLock, RwLock, Mutex};
 
-const TRANSLATIONS_DIR: &str = "./Resources/Translations";
+const TRANSLATIONS_DIR: &str = "./resources/Translations";
 const DEFAULT_LANGUAGE: &str = "en";
 
 static TRANSLATION_MANAGER: OnceLock<RwLock<TranslationManager>> = OnceLock::new();
@@ -72,6 +72,7 @@ impl TranslationManager {
                 Some(tree) => {
                     if let Some(lang_name) = nested_get(&tree, "main_GUI._metadata.language_name").and_then(|v| v.as_str()) {
                         self.available_languages.insert(lang_code.to_string(), lang_name.to_string());
+                        self.translations.insert(lang_code.to_string(), tree);
                     } else {
                         eprintln!("Language file '{}' is missing 'main_GUI._metadata.language_name'. Skipping.", path.display());
                     }
@@ -86,18 +87,9 @@ impl TranslationManager {
             self.current_language = lang_code.to_string();
             return true;
         }
-
-        let path = self.translation_dir.join(format!("{}.json", lang_code));
-        match Self::read_json(&path) {
-            Some(tree) => {
-                self.translations.insert(lang_code.to_string(), tree);
-                self.current_language = lang_code.to_string();
-                true
-            }
-            None => {
-                eprintln!("Failed to load language '{}'.", lang_code);
-                false
-            }
+        else {
+            eprintln!("Language '{}' is not available.", lang_code);
+            false
         }
     }
 

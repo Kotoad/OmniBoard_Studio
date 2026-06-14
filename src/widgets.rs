@@ -1,5 +1,5 @@
 use egui::{
-    self, Align2, Color32, FontId, Rounding, Sense, Stroke, TextStyle, Ui, Vec2, Widget,TextFormat
+    self, FontId, Rounding, Ui, TextFormat
 };
 use egui::text::LayoutJob;
 
