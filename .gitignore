@@ -7,19 +7,8 @@
 projects/
 autosave/
 compare/
-build/
-dist/
-New Folder/
-Node_modules/
 Config/
-deps/
 debug/
-
-# Python cache files
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
 
 # Virtual environment
 venv/
@@ -40,6 +29,11 @@ target/
 # OS specific files
 .DS_Store
 Thumbs.db
+
+# Project specific files
 File.py
 last_report.txt
 error_log.txt
+
+# Ignore Claude AI files
+.claude/
