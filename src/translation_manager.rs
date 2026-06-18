@@ -4,7 +4,7 @@ use std::path::{PathBuf, Path};
 use serde_json::Value;
 use std::sync::{OnceLock, RwLock, Mutex};
 
-const TRANSLATIONS_DIR: &str = "./resources/Translations";
+const TRANSLATIONS_DIR: &str = "./Resources/Translations";
 const DEFAULT_LANGUAGE: &str = "en";
 
 static TRANSLATION_MANAGER: OnceLock<RwLock<TranslationManager>> = OnceLock::new();
@@ -32,10 +32,10 @@ impl TranslationManager {
         };
         manager.load_available_languages();
 
-        manager.load_language(DEFAULT_LANGUAGE);
+        manager.activate_language(DEFAULT_LANGUAGE);
 
         if manager.available_languages.contains_key(start_language) {
-            manager.load_language(start_language);
+            manager.activate_language(start_language);
         } else {
             eprintln!("Language '{}' not found, defaulting to '{}'", start_language, DEFAULT_LANGUAGE);
         }
@@ -82,13 +82,12 @@ impl TranslationManager {
         }
     }
 
-    fn load_language(&mut self, lang_code: &str) -> bool {
+    fn activate_language(&mut self, lang_code: &str) -> bool {
         if self.translations.contains_key(lang_code) {
             self.current_language = lang_code.to_string();
             return true;
         }
         else {
-            eprintln!("Language '{}' is not available.", lang_code);
             false
         }
     }
@@ -98,7 +97,7 @@ impl TranslationManager {
             eprintln!("Language '{}' is not available.", lang_code);
             return false;
         }
-        let success = self.load_language(lang_code);
+        let success = self.activate_language(lang_code);
         if success {
             self.cache.lock().unwrap().clear();
         }

@@ -3,6 +3,7 @@
 mod translation_manager;
 mod theme;
 mod widgets;
+mod settings_window;
 
 use eframe::egui;
 use std::fs;
@@ -12,7 +13,6 @@ use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
 
 use crate::translation_manager::tr;
 use crate::widgets::{file_button_simple};
-
 
 //MARK: - Helpers
 fn read_omni_files() -> Vec<std::path::PathBuf> {
@@ -69,7 +69,8 @@ fn main() -> eframe::Result<()> {
         "OmniBoard Studio",
         options,
         Box::new(|cc| {
-            cc.egui_ctx.set_style(theme::style());
+            theme::install(&cc.egui_ctx, theme::Palette::dark());
+            egui_extras::install_image_loaders(&cc.egui_ctx);
             if let Some(gl) = &cc.gl {
                 use eframe::glow::HasContext as _;
                 let renderer = unsafe { gl.get_parameter_string(eframe::glow::RENDERER) };
@@ -90,7 +91,7 @@ struct ProjectFile {
 struct OmniBoardStudio {
     files: Vec<ProjectFile>,
     fs_rx: Receiver<notify::Result<Event>>,
-    _watcher: RecommendedWatcher,
+    _watcher: Option<RecommendedWatcher>,
 }
 
 impl OmniBoardStudio {
@@ -98,14 +99,16 @@ impl OmniBoardStudio {
         let (tx, rx) = channel();
 
         let ctx = ctx.clone();
-        let mut watcher = notify::recommended_watcher(move |res| {
+        let watcher = notify::recommended_watcher(move |res| {
             let _ = tx.send(res);
             ctx.request_repaint();
-        }).expect("Failed to create file watcher");
+        }).and_then(|mut w| {
+            w.watch(Path::new("./Projects"), RecursiveMode::Recursive)?;
+            Ok(w)
+        })
+            .map_err(|e| eprintln!("File watching disabled: {e}"))
+            .ok();
 
-        watcher
-            .watch(Path::new("./Projects"), RecursiveMode::Recursive)
-            .expect("Failed to watch Projects directory");
         let mut app = Self { 
             files: Vec::new(),
             fs_rx: rx,
@@ -145,12 +148,17 @@ impl eframe::App for OmniBoardStudio {
         if changed {
             self.refresh_files();
         }
-
         let _window_width = ctx.screen_rect().width();
         let _window_height = ctx.screen_rect().height();
-
-        egui::TopBottomPanel::top("Menu bar").show(ctx, |ui| {
+        let pal = crate::theme::palette(ctx);
+        egui::TopBottomPanel::top("Menu bar")
+            .frame(egui::Frame::none().fill(pal.base).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
+            .show(ctx, |ui| {
             egui::menu::bar(ui, |ui| {
+                    let v = ui.visuals_mut();
+  
+                    v.widgets.noninteractive.bg_stroke.color = pal.window; 
+
                 ui.menu_button(tr("main_GUI.menu.file"), |ui| {
                     if ui.button(tr("main_GUI.menu.new")).clicked() {
                         println!("New file");
@@ -158,9 +166,96 @@ impl eframe::App for OmniBoardStudio {
                     if ui.button(tr("main_GUI.menu.open")).clicked() {
                         println!("Open file");
                     }
+                    if ui.button(tr("main_GUI.menu.save")).clicked() {
+                        println!("Save file");
+                    }
+                    if ui.button(tr("main_GUI.menu.save_as")).clicked() {
+                        println!("Save As");
+                    }
+                    ui.separator();
+                    if ui.button(tr("main_GUI.menu.exit")).clicked() {
+                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                    }
                 });
-            })
+                ui.menu_button(tr("main_GUI.menu.blocks"), |ui| {
+                    if ui.button(tr("main_GUI.menu.block_library")).clicked() {
+                        println!("View block library");
+                    }
+                });
+                ui.menu_button(tr("main_GUI.menu.view"), |ui| {
+                    if ui.button(tr("main_GUI.menu.hub")).clicked() {
+                        println!("View Hub");
+                    }
+                    if ui.button(tr("main_GUI.menu.visual_editor")).clicked() {
+                        println!("View visual editor");
+                    }
+                    if ui.button(tr("main_GUI.menu.code_editor")).clicked() {
+                        println!("View code editor");
+                    }
+                });
+                ui.menu_button(tr("main_GUI.menu.compile"), |ui| {
+                    if ui.button(tr("main_GUI.menu.compile_code")).clicked() {
+                        println!("Compile code");
+                    }
+                });
+                ui.menu_button(tr("main_GUI.menu.settings"), |ui| {
+                    if ui.button(tr("main_GUI.menu.settings")).clicked() {
+                        println!("Open settings");
+                    }
+                });
+                ui.menu_button(tr("main_GUI.menu.help"), |ui| {
+                    if ui.button(tr("main_GUI.menu.get_started")).clicked() {
+                        println!("Get Started");
+                    }
+                    if ui.button(tr("main_GUI.menu.tutorials")).clicked() {
+                        println!("View Tutorials");
+                    }
+                    if ui.button(tr("main_GUI.menu.faq")).clicked() {
+                        println!("View FAQ");
+                    }
+                });
+            });
+            ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, pal.window);
+            ui.separator();
         });
+        egui::TopBottomPanel::top("Toolbar")
+            .frame(egui::Frame::none().fill(pal.base).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
+            .show(ctx, |ui| {
+                ui.spacing_mut().button_padding = egui::vec2(2.0, 2.0);
+                ui.spacing_mut().item_spacing.x = 8.0;
+
+                ui.horizontal(|ui| {
+                    let v = ui.visuals_mut();
+  
+                    v.widgets.noninteractive.bg_stroke.color = pal.window; 
+
+                    let h = 16.0;
+                    let new_file = egui::Image::new(egui::include_image!("../Resources/Images/Tool_bar/New_file.png"))
+                        .fit_to_exact_size(egui::vec2(h, h))
+                        .tint(ui.visuals().text_color());
+                    if ui.add(egui::ImageButton::new(new_file)).clicked() {
+                        println!("New file");
+                    }
+
+                    let open_file = egui::Image::new(egui::include_image!("../Resources/Images/Tool_bar/Open_file.png"))
+                        .fit_to_exact_size(egui::vec2(h, h))
+                        .tint(ui.visuals().text_color());
+                    if ui.add(egui::ImageButton::new(open_file)).clicked() {
+                        println!("Open file");
+                    }
+
+                    let save_file = egui::Image::new(egui::include_image!("../Resources/Images/Tool_bar/Save_file.png"))
+                        .fit_to_exact_size(egui::vec2(h, h))
+                        .tint(ui.visuals().text_color());
+                    if ui.add(egui::ImageButton::new(save_file)).clicked() {
+                        println!("Save file");
+                    }
+
+                    ui.separator();
+
+                    
+                });
+            });
 
         egui::SidePanel::left("File Sidebar")
             .resizable(true)
