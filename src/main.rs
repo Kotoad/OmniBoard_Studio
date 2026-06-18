@@ -4,6 +4,7 @@ mod translation_manager;
 mod theme;
 mod widgets;
 mod settings_window;
+mod state_machine;
 
 use eframe::egui;
 use std::fs;
@@ -65,6 +66,7 @@ fn main() -> eframe::Result<()> {
         ..Default::default()
     };
     translation_manager::init("en");
+    state_machine::init();
     eframe::run_native(
         "OmniBoard Studio",
         options,
@@ -135,6 +137,26 @@ impl OmniBoardStudio {
             })
             .collect();
     }
+
+    fn check_open_windows(&mut self, ctx: &egui::Context) {
+        let mut open_windows = Vec::new();
+        state_machine::with(|sm| {
+            if sm.is_open("settings") {
+                open_windows.push("settings");
+            }
+        });
+        for window in open_windows {
+            match window {
+                "settings" => self.open_settings_window(ctx),
+                _ => {},
+            }
+        }
+    }
+
+    fn open_settings_window(&mut self, ctx: &egui::Context) {
+        self.settings_window(ctx);
+    }
+
 }
 
 impl eframe::App for OmniBoardStudio {
@@ -162,15 +184,19 @@ impl eframe::App for OmniBoardStudio {
                 ui.menu_button(tr("main_GUI.menu.file"), |ui| {
                     if ui.button(tr("main_GUI.menu.new")).clicked() {
                         println!("New file");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.open")).clicked() {
                         println!("Open file");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.save")).clicked() {
                         println!("Save file");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.save_as")).clicked() {
                         println!("Save As");
+                        ui.close_menu();
                     }
                     ui.separator();
                     if ui.button(tr("main_GUI.menu.exit")).clicked() {
@@ -180,38 +206,47 @@ impl eframe::App for OmniBoardStudio {
                 ui.menu_button(tr("main_GUI.menu.blocks"), |ui| {
                     if ui.button(tr("main_GUI.menu.block_library")).clicked() {
                         println!("View block library");
+                        ui.close_menu();
                     }
                 });
                 ui.menu_button(tr("main_GUI.menu.view"), |ui| {
                     if ui.button(tr("main_GUI.menu.hub")).clicked() {
                         println!("View Hub");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.visual_editor")).clicked() {
                         println!("View visual editor");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.code_editor")).clicked() {
                         println!("View code editor");
+                        ui.close_menu();
                     }
                 });
                 ui.menu_button(tr("main_GUI.menu.compile"), |ui| {
                     if ui.button(tr("main_GUI.menu.compile_code")).clicked() {
                         println!("Compile code");
+                        ui.close_menu();
                     }
                 });
                 ui.menu_button(tr("main_GUI.menu.settings"), |ui| {
                     if ui.button(tr("main_GUI.menu.settings")).clicked() {
-                        println!("Open settings");
+                        state_machine::with_mut(|sm| { sm.on_open_settings_window(); });
+                        ui.close_menu();
                     }
                 });
                 ui.menu_button(tr("main_GUI.menu.help"), |ui| {
                     if ui.button(tr("main_GUI.menu.get_started")).clicked() {
                         println!("Get Started");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.tutorials")).clicked() {
                         println!("View Tutorials");
+                        ui.close_menu();
                     }
                     if ui.button(tr("main_GUI.menu.faq")).clicked() {
                         println!("View FAQ");
+                        ui.close_menu();
                     }
                 });
             });
@@ -285,5 +320,6 @@ impl eframe::App for OmniBoardStudio {
                     ui.label("Main Hub")
                 });
         });
+        self.check_open_windows(ctx);
     }
 }
