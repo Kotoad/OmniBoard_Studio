@@ -4,7 +4,7 @@ use std::path::{PathBuf, Path};
 use serde_json::Value;
 use std::sync::{OnceLock, RwLock, Mutex};
 
-const TRANSLATIONS_DIR: &str = "./Resources/Translations";
+const TRANSLATIONS_DIR: &str = "./resources/translations";
 const DEFAULT_LANGUAGE: &str = "en";
 
 static TRANSLATION_MANAGER: OnceLock<RwLock<TranslationManager>> = OnceLock::new();

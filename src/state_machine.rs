@@ -30,6 +30,7 @@ pub struct AppStateMachine {
     canvas: CanvasState,
     open_windows: HashSet<String>,
     current_tab: Option<String>,
+    current_theme: String,
 }
 
 impl AppStateMachine {
@@ -39,6 +40,7 @@ impl AppStateMachine {
             canvas: CanvasState::Idle,
             open_windows: HashSet::new(),
             current_tab: None,
+            current_theme: "dark".to_string(),
         }
     }
 
@@ -59,4 +61,20 @@ impl AppStateMachine {
     }
 
     pub fn is_open(&self, window: &str) -> bool { self.open_windows.contains(window) }
+
+    pub fn set_current_theme(&mut self, theme: String) {
+        self.current_theme = theme;
+    }
+
+    pub fn get_current_theme(&self) -> String {
+        self.current_theme.clone()
+    }
+
+    pub fn theme_changed(&mut self, wanted_theme: String) -> bool {
+        if self.current_theme != wanted_theme {
+            true
+        } else {
+            false
+        }
+    }
 }

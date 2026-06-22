@@ -15,7 +15,7 @@
       "edit": "Upravit",
       "view": "Zobrazit",
       "blocks": "Bloky",
-      "add_block": "Přidat blok",
+      "block_library": "Knihovna bloků",
       "settings": "Nastavení",
       "help": "Nápověda",
       "get_started": "Začít", 
@@ -27,7 +27,7 @@
       "visual_editor": "Vizualní editor",
       "code_editor": "Editor kódu"
     },
-    "top_toolbar": {
+    "block_library": {
       "toolbar": "Hlavní panel nástrojů",
       "save": "Uložit",
       "open": "Otevřít",

@@ -56,24 +56,24 @@ impl Palette {
     // ---- "Slate Dark"  (Test_colors.py apply_theme, dark branch) ----
     pub fn dark() -> Self {
         Self {
-            window:           rgb(15, 23, 42),
-            window_text:      rgb(226, 232, 240),
-            base:             rgb(30, 41, 59),
-            alternate_base:   rgb(51, 65, 85),
-            text:             rgb(226, 232, 240),
+            window:           rgb(15, 23, 42), //
+            window_text:      rgb(226, 232, 240), //
+            base:             rgb(30, 41, 59), //
+            alternate_base:   rgb(51, 65, 85), //
+            text:             rgb(226, 232, 240), //
             placeholder_text: rgb(148, 163, 184),
-            tooltip_base:     rgb(15, 23, 42),
-            tooltip_text:     rgb(226, 232, 240),
-            button:           rgb(30, 41, 59),
-            button_text:      rgb(226, 232, 240),
-            highlight:        rgb(59, 130, 246),
+            tooltip_base:     rgb(15, 23, 42), //
+            tooltip_text:     rgb(226, 232, 240), //
+            button:           rgb(30, 41, 59), //
+            button_text:      rgb(226, 232, 240), //
+            highlight:        rgb(59, 130, 246), //
             highlighted_text: rgb(255, 255, 255),
-            link:             rgb(59, 130, 246),
-            link_visited:     rgb(139, 92, 246),
-            bright_text:      rgb(255, 160, 0),
-            light:            rgb(51, 65, 85),
-            midlight:         rgb(30, 41, 59),
-            mid:              rgb(30, 41, 59),
+            link:             rgb(59, 130, 246), //
+            link_visited:     rgb(139, 92, 246), //
+            bright_text:      rgb(255, 160, 0), //
+            light:            rgb(51, 65, 85), //
+            midlight:         rgb(30, 41, 59), //
+            mid:              rgb(30, 41, 59), //
             dark:             rgb(2, 6, 23),
             shadow:           rgb(0, 0, 0),
         }
@@ -149,6 +149,15 @@ pub fn install(ctx: &egui::Context, p: Palette) {
 pub fn palette(ctx: &egui::Context) -> Palette {
     ctx.data(|d| d.get_temp::<Palette>(palette_id()))
         .unwrap_or_else(Palette::dark)
+}
+
+pub fn get_palette_str(ctx: &egui::Context, theme_str: &str) {
+    let palette = match theme_str {
+        "light" => Palette::light(),
+        "dark" => Palette::dark(),
+        _ => Palette::dark(),
+    };
+    install(ctx, palette);
 }
 
 // ----------------------------------------------------------------------------
