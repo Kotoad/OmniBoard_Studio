@@ -20,6 +20,11 @@ use eframe::egui::{
     self, Color32, FontFamily, FontId, Rounding, Stroke, Style, TextStyle, Visuals,
 };
 
+use serde::{Deserialize, Serialize};
+
+use crate::state_machine;
+use crate::settings;
+
 // Small helper so the colour table below reads like the Python QColor(r,g,b).
 const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
     Color32::from_rgb(r, g, b)
@@ -28,7 +33,7 @@ const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
 // ----------------------------------------------------------------------------
 //  1) THE PALETTE  — one field per Qt QPalette.ColorRole used in Test_colors.py
 // ----------------------------------------------------------------------------
-#[derive(Clone, Copy)] // needed so it can be stored in egui's context data
+#[derive(Clone, Copy, Deserialize, Serialize, Debug)] // needed so it can be stored in egui's context data
 pub struct Palette {
     pub window: Color32,            // Window      — main background / panels
     pub window_text: Color32,       // WindowText  — text on panels
@@ -105,11 +110,212 @@ impl Palette {
         }
     }
 
-    /// True if this is a dark theme — used to pick egui's base Visuals.
-    fn is_dark(&self) -> bool {
-        // crude luminance check on the window colour
-        let c = self.window;
-        (c.r() as u32 + c.g() as u32 + c.b() as u32) < 384
+    // ---- "Nord"  (nordtheme.com) ----
+    pub fn nord() -> Self {
+        Self {
+            window:           rgb(46, 52, 64),
+            window_text:      rgb(216, 222, 233),
+            base:             rgb(59, 66, 82),
+            alternate_base:   rgb(67, 76, 94),
+            text:             rgb(216, 222, 233),
+            placeholder_text: rgb(97, 110, 136),
+            tooltip_base:     rgb(46, 52, 64),
+            tooltip_text:     rgb(236, 239, 244),
+            button:           rgb(59, 66, 82),
+            button_text:      rgb(216, 222, 233),
+            highlight:        rgb(94, 129, 172),
+            highlighted_text: rgb(236, 239, 244),
+            link:             rgb(136, 192, 208),
+            link_visited:     rgb(180, 142, 173),
+            bright_text:      rgb(235, 203, 139),
+            light:            rgb(76, 86, 106),
+            midlight:         rgb(67, 76, 94),
+            mid:              rgb(76, 86, 106),
+            dark:             rgb(33, 37, 46),
+            shadow:           rgb(20, 23, 28),
+        }
+    }
+
+    // ---- "Dracula"  (draculatheme.com) ----
+    pub fn dracula() -> Self {
+        Self {
+            window:           rgb(40, 42, 54),
+            window_text:      rgb(248, 248, 242),
+            base:             rgb(33, 34, 44),
+            alternate_base:   rgb(68, 71, 90),
+            text:             rgb(248, 248, 242),
+            placeholder_text: rgb(98, 114, 164),
+            tooltip_base:     rgb(33, 34, 44),
+            tooltip_text:     rgb(248, 248, 242),
+            button:           rgb(68, 71, 90),
+            button_text:      rgb(248, 248, 242),
+            highlight:        rgb(189, 147, 249),
+            highlighted_text: rgb(40, 42, 54),
+            link:             rgb(139, 233, 253),
+            link_visited:     rgb(255, 121, 198),
+            bright_text:      rgb(255, 184, 108),
+            light:            rgb(86, 88, 105),
+            midlight:         rgb(68, 71, 90),
+            mid:              rgb(98, 114, 164),
+            dark:             rgb(25, 26, 33),
+            shadow:           rgb(15, 15, 20),
+        }
+    }
+
+    // ---- "Gruvbox Dark"  (github.com/morhetz/gruvbox) ----
+    pub fn gruvbox() -> Self {
+        Self {
+            window:           rgb(40, 40, 40),
+            window_text:      rgb(235, 219, 178),
+            base:             rgb(29, 32, 33),
+            alternate_base:   rgb(60, 56, 54),
+            text:             rgb(235, 219, 178),
+            placeholder_text: rgb(146, 131, 116),
+            tooltip_base:     rgb(29, 32, 33),
+            tooltip_text:     rgb(235, 219, 178),
+            button:           rgb(60, 56, 54),
+            button_text:      rgb(235, 219, 178),
+            highlight:        rgb(250, 189, 47),
+            highlighted_text: rgb(40, 40, 40),
+            link:             rgb(131, 165, 152),
+            link_visited:     rgb(211, 134, 155),
+            bright_text:      rgb(254, 128, 25),
+            light:            rgb(80, 73, 69),
+            midlight:         rgb(60, 56, 54),
+            mid:              rgb(102, 92, 84),
+            dark:             rgb(29, 32, 33),
+            shadow:           rgb(13, 14, 14),
+        }
+    }
+
+    // ---- "Solarized Dark"  (ethanschoonover.com/solarized) ----
+    pub fn solarized_dark() -> Self {
+        Self {
+            window:           rgb(0, 43, 54),
+            window_text:      rgb(131, 148, 150),
+            base:             rgb(7, 54, 66),
+            alternate_base:   rgb(88, 110, 117),
+            text:             rgb(147, 161, 161),
+            placeholder_text: rgb(88, 110, 117),
+            tooltip_base:     rgb(7, 54, 66),
+            tooltip_text:     rgb(147, 161, 161),
+            button:           rgb(7, 54, 66),
+            button_text:      rgb(131, 148, 150),
+            highlight:        rgb(38, 139, 210),
+            highlighted_text: rgb(253, 246, 227),
+            link:             rgb(42, 161, 152),
+            link_visited:     rgb(108, 113, 196),
+            bright_text:      rgb(203, 75, 22),
+            light:            rgb(88, 110, 117),
+            midlight:         rgb(7, 54, 66),
+            mid:              rgb(88, 110, 117),
+            dark:             rgb(0, 33, 43),
+            shadow:           rgb(0, 16, 22),
+        }
+    }
+
+    // ---- "Solarized Light"  (ethanschoonover.com/solarized) ----
+    pub fn solarized_light() -> Self {
+        Self {
+            window:           rgb(253, 246, 227),
+            window_text:      rgb(101, 123, 131),
+            base:             rgb(238, 232, 213),
+            alternate_base:   rgb(221, 214, 193),
+            text:             rgb(88, 110, 117),
+            placeholder_text: rgb(147, 161, 161),
+            tooltip_base:     rgb(7, 54, 66),
+            tooltip_text:     rgb(238, 232, 213),
+            button:           rgb(238, 232, 213),
+            button_text:      rgb(101, 123, 131),
+            highlight:        rgb(38, 139, 210),
+            highlighted_text: rgb(253, 246, 227),
+            link:             rgb(38, 139, 210),
+            link_visited:     rgb(108, 113, 196),
+            bright_text:      rgb(220, 50, 47),
+            light:            rgb(255, 255, 255),
+            midlight:         rgb(238, 232, 213),
+            mid:              rgb(147, 161, 161),
+            dark:             rgb(207, 201, 180),
+            shadow:           rgb(184, 177, 150),
+        }
+    }
+
+    // ---- "Monokai"  (classic Sublime palette) ----
+    pub fn monokai() -> Self {
+        Self {
+            window:           rgb(39, 40, 34),
+            window_text:      rgb(248, 248, 242),
+            base:             rgb(30, 31, 28),
+            alternate_base:   rgb(73, 72, 62),
+            text:             rgb(248, 248, 242),
+            placeholder_text: rgb(117, 113, 94),
+            tooltip_base:     rgb(30, 31, 28),
+            tooltip_text:     rgb(248, 248, 242),
+            button:           rgb(73, 72, 62),
+            button_text:      rgb(248, 248, 242),
+            highlight:        rgb(249, 38, 114),
+            highlighted_text: rgb(248, 248, 242),
+            link:             rgb(102, 217, 239),
+            link_visited:     rgb(174, 129, 255),
+            bright_text:      rgb(253, 151, 31),
+            light:            rgb(90, 88, 75),
+            midlight:         rgb(73, 72, 62),
+            mid:              rgb(117, 113, 94),
+            dark:             rgb(30, 31, 28),
+            shadow:           rgb(18, 19, 16),
+        }
+    }
+
+    // ---- "One Dark"  (Atom One Dark) ----
+    pub fn one_dark() -> Self {
+        Self {
+            window:           rgb(40, 44, 52),
+            window_text:      rgb(171, 178, 191),
+            base:             rgb(33, 37, 43),
+            alternate_base:   rgb(62, 68, 81),
+            text:             rgb(171, 178, 191),
+            placeholder_text: rgb(92, 99, 112),
+            tooltip_base:     rgb(33, 37, 43),
+            tooltip_text:     rgb(171, 178, 191),
+            button:           rgb(58, 63, 75),
+            button_text:      rgb(171, 178, 191),
+            highlight:        rgb(97, 175, 239),
+            highlighted_text: rgb(255, 255, 255),
+            link:             rgb(86, 182, 194),
+            link_visited:     rgb(198, 120, 221),
+            bright_text:      rgb(229, 192, 123),
+            light:            rgb(75, 82, 99),
+            midlight:         rgb(62, 68, 81),
+            mid:              rgb(92, 99, 112),
+            dark:             rgb(27, 31, 35),
+            shadow:           rgb(16, 18, 22),
+        }
+    }
+
+    // ---- "Catppuccin Mocha"  (github.com/catppuccin) ----
+    pub fn catppuccin() -> Self {
+        Self {
+            window:           rgb(30, 30, 46),
+            window_text:      rgb(205, 214, 244),
+            base:             rgb(24, 24, 37),
+            alternate_base:   rgb(49, 50, 68),
+            text:             rgb(205, 214, 244),
+            placeholder_text: rgb(108, 112, 134),
+            tooltip_base:     rgb(17, 17, 27),
+            tooltip_text:     rgb(205, 214, 244),
+            button:           rgb(49, 50, 68),
+            button_text:      rgb(205, 214, 244),
+            highlight:        rgb(203, 166, 247),
+            highlighted_text: rgb(17, 17, 27),
+            link:             rgb(137, 180, 250),
+            link_visited:     rgb(180, 190, 254),
+            bright_text:      rgb(250, 179, 135),
+            light:            rgb(88, 91, 112),
+            midlight:         rgb(69, 71, 90),
+            mid:              rgb(69, 71, 90),
+            dark:             rgb(17, 17, 27),
+            shadow:           rgb(11, 11, 18),
+        }
     }
 }
 
@@ -120,10 +326,6 @@ const BORDER: f32 = 1.0;
 // ----------------------------------------------------------------------------
 //  2) ENTRY POINTS
 // ----------------------------------------------------------------------------
-pub fn style() -> Style {
-    style_from(Palette::dark())
-}
-
 pub fn style_from(p: Palette) -> Style {
     let mut style = Style::default();
     style.visuals = visuals(&p);
@@ -155,6 +357,15 @@ pub fn get_palette_str(ctx: &egui::Context, theme_str: &str) {
     let palette = match theme_str {
         "light" => Palette::light(),
         "dark" => Palette::dark(),
+        "nord" => Palette::nord(),
+        "dracula" => Palette::dracula(),
+        "gruvbox" => Palette::gruvbox(),
+        "solarized_dark" => Palette::solarized_dark(),
+        "solarized_light" => Palette::solarized_light(),
+        "monokai" => Palette::monokai(),
+        "one_dark" => Palette::one_dark(),
+        "catppuccin" => Palette::catppuccin(),
+        "custom" => settings::with(|s| s.custom_theme.unwrap_or(Palette::dark())),
         _ => Palette::dark(),
     };
     install(ctx, palette);
@@ -170,12 +381,20 @@ pub fn get_palette_str(ctx: &egui::Context, theme_str: &str) {
 //     open           -> Base
 // ----------------------------------------------------------------------------
 fn visuals(p: &Palette) -> Visuals {
-    let mut v = if p.is_dark() {
-        Visuals::dark()
-    } else {
-        Visuals::light()
+    let theme = state_machine::with(|sm| sm.get_current_theme()).to_string();
+    let mut v = match theme.as_str() {
+        "dark" => Visuals::dark(),
+        "light" => Visuals::light(),
+        "nord" => Visuals::dark(),
+        "dracula" => Visuals::dark(),
+        "gruvbox" => Visuals::dark(),
+        "solarized_dark" => Visuals::dark(),
+        "solarized_light" => Visuals::light(),
+        "monokai" => Visuals::dark(),
+        "one_dark" => Visuals::dark(),
+        "catppuccin" => Visuals::dark(),
+        _ => Visuals::dark(),
     };
-
     // Panels / windows / inputs.
     v.panel_fill = p.window;
     v.window_fill = p.window;

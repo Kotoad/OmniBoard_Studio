@@ -27,7 +27,7 @@
       "visual_editor": "Vizualní editor",
       "code_editor": "Editor kódu"
     },
-    "block_library": {
+    "top_toolbar": {
       "toolbar": "Hlavní panel nástrojů",
       "save": "Uložit",
       "open": "Otevřít",
@@ -108,10 +108,10 @@
       "second_variable_placeholder": "Zadejte název druhé proměnné",
       "result_variable": "Název výsledné proměnné",
       "result_variable_placeholder": "Zadejte název výsledné proměnné",
-      "input_variables": "Vstupní proměnné",
-      "ref_variables": "Referenční proměnné",
-      "main_variables": "Hlavní proměnné",
-      "main_variables_placeholder": "Zadejte název hlavní proměnné",
+      "input_variable": "Vstupní proměnné",
+      "ref_variable": "Referenční proměnné",
+      "main_variable": "Hlavní proměnné",
+      "main_variable_placeholder": "Zadejte název hlavní proměnné",
       "input_devices": "Vstupní zařízení",
       "ref_devices": "Referenční zařízení",
       "main_devices": "Hlavní zařízení",
@@ -215,6 +215,9 @@
       "size": "Velikost {width} x {height}"
     }
   },
+  "hub": {
+    "file_sidebar_title": "Soubory"
+  },  
   "blocks_window": {
     "window_title": "Okno bloků",
     "block_details": "Podrobnosti bloku",
@@ -230,7 +233,7 @@
     "logic_blocks_tab": {
       "tab_title": "Logické bloky",
       "Cycles": "Cykly",
-      "Comparation": "Porovnání",
+      "Comparison": "Porovnání",
       "Bool logic": "Boolová logika",
       "If": "Pokud",
       "While": "Pokud platí",
@@ -331,19 +334,40 @@
     "file_not_found": "Soubor.py nenalezen",
     "error_reading_file": "Chyba při čtení souboru: {error_type}: {error_message}"
   },
-  "setting_window": {
+  "settings_window": {
     "title": "Nastavení",
     "basic_settings_tab": {
       "title": "Základní nastavení",
       "select_language": "Vyberte jazyk",
-      "select_theme": "Vyberte motiv",
-      "light": "Světlý",
-      "dark": "Tmavý",
       "ui_scale": "Měřítko uživatelského rozhraní",
       "small": "Malý",
       "medium": "Střední",
       "large": "Velký",
       "apply_settings": "Použít nastavení"
+    },
+    "theme_tab": {
+      "theme_heading": "Nastavení motivu",
+      "theme_combo": "Vyberte motiv",
+      "light_theme": "Světlé téma",
+      "dark_theme": "Tmavé téma",
+      "nord_theme": "Nord téma",
+      "dracula_theme": "Dracula téma",
+      "gruvbox_theme": "Gruvbox téma",
+      "solarized_dark_theme": "Solarized tmavé téma",
+      "solarized_light_theme": "Solarized světlé téma",
+      "monokai_theme": "Monokai téma",
+      "one_dark_theme": "One Dark téma",
+      "catppuccin_theme": "Catppuccin téma",
+      "custom_theme": "Vlastní téma",
+      "main_darker": "Hlavní tmavší barva",
+      "main": "Hlavní barva",
+      "main_lighter": "Hlavní světlší barva",
+      "text": "Barva textu",
+      "highlight": "Barva zvýraznění",
+      "highlight_text": "Barva textu zvýraznění",
+      "warning": "Barva varování",
+      "dark": "Tmavá barva",
+      "shadow": "Barva stínu"
     },
     "rpi_settings_tab": {
       "title": "Nastavení Raspberry Pi",
@@ -366,22 +390,24 @@
       "unknown_hostname": "Neznámý hostname",
       "unknown_model": "Neznámý model"
     },
-    "restart_dialog": {
-      "title": "Restartovat aplikaci",
-      "message": "Některé změny vyžadují restartování aplikace, aby se projevily. Chcete restartovat nyní?"
-    },
-    "auto_detect_dialog": {
-      "process": "Detekuji Raspberry Pi v síti.",
-      "cancel": "Zrušit",
-      "detection_error_title": "Chyba detekce",
-      "detection_error_message": "Detekce Raspberry Pi v síti selhala. Zkontrolujte prosím vaše připojení k síti a zkuste to znovu.",
-      "fail_title": "Detekce selhala",
-      "fail_message": "Nebyl nalezen žádný Raspberry Pi v síti.\n Ujistěte se, že je váš Raspberry Pi zapnutý a připojený ke stejné síti, nebo zadejte podrobnosti ručně.",
-      "invalid_result": "Detekce vrátila neplatný výsledek",
-      "incomplete_error_title": "Chyba",
-      "incomplete_error_message": "Detekce Raspberry Pi vrátila neúplná data.",
-      "success_title": "Detekce úspěšná",
-      "success_message": "Nalezen Raspberry Pi!\nHostname: {hostname}\nIP: {ip}\nModel: {model}"
+    "dialogs": {
+      "restart_dialog": {
+        "title": "Restartovat aplikaci",
+        "message": "Některé změny vyžadují restartování aplikace, aby se projevily. Chcete restartovat nyní?"
+      },
+      "auto_detect_dialog": {
+        "process": "Detekuji Raspberry Pi v síti.",
+        "cancel": "Zrušit",
+        "detection_error_title": "Chyba detekce",
+        "detection_error_message": "Detekce Raspberry Pi v síti selhala. Zkontrolujte prosím vaše připojení k síti a zkuste to znovu.",
+        "fail_title": "Detekce selhala",
+        "fail_message": "Nebyl nalezen žádný Raspberry Pi v síti.\n Ujistěte se, že je váš Raspberry Pi zapnutý a připojený ke stejné síti, nebo zadejte podrobnosti ručně.",
+        "invalid_result": "Detekce vrátila neplatný výsledek",
+        "incomplete_error_title": "Chyba",
+        "incomplete_error_message": "Detekce Raspberry Pi vrátila neúplná data.",
+        "success_title": "Detekce úspěšná",
+        "success_message": "Nalezen Raspberry Pi!\nHostname: {hostname}\nIP: {ip}\nModel: {model}"
+      }
     }
   }
 }

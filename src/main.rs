@@ -5,6 +5,7 @@ mod theme;
 mod widgets;
 mod settings_window;
 mod state_machine;
+mod settings;
 
 use eframe::egui;
 use std::fs;
@@ -68,6 +69,15 @@ fn create_projects_directory() {
 
 fn main() -> eframe::Result<()> {
     create_projects_directory();
+
+    settings::init();
+    let lang = settings::with(|s| s.language.clone());
+    let theme = settings::with(|s| s.theme.clone());
+    let scale = settings::with(|s| s.ui_scale);
+
+    translation_manager::init(&lang);
+    state_machine::init();
+
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
             .with_inner_size([1000.0, 700.0])
@@ -75,20 +85,21 @@ fn main() -> eframe::Result<()> {
         renderer: eframe::Renderer::Glow,
         ..Default::default()
     };
-    translation_manager::init("en");
-    state_machine::init();
+    
     eframe::run_native(
         "OmniBoard Studio",
         options,
-        Box::new(|cc| {
-            theme::install(&cc.egui_ctx, theme::Palette::dark());
+        Box::new(move |cc| {
+            theme::get_palette_str(&cc.egui_ctx, &theme);
+            state_machine::with_mut(|sm| sm.set_current_theme(theme));
+            cc.egui_ctx.set_pixels_per_point(scale);
             egui_extras::install_image_loaders(&cc.egui_ctx);
             if let Some(gl) = &cc.gl {
                 use eframe::glow::HasContext as _;
                 let renderer = unsafe { gl.get_parameter_string(eframe::glow::RENDERER) };
                 eprintln!("Renderer: {renderer}");
             }
-            Box::new(OmniBoardStudio::new(&cc.egui_ctx))
+            Ok(Box::new(OmniBoardStudio::new(&cc.egui_ctx)))
         }),
     )
 }
@@ -166,20 +177,16 @@ impl OmniBoardStudio {
     fn open_settings_window(&mut self, ctx: &egui::Context) {
         self.settings_window(ctx);
     }
-
 }
 
 impl eframe::App for OmniBoardStudio {
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
-        let mut changed = false;
         while let Ok(_event) = self.fs_rx.try_recv() {
-            changed = true;
-        }
-        if changed {
             self.refresh_files();
         }
+
         let _window_width = ctx.screen_rect().width();
         let _window_height = ctx.screen_rect().height();
         let pal = crate::theme::palette(ctx);
@@ -298,7 +305,6 @@ impl eframe::App for OmniBoardStudio {
 
                     ui.separator();
 
-                    
                 });
             });
 
@@ -310,8 +316,8 @@ impl eframe::App for OmniBoardStudio {
                 egui::ScrollArea::horizontal()
                     .auto_shrink(false)
                     .show(ui, |ui| {
-                        ui.style_mut().wrap = Some(false);
-                        ui.heading(tr("main_GUI.hub.file_sidebar_title"));
+                        ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+                        ui.heading(tr("hub.file_sidebar_title"));
                         ui.separator();
 
                         for file in &self.files {
@@ -326,7 +332,7 @@ impl eframe::App for OmniBoardStudio {
             egui::ScrollArea::both()
                 .auto_shrink(false)
                 .show(ui, |ui| {
-                    ui.style_mut().wrap = Some(false);
+                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
                     ui.label("Main Hub")
                 });
         });

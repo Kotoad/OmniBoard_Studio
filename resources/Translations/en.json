@@ -5,11 +5,7 @@
       "version": "1.0",
       "app_title": "OmniBoard Studio"
     },
-    "hub": {
-      "file_sidebar_title": "Projects"
-    },
     "menu": {
-      "menu": "Menu bar",
       "file": "File",
       "new": "New",
       "open": "Open",
@@ -195,7 +191,7 @@
         "config_error": "Configuration Error",
         "config_error_message": "Raspberry Pi configuration is incomplete or invalid. Please check your settings.",
         "host_key_verification": "Host Key Verification",
-        "host_key_verification_message": "The authenticity of host '{hostname}' can't be established.\n\nfKey type: {key_type}\nFingerprint: {fingerprint}\n\nDo you trust this host?"
+        "host_key_verification_message": "The authenticity of host '{hostname}' can't be established.\n\nKey type: {key_type}\nFingerprint: {fingerprint}\n\nDo you trust this host?"
       },
       "update_manager": {
         "update_available_title": "Update Available",
@@ -218,6 +214,9 @@
       "position": "Position {x}, {y}",
       "size": "Size {width} x {height}"
     }
+  },
+  "hub": {
+    "file_sidebar_title": "Projects"
   },
   "blocks_window": {
     "window_title": "Blocks Window",
@@ -335,20 +334,40 @@
     "file_not_found": "File.py not found",
     "error_reading_file": "Error reading file: {error_type}: {error_message}"
   },
-  "setting_window": {
+  "settings_window": {
     "title": "Settings",
     "basic_settings_tab": {
       "title": "Basic Settings",
       "select_language": "Select Language",
-      "select_theme": "Select Theme",
-      "light": "Light",
-      "dark": "Dark",
       "ui_scale": "UI Scale",
       "small": "Small",
       "medium": "Medium",
       "large": "Large",
       "apply_settings": "Apply Settings"
-
+    },
+    "theme_tab": {
+      "theme_heading": "Theme Settings",
+      "theme_combo": "Theme",
+      "light_theme": "Light theme",
+      "dark_theme": "Dark theme",
+      "nord_theme": "Nord theme",
+      "dracula_theme": "Dracula theme",
+      "gruvbox_theme": "Gruvbox theme",
+      "solarized_dark_theme": "Solarized dark theme",
+      "solarized_light_theme": "Solarized light theme",
+      "monokai_theme": "Monokai theme",
+      "one_dark_theme": "One Dark theme",
+      "catppuccin_theme": "Catppuccin theme",
+      "custom_theme": "Custom theme",
+      "main_darker": "Main darker color",
+      "main": "Main color",
+      "main_lighter": "Main lighter color",
+      "text": "Text color",
+      "highlight": "Highlight color",
+      "highlight_text": "Highlight text color",
+      "warning": "Warning color",
+      "dark": "Dark color",
+      "shadow": "Shadow color"
     },
     "rpi_settings_tab": {
       "title": "Raspberry Pi Settings",
@@ -371,22 +390,24 @@
       "unknown_hostname": "Unknown hostname",
       "unknown_model": "Unknown model"
     },
-    "restart_dialog": {
-      "title": "Restart Application",
-      "message": "Some changes require restarting the application to take effect. Do you want to restart now?"
-    },
-    "auto_detect_dialog": {
-      "process": "Detecting Raspberry Pi on network.",
-      "cancel": "Cancel",
-      "detection_error_title": "Detection Error",
-      "detection_error_message": "Failed to detect Raspberry Pi on the network. Please check your network connection and try again.",
-      "fail_title": "Detection Failed",
-      "fail_message": "No Raspberry Pi found on the network.\n Please ensure your Raspberry Pi is powered on and connected to the same network or enter details manually.",
-      "invalid_result": "Invalid result returned from detection",
-      "incomplete_error_title": "Error",
-      "incomplete_error_message": "Raspberry Pi detection returned incomplete data.",
-      "success_title": "Detection Successful",
-      "success_message": "Found Raspberry Pi!\nHostname: {hostname}\nIP: {ip}\nModel: {model}"
+    "dialogs" :{ 
+      "restart_dialog": {
+        "title": "Restart Application",
+        "message": "Some changes require restarting the application to take effect. Do you want to restart now?"
+      },
+      "auto_detect_dialog": {
+        "process": "Detecting Raspberry Pi on network.",
+        "cancel": "Cancel",
+        "detection_error_title": "Detection Error",
+        "detection_error_message": "Failed to detect Raspberry Pi on the network. Please check your network connection and try again.",
+        "fail_title": "Detection Failed",
+        "fail_message": "No Raspberry Pi found on the network.\n Please ensure your Raspberry Pi is powered on and connected to the same network or enter details manually.",
+        "invalid_result": "Invalid result returned from detection",
+        "incomplete_error_title": "Error",
+        "incomplete_error_message": "Raspberry Pi detection returned incomplete data.",
+        "success_title": "Detection Successful",
+        "success_message": "Found Raspberry Pi!\nHostname: {hostname}\nIP: {ip}\nModel: {model}"
+      }
     }
   }
 }

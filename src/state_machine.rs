@@ -70,7 +70,7 @@ impl AppStateMachine {
         self.current_theme.clone()
     }
 
-    pub fn theme_changed(&mut self, wanted_theme: String) -> bool {
+    pub fn theme_changed(&self, wanted_theme: &str) -> bool {
         if self.current_theme != wanted_theme {
             true
         } else {
