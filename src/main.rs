@@ -67,6 +67,7 @@ fn create_projects_directory() {
     }
 }
 
+//MARK: - Main
 fn main() -> eframe::Result<()> {
     create_projects_directory();
 
@@ -117,6 +118,7 @@ struct OmniBoardStudio {
     _watcher: Option<RecommendedWatcher>,
 }
 
+//MARK: - OmniBoardStudio Implementation
 impl OmniBoardStudio {
     fn new(ctx: &egui::Context) -> Self {
         let (tx, rx) = channel();
@@ -179,6 +181,7 @@ impl OmniBoardStudio {
     }
 }
 
+//MARK: - eframe::App Implementation
 impl eframe::App for OmniBoardStudio {
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {

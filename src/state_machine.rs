@@ -33,6 +33,7 @@ pub struct AppStateMachine {
     current_theme: String,
 }
 
+//MARK: - AppStateMachine Implementation
 impl AppStateMachine {
      pub fn new() -> Self {
         Self {

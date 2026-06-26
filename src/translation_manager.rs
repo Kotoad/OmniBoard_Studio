@@ -21,6 +21,7 @@ pub struct TranslationManager {
     cache: Mutex<HashMap<String, String>>,
 }
 
+//MARK: - TranslationManager Implementation
 impl TranslationManager {
     pub fn new(start_language: &str) -> Self {
         let mut manager = Self {

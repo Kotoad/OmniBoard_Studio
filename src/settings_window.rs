@@ -2,6 +2,7 @@ use eframe::egui::{self, Color32, Ui};
 use crate::{OmniBoardStudio, settings, state_machine, theme};
 use crate::translation_manager::tr;
 
+//MARK: - Settings Window
 fn color_row(ui: &mut Ui, color_category: &str) -> bool {
     ui.horizontal(|ui|{
         let mut pal = theme::palette(ui.ctx());
@@ -114,6 +115,7 @@ fn color_row(ui: &mut Ui, color_category: &str) -> bool {
     }).inner
 }
 
+//MARK: - OmniBoardStudio Implementation
 impl OmniBoardStudio {
     pub(crate) fn settings_window(&mut self, ctx: &egui::Context) {
         if !state_machine::with(|sm| sm.is_open("settings")) {
@@ -194,7 +196,4 @@ impl OmniBoardStudio {
             
         );        
     }
-
-    
-    
 }

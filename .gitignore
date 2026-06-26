@@ -9,6 +9,7 @@ autosave/
 compare/
 Config/
 debug/
+commented/
 
 # Virtual environment
 venv/

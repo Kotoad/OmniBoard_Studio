@@ -1,4 +1,4 @@
-    use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{RwLock, OnceLock};
@@ -40,6 +40,7 @@ fn config_path() -> Option<PathBuf> {
     Some(disr.config_dir().join("settings.toml"))
 }
 
+//MARK: - Settings Implementation
 impl Settings {
     pub fn load() -> Self {
         let Some(path) = config_path() else { return Self::default(); };
