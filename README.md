@@ -6,7 +6,7 @@ OmniBoard Studio is a desktop application that lets you build programs for Raspb
 
 Website: <https://www.omniboardstudio.cz>
 
-## Features
+## Features - planed
 
 - **Visual node editor** — build logic by connecting blocks, timers, and hardware interfaces instead of writing code by hand.
 - **Integrated compiler** — translate node graphs into clean MicroPython and Python, ready to deploy to connected devices.
