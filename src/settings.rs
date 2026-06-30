@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::sync::{RwLock, OnceLock};
 
 use crate::theme::Palette;
+use log::{warn, error};
 
 const VERSION: u32 = 1;
 
@@ -47,7 +48,7 @@ impl Settings {
 
         match fs::read_to_string(&path) {
             Ok(text) => toml::from_str(&text).unwrap_or_else(|e| {
-                eprintln!("Error parsing settings: {}", e);
+                warn!("Error parsing settings: {}", e);
                 Self::default()
             }),
             Err(_) => {
@@ -66,7 +67,7 @@ impl Settings {
         let toml = match toml::to_string_pretty(self) {
             Ok(s) => s,
             Err(e) => {
-                eprintln!("Error serializing settings: {}", e);
+                error!("Error serializing settings: {}", e);
                 return;
             }
         };

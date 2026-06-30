@@ -13,6 +13,7 @@ use std::path::{PathBuf, Path};
 use std::sync::mpsc::{Receiver, channel};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
 use i18n_embed_fl::fl;
+use log::{debug, info, warn, error};
 
 use crate::translation_manager::LOADER;
 use crate::widgets::{file_button_simple};
@@ -48,9 +49,9 @@ fn read_omni_files() -> Vec<std::path::PathBuf> {
 fn read_omni_file(path: &std::path::Path) {
     let content = fs::read_to_string(path).ok();
     if let Some(content) = content {
-        println!("Content of {}:\n{}", path.display(), content);
+        debug!("Content of {}:\n{}", path.display(), content);
     } else {
-        eprintln!("Failed to read file: {}", path.display());
+        error!("Failed to read file: {}", path.display());
     }
 }
 
@@ -63,13 +64,14 @@ fn create_projects_directory() {
     let path = "./Projects";
     if !std::path::Path::new(path).exists() {
         if let Err(e) = std::fs::create_dir(path) {
-            eprintln!("Failed to create Projects directory: {e}");
+            error!("Failed to create Projects directory: {e}");
         }
     }
 }
 
 //MARK: - Main
 fn main() -> eframe::Result<()> {
+    env_logger::init();
     create_projects_directory();
 
     settings::init();
@@ -93,22 +95,7 @@ fn main() -> eframe::Result<()> {
         options,
         Box::new(move |cc| {
             theme::install_theme_from_str(&cc.egui_ctx, &theme);
-            println!("Loading theme {:?}", theme);
-            let theme = match theme.as_str() {
-                "Light" => state_machine::Theme::Light,
-                "Dark" => state_machine::Theme::Dark,
-                "Solarized Light" => state_machine::Theme::SolarizedLight,
-                "Solarized Dark" => state_machine::Theme::SolarizedDark,
-                "Monokai" => state_machine::Theme::Monokai,
-                "Dracula" => state_machine::Theme::Dracula,
-                "Catppuccin" => state_machine::Theme::Catppuccin,
-                "One Dark" => state_machine::Theme::OneDark,
-                "Gruvbox" => state_machine::Theme::Gruvbox,
-                "Nord" => state_machine::Theme::Nord,
-                "Custom" => state_machine::Theme::Custom,
-                _ => state_machine::Theme::Dark,
-            };
-            println!("Loading theme enum {:?}", theme);
+            let theme = state_machine::with_mut(|sm| sm.get_theme_from_str(&theme));
             state_machine::with_mut(|sm| sm.set_current_theme(theme));
             translation_manager::switch_language(&lang);
             cc.egui_ctx.set_pixels_per_point(scale);
@@ -116,7 +103,7 @@ fn main() -> eframe::Result<()> {
             if let Some(gl) = &cc.gl {
                 use eframe::glow::HasContext as _;
                 let renderer = unsafe { gl.get_parameter_string(eframe::glow::RENDERER) };
-                eprintln!("Renderer: {renderer}");
+                info!("Renderer: {renderer}");
             }
             Ok(Box::new(OmniBoardStudio::new(&cc.egui_ctx)))
         }),
@@ -149,7 +136,7 @@ impl OmniBoardStudio {
             w.watch(Path::new("./Projects"), RecursiveMode::Recursive)?;
             Ok(w)
         })
-            .map_err(|e| eprintln!("File watching disabled: {e}"))
+            .map_err(|e| warn!("File watching disabled: {e}"))
             .ok();
 
         let mut app = Self { 
@@ -204,9 +191,9 @@ impl eframe::App for OmniBoardStudio {
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
-        while let Ok(_event) = self.fs_rx.try_recv() {
-            self.refresh_files();
-        }
+        let mut changed = false;
+        while self.fs_rx.try_recv().is_ok() { changed = true; }
+        if changed { self.refresh_files(); }
 
         let _window_width = ctx.screen_rect().width();
         let _window_height = ctx.screen_rect().height();
@@ -221,19 +208,19 @@ impl eframe::App for OmniBoardStudio {
 
                 ui.menu_button(fl!(LOADER, "main-GUI-menu-new"), |ui| {
                     if ui.button(fl!(LOADER, "main-GUI-menu-new")).clicked() {
-                        println!("New file");
+                        debug!("New file");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-open")).clicked() {
-                        println!("Open file");
+                        debug!("Open file");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-save")).clicked() {
-                        println!("Save file");
+                        debug!("Save file");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-save-as")).clicked() {
-                        println!("Save As");
+                        debug!("Save As");
                         ui.close_menu();
                     }
                     ui.separator();
@@ -243,27 +230,27 @@ impl eframe::App for OmniBoardStudio {
                 });
                 ui.menu_button(fl!(LOADER, "main-GUI-menu-blocks"), |ui| {
                     if ui.button(fl!(LOADER, "main-GUI-menu-block-library")).clicked() {
-                        println!("View block library");
+                        debug!("View block library");
                         ui.close_menu();
                     }
                 });
                 ui.menu_button(fl!(LOADER, "main-GUI-menu-view"), |ui| {
                     if ui.button(fl!(LOADER, "main-GUI-menu-hub")).clicked() {
-                        println!("View Hub");
+                        debug!("View Hub");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-visual-editor")).clicked() {
-                        println!("View visual editor");
+                        debug!("View visual editor");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-code-editor")).clicked() {
-                        println!("View code editor");
+                        debug!("View code editor");
                         ui.close_menu();
                     }
                 });
                 ui.menu_button(fl!(LOADER, "main-GUI-menu-compile"), |ui| {
                     if ui.button(fl!(LOADER, "main-GUI-menu-compile-code")).clicked() {
-                        println!("Compile code");
+                        debug!("Compile code");
                         ui.close_menu();
                     }
                 });
@@ -275,15 +262,15 @@ impl eframe::App for OmniBoardStudio {
                 });
                 ui.menu_button(fl!(LOADER, "main-GUI-menu-help"), |ui| {
                     if ui.button(fl!(LOADER, "main-GUI-menu-get-started")).clicked() {
-                        println!("Get Started");
+                        debug!("Get Started");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-tutorials")).clicked() {
-                        println!("View Tutorials");
+                        debug!("View Tutorials");
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-GUI-menu-faq")).clicked() {
-                        println!("View FAQ");
+                        debug!("View FAQ");
                         ui.close_menu();
                     }
                 });
@@ -307,21 +294,21 @@ impl eframe::App for OmniBoardStudio {
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(new_file)).clicked() {
-                        println!("New file");
+                        debug!("New file");
                     }
 
                     let open_file = egui::Image::new(tool_img!("Open_file.png"))
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(open_file)).clicked() {
-                        println!("Open file");
+                        debug!("Open file");
                     }
 
                     let save_file = egui::Image::new(tool_img!("Save_file.png"))
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(save_file)).clicked() {
-                        println!("Save file");
+                        debug!("Save file");
                     }
 
                     ui.separator();

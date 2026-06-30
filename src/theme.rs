@@ -328,7 +328,6 @@ pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {
         "Custom" => settings::Settings::load().custom_theme.unwrap(),
         _ => Palette::dark(),
     };
-    println!("Saved settings palette: {:?}", settings::Settings::load().custom_theme);
     install(ctx, palette);
 }
 

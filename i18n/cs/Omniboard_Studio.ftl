@@ -1,6 +1,4 @@
 ### OmniBoard Studio — Czech translations
-### Converted from resources/translations/cz.json
-
 
 ## main_GUI
 
@@ -28,7 +26,7 @@ main-GUI-menu-faq = Časté dotazy
 main-GUI-menu-compile = Kompilovat
 main-GUI-menu-compile-code = Kompilovat kód
 main-GUI-menu-hub = Hub
-main-GUI-menu-visual-editor = Vizualní editor
+main-GUI-menu-visual-editor = Vizuální editor
 main-GUI-menu-code-editor = Editor kódu
 
 # top_toolbar
@@ -42,7 +40,7 @@ main-GUI-top-toolbar-compile-upload = Kompilovat a nahrát
 main-GUI-top-toolbar-run = Spustit
 main-GUI-top-toolbar-stop = Zastavit vykonávání
 main-GUI-top-toolbar-hub = Hub
-main-GUI-top-toolbar-visual-editor = Vizualní editor
+main-GUI-top-toolbar-visual-editor = Vizuální editor
 main-GUI-top-toolbar-code-editor = Editor kódu
 
 # bottom_toolbar
@@ -365,12 +363,13 @@ settings-window-rpi-tab = Raspberry
 
 #general-tab
 settings-window-general-tab-heading = Základní nastavení
-settings-window-general-tab-select-language = Vyberte jazyk
+settings-window-general-tab-language = Vyberte jazyk
+settings-window-general-tab-language-combo = Jazyk
+settings-window-general-tab-language-english = Angličtina
+settings-window-general-tab-language-czech = Čeština
 settings-window-general-tab-ui-scale = Měřítko uživatelského rozhraní
-settings-window-general-tab-small = Malý
-settings-window-general-tab-medium = Střední
-settings-window-general-tab-large = Velký
-settings-window-general-tab-apply-settings = Použít nastavení
+settings-window-general-tab-ui-scale-slider = Měřítko
+settings-window-general-tab-ui-scale-reset = Resetovat měřítko
 
 # theme-tab
 settings-window-theme-tab-heading = Nastavení motivu

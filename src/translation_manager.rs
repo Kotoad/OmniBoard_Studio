@@ -7,21 +7,21 @@ use once_cell::sync::Lazy;
 
 #[derive(RustEmbed)]
 #[folder = "i18n/"]
-struct Localizations;
+struct TranslationManager;
 
 pub static LOADER: Lazy<FluentLanguageLoader> = Lazy::new(|| {
     let loader = fluent_language_loader!();
-    loader.load_languages(&Localizations, &[loader.fallback_language().clone()]).unwrap();
+    loader.load_languages(&TranslationManager, &[loader.fallback_language().clone()]).unwrap();
     loader
 });
 
 pub fn init() {
     let requested = DesktopLanguageRequester::requested_languages();
-    let _ = i18n_embed::select(&*LOADER, &Localizations, &requested);
+    let _ = i18n_embed::select(&*LOADER, &TranslationManager, &requested);
 }
 
 pub fn switch_language(language: &str) {
     if let Ok(id) = language.parse() {
-        let _ = i18n_embed::select(&*LOADER, &Localizations, &[id]);
+        let _ = i18n_embed::select(&*LOADER, &TranslationManager, &[id]);
     }
 }

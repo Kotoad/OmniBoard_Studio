@@ -1,5 +1,6 @@
 use eframe::egui::{self, Color32, Ui};
 use i18n_embed_fl::fl;
+use log::debug;
 
 use crate::{OmniBoardStudio, settings, state_machine, theme};
 use crate::translation_manager::LOADER;
@@ -137,7 +138,69 @@ fn color_row(ui: &mut Ui, color_category: &str) -> bool {
 impl OmniBoardStudio {
     //MARK: - General Tab UI
     fn general_tab_ui(&mut self, ui: &mut Ui) {
-        ui.label(fl!(LOADER, "settings-window-general-tab-heading"));
+
+        let mut current_language = state_machine::with(|sm| sm.get_current_language());
+
+        ui.heading(fl!(LOADER, "settings-window-general-tab-heading"));
+
+        ui.label(fl!(LOADER, "settings-window-general-tab-language"));
+
+        egui::ComboBox::from_label(fl!(LOADER, "settings-window-general-tab-language-combo"))
+            .selected_text(match current_language {
+                state_machine::Language::English => fl!(LOADER, "settings-window-general-tab-language-english"),
+                state_machine::Language::Czech => fl!(LOADER, "settings-window-general-tab-language-czech"),
+            })
+            .show_ui(ui, |ui| {
+                ui.selectable_value(&mut current_language, state_machine::Language::English, fl!(LOADER, "settings-window-general-tab-language-english"));
+                ui.selectable_value(&mut current_language, state_machine::Language::Czech, fl!(LOADER, "settings-window-general-tab-language-czech"));
+            });
+        
+        if state_machine::with(|sm| sm.language_changed(current_language)) {
+            state_machine::with_mut(|sm| sm.set_current_language(current_language));
+            match current_language {
+                state_machine::Language::English => {
+                    crate::translation_manager::switch_language("en");
+                }
+                state_machine::Language::Czech => {
+                    crate::translation_manager::switch_language("cs");
+                }
+            }
+            settings::update(|s| s.language = match current_language {
+                state_machine::Language::English => "en".to_string(),
+                state_machine::Language::Czech => "cs".to_string(),
+            });
+        }
+
+        ui.separator();
+
+        let mut current_ui_scale = state_machine::with(|sm| sm.get_ui_scale());
+
+        ui.label(fl!(LOADER, "settings-window-general-tab-ui-scale"));
+
+        ui.horizontal(|ui| {
+            let scale_slider = ui.add(
+            egui::Slider::new(&mut current_ui_scale, 0.8..=1.3)
+                .text(fl!(LOADER, "settings-window-general-tab-ui-scale-slider"))
+                .show_value(true)
+                .step_by(0.1)
+            );
+
+            if ui.button(fl!(LOADER, "settings-window-general-tab-ui-scale-reset")).clicked() {
+                current_ui_scale = 1.0;
+                state_machine::with_mut(|sm| sm.set_ui_scale(current_ui_scale));
+                settings::update(|s| s.ui_scale = current_ui_scale);
+                ui.ctx().set_pixels_per_point(current_ui_scale);
+            }
+
+            if scale_slider.changed() {
+            state_machine::with_mut(|sm| sm.set_ui_scale(current_ui_scale));
+            }
+            
+            if scale_slider.drag_stopped() || (scale_slider.changed() && !scale_slider.dragged()) {
+                settings::update(|s| s.ui_scale = current_ui_scale);
+                ui.ctx().set_pixels_per_point(current_ui_scale);
+            }
+        });
     }
 
     //MARK: - Theme Tab UI
@@ -147,7 +210,7 @@ impl OmniBoardStudio {
         let mut current_theme = state_machine::with(|sm| sm.get_current_theme());
         let current_theme_str;
 
-        ui.label(fl!(LOADER, "settings-window-theme-tab-heading"));
+        ui.heading(fl!(LOADER, "settings-window-theme-tab-heading"));
         egui::ComboBox::from_label(fl!(LOADER, "settings-window-theme-tab-combo"))
             .selected_text(match current_theme {
                 state_machine::Theme::Light => fl!(LOADER, "settings-window-theme-tab-light-theme"),
@@ -178,21 +241,7 @@ impl OmniBoardStudio {
 
         if state_machine::with(|sm| sm.theme_changed(current_theme)) {
             state_machine::with_mut(|sm| sm.set_current_theme(current_theme.clone()));
-            println!("Theme changed to: {:?}", current_theme);
-            current_theme_str = match current_theme {
-                state_machine::Theme::Light => "Light".to_string(),
-                state_machine::Theme::Dark => "Dark".to_string(),
-                state_machine::Theme::Nord => "Nord".to_string(),
-                state_machine::Theme::Dracula => "Dracula".to_string(),
-                state_machine::Theme::Gruvbox => "Gruvbox".to_string(),
-                state_machine::Theme::SolarizedDark => "Solarized Dark".to_string(),
-                state_machine::Theme::SolarizedLight => "Solarized Light".to_string(),
-                state_machine::Theme::Monokai => "Monokai".to_string(),
-                state_machine::Theme::OneDark => "One Dark".to_string(),
-                state_machine::Theme::Catppuccin => "Catppuccin".to_string(),
-                state_machine::Theme::Custom => "Custom".to_string(),
-            };
-            println!("Theme changed to string: {}", current_theme_str);
+            current_theme_str = state_machine::with(|sm| sm.get_theme_str());
             theme::install_theme_from_str(ui.ctx(), &current_theme_str);
             settings::update(|s| s.theme = current_theme_str.clone());
         }
@@ -257,7 +306,7 @@ impl OmniBoardStudio {
                     
                 });
                 if ctx.input(|i| i.viewport().close_requested()) {
-                    print!("Settings window closed");
+                    debug!("Settings window closed");
                     state_machine::with_mut(|sm| sm.on_close_settings_window());
                 }
             }

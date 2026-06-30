@@ -1,6 +1,4 @@
 ### OmniBoard Studio — English translations
-### Converted from resources/translations/en.json
-
 
 ## main_GUI
 
@@ -365,13 +363,14 @@ settings-window-theme-tab = Theme
 settings-window-rpi-tab = Raspberry
 
 # general-tab
-settings-window-general-tab-heading = Basic Settings
-settings-window-general-tab-select-language = Select Language
+settings-window-general-tab-heading = General Settings
+settings-window-general-tab-language = Select Language
+settings-window-general-tab-language-combo = Language
+settings-window-general-tab-language-english = English
+settings-window-general-tab-language-czech = Czech
 settings-window-general-tab-ui-scale = UI Scale
-settings-window-general-tab-small = Small
-settings-window-general-tab-medium = Medium
-settings-window-general-tab-large = Large
-settings-window-general-tab-apply-settings = Apply Settings
+settings-window-general-tab-ui-scale-slider = Scale
+settings-window-general-tab-ui-scale-reset = Reset scale
 
 # theme-tab
 settings-window-theme-tab-heading = Theme Settings
