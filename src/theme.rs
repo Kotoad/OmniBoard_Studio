@@ -313,38 +313,39 @@ pub fn palette(ctx: &egui::Context) -> Palette {
         .unwrap_or_else(Palette::dark)
 }
 
-pub fn get_palette_str(ctx: &egui::Context, theme_str: &str) {
+pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {
     let palette = match theme_str {
-        "light" => Palette::light(),
-        "dark" => Palette::dark(),
-        "nord" => Palette::nord(),
-        "dracula" => Palette::dracula(),
-        "gruvbox" => Palette::gruvbox(),
-        "solarized_dark" => Palette::solarized_dark(),
-        "solarized_light" => Palette::solarized_light(),
-        "monokai" => Palette::monokai(),
-        "one_dark" => Palette::one_dark(),
-        "catppuccin" => Palette::catppuccin(),
-        "custom" => settings::with(|s| s.custom_theme.unwrap_or(Palette::dark())),
+        "Dark" => Palette::dark(),
+        "Light" => Palette::light(),
+        "Nord" => Palette::nord(),
+        "Dracula" => Palette::dracula(),
+        "Gruvbox" => Palette::gruvbox(),
+        "Solarized Dark" => Palette::solarized_dark(),
+        "Solarized Light" => Palette::solarized_light(),
+        "Monokai" => Palette::monokai(),
+        "One Dark" => Palette::one_dark(),
+        "Catppuccin" => Palette::catppuccin(),
+        "Custom" => settings::Settings::load().custom_theme.unwrap(),
         _ => Palette::dark(),
     };
+    println!("Saved settings palette: {:?}", settings::Settings::load().custom_theme);
     install(ctx, palette);
 }
 
 fn visuals(p: &Palette) -> Visuals {
-    let theme = state_machine::with(|sm| sm.get_current_theme()).to_string();
-    let mut v = match theme.as_str() {
-        "dark" => Visuals::dark(),
-        "light" => Visuals::light(),
-        "nord" => Visuals::dark(),
-        "dracula" => Visuals::dark(),
-        "gruvbox" => Visuals::dark(),
-        "solarized_dark" => Visuals::dark(),
-        "solarized_light" => Visuals::light(),
-        "monokai" => Visuals::dark(),
-        "one_dark" => Visuals::dark(),
-        "catppuccin" => Visuals::dark(),
-        _ => Visuals::dark(),
+    let theme = state_machine::with(|sm| sm.get_current_theme());
+    let mut v = match theme {
+        state_machine::Theme::Dark => Visuals::dark(),
+        state_machine::Theme::Light => Visuals::light(),
+        state_machine::Theme::Nord => Visuals::dark(),
+        state_machine::Theme::Dracula => Visuals::dark(),
+        state_machine::Theme::Gruvbox => Visuals::dark(),
+        state_machine::Theme::SolarizedDark => Visuals::dark(),
+        state_machine::Theme::SolarizedLight => Visuals::light(),
+        state_machine::Theme::Monokai => Visuals::dark(),
+        state_machine::Theme::OneDark => Visuals::dark(),
+        state_machine::Theme::Catppuccin => Visuals::dark(),
+        state_machine::Theme::Custom => Visuals::dark(),
     };
     
     v.panel_fill = p.window;
@@ -355,7 +356,7 @@ fn visuals(p: &Palette) -> Visuals {
     v.window_stroke = Stroke::new(BORDER, p.dark);
 
     v.selection.bg_fill = p.highlight.gamma_multiply(0.55);
-    v.selection.stroke = Stroke::new(BORDER, p.highlight);
+    v.selection.stroke = Stroke::new(BORDER, p.highlighted_text);
     v.hyperlink_color = p.link;
 
     v.warn_fg_color = p.bright_text;
@@ -379,7 +380,7 @@ fn visuals(p: &Palette) -> Visuals {
     v.widgets.hovered.bg_fill = p.alternate_base;
     v.widgets.hovered.weak_bg_fill = p.alternate_base;
     v.widgets.hovered.bg_stroke = Stroke::new(BORDER, p.highlight);
-    v.widgets.hovered.fg_stroke = Stroke::new(BORDER, p.window_text);
+    v.widgets.hovered.fg_stroke = Stroke::new(BORDER, p.highlight);
     v.widgets.hovered.rounding = rounding;
     v.widgets.hovered.expansion = 1.0;
 
