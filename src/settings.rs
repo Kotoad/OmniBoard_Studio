@@ -25,7 +25,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             version: VERSION,
-            theme: "dark".to_string(),
+            theme: "Dark".to_string(),
             language: "en".to_string(),
             ui_scale: 1.0,
             rpi_host: String::new(),

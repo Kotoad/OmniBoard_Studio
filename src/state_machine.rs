@@ -30,6 +30,9 @@ pub enum CanvasState { Idle, AddingBlock, AddingPath, MovingItem, DeletingItem }
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SettingsTab { General, Themes, Rpi }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum AppTab { Hub, VisualEditor, CodeEditor }
+
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Theme { Dark, Light, SolarizedLight, SolarizedDark, Monokai, Dracula, Catppuccin, OneDark, Gruvbox, Nord, Custom }
 
@@ -42,6 +45,7 @@ pub struct AppStateMachine {
     canvas: CanvasState,
     open_windows: HashSet<String>,
     settings_tab: SettingsTab,
+    app_tab: AppTab,
     current_theme: Theme,
     current_language: Language,
 }
@@ -78,6 +82,7 @@ impl AppStateMachine {
             canvas: CanvasState::Idle,
             open_windows: HashSet::new(),
             settings_tab: SettingsTab::General,
+            app_tab: AppTab::Hub,
             current_theme: current_theme,
             current_language: current_language,
         }
@@ -179,5 +184,13 @@ impl AppStateMachine {
 
     pub fn get_settings_tab(&self) -> SettingsTab {
         self.settings_tab
+    }
+
+    pub fn set_app_tab(&mut self, tab: AppTab) {
+        self.app_tab = tab;
+    }
+
+    pub fn get_app_tab(&self) -> AppTab {
+        self.app_tab
     }
 }

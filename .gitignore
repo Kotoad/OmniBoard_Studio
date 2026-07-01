@@ -35,6 +35,7 @@ Thumbs.db
 File.py
 last_report.txt
 error_log.txt
+demo.rs
 
 # Ignore Claude AI files
 .claude/
