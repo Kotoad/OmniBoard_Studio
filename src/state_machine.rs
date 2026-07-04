@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::sync::{RwLock, OnceLock};
 
 use crate::settings;
+use crate::state_machine::BasicBlock::Start;
 
 
 
@@ -28,10 +29,13 @@ pub enum AppState { MainWindow, SettingsWindow, BlocksWindow, Compiling }
 pub enum CanvasState { Idle, AddingBlock, AddingPath, MovingItem, DeletingItem }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
+pub enum AppTab { Hub, VisualEditor, CodeEditor }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SettingsTab { General, Themes, Rpi }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum AppTab { Hub, VisualEditor, CodeEditor }
+pub enum BlocksLibraryTab { Basic, Logic, IO, Math, Functions }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Theme { Dark, Light, SolarizedLight, SolarizedDark, Monokai, Dracula, Catppuccin, OneDark, Gruvbox, Nord, Custom }
@@ -39,15 +43,36 @@ pub enum Theme { Dark, Light, SolarizedLight, SolarizedDark, Monokai, Dracula, C
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Language { English, Czech }
 
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum Block { Basic(BasicBlock), Logic(LogicBlock), Math(MathBlock), IO(IOBlock) }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum BasicBlock { Start, End }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum LogicBlock { If, Else, While, For }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum MathBlock { Add, Subtract, Multiply, Divide }
+
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum IOBlock { Input, Output }
+
 pub struct AppStateMachine {
     scale: f32,
     state: AppState,
     canvas: CanvasState,
     open_windows: HashSet<String>,
-    settings_tab: SettingsTab,
     app_tab: AppTab,
+    settings_tab: SettingsTab,
+    blocks_library_tab: BlocksLibraryTab,
     current_theme: Theme,
     current_language: Language,
+    block: Block,
+    basic_block: BasicBlock,
+    logic_block: LogicBlock,
+    math_block: MathBlock,
+    io_block: IOBlock,
 }
 
 //MARK: - AppStateMachine Implementation
@@ -81,10 +106,16 @@ impl AppStateMachine {
             state: AppState::MainWindow,
             canvas: CanvasState::Idle,
             open_windows: HashSet::new(),
-            settings_tab: SettingsTab::General,
             app_tab: AppTab::Hub,
+            settings_tab: SettingsTab::General,
+            blocks_library_tab: BlocksLibraryTab::Basic,
             current_theme: current_theme,
             current_language: current_language,
+            block: Block::Basic(Start),
+            basic_block: BasicBlock::Start,
+            logic_block: LogicBlock::If,
+            math_block: MathBlock::Add,
+            io_block: IOBlock::Input,
         }
     }
 
@@ -102,6 +133,20 @@ impl AppStateMachine {
     pub fn on_close_settings_window(&mut self) {
         self.state = AppState::MainWindow;
         self.open_windows.remove("settings");
+    }
+    
+    pub fn on_open_blocks_library_window(&mut self) -> bool {
+        if self.can_open_window() && self.app_tab == AppTab::VisualEditor {
+            self.state = AppState::BlocksWindow;
+            self.open_windows.insert("blocks_library".to_string());
+            true
+        }
+        else { false }
+    }
+
+    pub fn on_close_blocks_library_window(&mut self) {
+        self.state = AppState::MainWindow;
+        self.open_windows.remove("blocks_library");
     }
 
     pub fn is_open(&self, window: &str) -> bool { self.open_windows.contains(window) }
@@ -178,6 +223,14 @@ impl AppStateMachine {
         self.scale
     }
 
+    pub fn set_app_tab(&mut self, tab: AppTab) {
+        self.app_tab = tab;
+    }
+
+    pub fn get_app_tab(&self) -> AppTab {
+        self.app_tab
+    }
+
     pub fn set_settings_tab(&mut self, tab: SettingsTab) {
         self.settings_tab = tab;
     }
@@ -186,11 +239,19 @@ impl AppStateMachine {
         self.settings_tab
     }
 
-    pub fn set_app_tab(&mut self, tab: AppTab) {
-        self.app_tab = tab;
+    pub fn get_blocks_library_tab(&self) -> BlocksLibraryTab {
+        self.blocks_library_tab
     }
 
-    pub fn get_app_tab(&self) -> AppTab {
-        self.app_tab
+    pub fn set_blocks_library_tab(&mut self, tab: BlocksLibraryTab) {
+        self.blocks_library_tab = tab;
+    }
+
+    pub fn get_current_basic_block_details(&self) -> BasicBlock {
+        self.basic_block
+    }
+
+    pub fn set_current_basic_block_details(&mut self, block: BasicBlock) {
+        self.basic_block = block;
     }
 }

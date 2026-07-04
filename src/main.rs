@@ -6,6 +6,9 @@ mod widgets;
 mod settings_window;
 mod state_machine;
 mod settings;
+mod visual_editor;
+mod blocks_library;
+mod blocks_data;
 
 use eframe::egui;
 use std::fs;
@@ -14,6 +17,7 @@ use std::sync::mpsc::{Receiver, channel};
 use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
 use i18n_embed_fl::fl;
 use log::{debug, info, warn, error};
+use std::io::Write;
 
 use crate::translation_manager::LOADER;
 use crate::widgets::{file_button_simple};
@@ -46,15 +50,6 @@ fn read_omni_files() -> Vec<std::path::PathBuf> {
     }
 }
 
-fn read_omni_file(path: &std::path::Path) {
-    let content = fs::read_to_string(path).ok();
-    if let Some(content) = content {
-        debug!("Content of {}:\n{}", path.display(), content);
-    } else {
-        error!("Failed to read file: {}", path.display());
-    }
-}
-
 fn format_time(t: std::time::SystemTime) -> String {
     let datetime: chrono::DateTime<chrono::Local> = t.into();
     datetime.format("%Y-%m-%d %H:%M").to_string()
@@ -71,7 +66,23 @@ fn create_projects_directory() {
 
 //MARK: - Main
 fn main() -> eframe::Result<()> {
-    env_logger::init();
+    
+    env_logger::Builder::new()
+        .filter_level(log::LevelFilter::Warn)
+        .filter_module("Omniboard_Studio", log::LevelFilter::Debug)
+        .format(|buf, record| {
+            let level = record.level();
+            let style = buf.default_level_style(level);
+            writeln!(
+                buf,
+                "[{style}{level}{style:#}] {}:{}\n    {}",
+                record.target(),
+                record.line().unwrap_or(0),
+                record.args()
+            )
+        })
+        .init();
+    
     create_projects_directory();
 
     settings::init();
@@ -121,6 +132,8 @@ struct OmniBoardStudio {
     files: Vec<ProjectFile>,
     fs_rx: Receiver<notify::Result<Event>>,
     _watcher: Option<RecommendedWatcher>,
+    visual_editor: visual_editor::VisualEditor,
+    current_file: Option<PathBuf>,
 }
 
 //MARK: - OmniBoardStudio Implementation
@@ -143,9 +156,58 @@ impl OmniBoardStudio {
             files: Vec::new(),
             fs_rx: rx,
             _watcher: watcher,
+            visual_editor: visual_editor::VisualEditor::new(),
+            current_file: None,
             };
         app.refresh_files();
         app
+    }
+
+    //MARK: - File Management
+
+    fn open_via_file_dialog(&mut self) {
+        let mut dialog = rfd::FileDialog::new()
+            .set_title(fl!(LOADER, "main-gui-dialogs-file-dialogs-open-title"))
+            .add_filter("OmniBoard project", &["omni"]);
+        if cfg!(debug_assertions) {
+            dialog = dialog.add_filter("Debug JSON", &["json"])
+        }
+
+        if let Some(path) = dialog.pick_file() {
+            self.visual_editor.load(&path);
+            if path.extension().and_then(|e| e.to_str()) == Some("json") {
+                self.current_file = Some(path.with_extension(""))
+            } else {
+                self.current_file = Some(path)
+            }
+            state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
+        }
+    }
+
+    fn save(&mut self) {
+        match &self.current_file {
+            Some(path) => self.visual_editor.save(path),
+            None => self.save_as(),
+        }
+    }
+
+    fn save_as(&mut self) {
+        if let Some(mut path) = rfd::FileDialog::new()
+            .set_title(fl!(LOADER, "main-gui-dialogs-file-dialogs-save-title"))
+            .add_filter("OmniBoard project", &["omni"])
+            .set_file_name("untitled.omni")
+            .save_file()
+        {
+            if path.extension().is_none() {
+                path.set_extension("omni");
+            }
+            self.visual_editor.save(&path);
+            if path.extension().and_then(|e| e.to_str()) == Some("json") {
+                self.current_file = Some(path.with_extension(""))
+            } else {
+                self.current_file = Some(path)
+            }
+        }
     }
 
     fn refresh_files(&mut self) {
@@ -172,19 +234,25 @@ impl OmniBoardStudio {
             if sm.is_open("settings") {
                 open_windows.push("settings");
             }
+            if sm.is_open("blocks_library") {
+                open_windows.push("blocks_library");
+            }
         });
         for window in open_windows {
             match window {
                 "settings" => self.open_settings_window(ctx),
+                "blocks_library" => self.visual_editor.blocks_library(ctx),
                 _ => {},
             }
         }
     }
 
+
     fn open_settings_window(&mut self, ctx: &egui::Context) {
         self.settings_window(ctx);
     }
 
+    //MARK: - GUI
     fn hub_tab_ui(&mut self, ctx: &egui::Context) {
 
         let _window_width: f32 = ctx.screen_rect().width();
@@ -203,7 +271,13 @@ impl OmniBoardStudio {
 
                         for file in &self.files {
                             if file_button_simple(ui, &file.name, &file.created, &file.last_modified).clicked() {
-                                read_omni_file(&file.path)
+                                self.visual_editor.load(&file.path);
+                                if file.path.extension().and_then(|e| e.to_str()) == Some("json") {
+                                    self.current_file = Some(file.path.with_extension(""))
+                                } else {
+                                    self.current_file = Some(file.path.clone())
+                                }
+                                state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
                             }
                         }
                     });
@@ -230,7 +304,7 @@ impl eframe::App for OmniBoardStudio {
         if changed { self.refresh_files(); }
 
 
-        let mut current_tab = state_machine::with(|sm| sm.get_app_tab());
+        let current_tab = state_machine::with(|sm| sm.get_app_tab());
 
         let pal = crate::theme::palette(ctx);
         egui::TopBottomPanel::top("Menu bar")
@@ -241,70 +315,70 @@ impl eframe::App for OmniBoardStudio {
   
                     v.widgets.noninteractive.bg_stroke.color = pal.window; 
 
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-new"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-new")).clicked() {
+                ui.menu_button(fl!(LOADER, "main-gui-menu-file"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-new")).clicked() {
                         debug!("New file");
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-open")).clicked() {
-                        debug!("Open file");
+                    if ui.button(fl!(LOADER, "main-gui-menu-open")).clicked() {
+                        self.open_via_file_dialog();
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-save")).clicked() {
-                        debug!("Save file");
+                    if ui.button(fl!(LOADER, "main-gui-menu-save")).clicked() {
+                        self.save();
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-save-as")).clicked() {
-                        debug!("Save As");
+                    if ui.button(fl!(LOADER, "main-gui-menu-save-as")).clicked() {
+                        self.save_as();
                         ui.close_menu();
                     }
                     ui.separator();
-                    if ui.button(fl!(LOADER, "main-GUI-menu-exit")).clicked() {
+                    if ui.button(fl!(LOADER, "main-gui-menu-exit")).clicked() {
                         ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                     }
                 });
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-blocks"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-block-library")).clicked() {
-                        debug!("View block library");
+                ui.menu_button(fl!(LOADER, "main-gui-menu-blocks"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-block-library")).clicked() {
+                        state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
                         ui.close_menu();
                     }
                 });
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-view"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-hub")).clicked() {
+                ui.menu_button(fl!(LOADER, "main-gui-menu-view"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-hub")).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::Hub); });
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-visual-editor")).clicked() {
+                    if ui.button(fl!(LOADER, "main-gui-menu-visual-editor")).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::VisualEditor); });
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-code-editor")).clicked() {
+                    if ui.button(fl!(LOADER, "main-gui-menu-code-editor")).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::CodeEditor); });
                         ui.close_menu();
                     }
                 });
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-compile"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-compile-code")).clicked() {
+                ui.menu_button(fl!(LOADER, "main-gui-menu-compile"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-compile-code")).clicked() {
                         debug!("Compile code");
                         ui.close_menu();
                     }
                 });
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-settings"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-settings")).clicked() {
+                ui.menu_button(fl!(LOADER, "main-gui-menu-settings"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-settings")).clicked() {
                         state_machine::with_mut(|sm| { sm.on_open_settings_window(); });
                         ui.close_menu();
                     }
                 });
-                ui.menu_button(fl!(LOADER, "main-GUI-menu-help"), |ui| {
-                    if ui.button(fl!(LOADER, "main-GUI-menu-get-started")).clicked() {
+                ui.menu_button(fl!(LOADER, "main-gui-menu-help"), |ui| {
+                    if ui.button(fl!(LOADER, "main-gui-menu-get-started")).clicked() {
                         debug!("Get Started");
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-tutorials")).clicked() {
+                    if ui.button(fl!(LOADER, "main-gui-menu-tutorials")).clicked() {
                         debug!("View Tutorials");
                         ui.close_menu();
                     }
-                    if ui.button(fl!(LOADER, "main-GUI-menu-faq")).clicked() {
+                    if ui.button(fl!(LOADER, "main-gui-menu-faq")).clicked() {
                         debug!("View FAQ");
                         ui.close_menu();
                     }
@@ -338,14 +412,14 @@ impl eframe::App for OmniBoardStudio {
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(open_file)).clicked() {
-                        debug!("Open file");
+                        self.open_via_file_dialog();
                     }
 
                     let save_file = egui::Image::new(tool_img!("Save_file.png"))
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(save_file)).clicked() {
-                        debug!("Save file");
+                        self.save();
                     }
                     
                     ui.add(egui::Separator::default().spacing(0.0));
@@ -354,7 +428,7 @@ impl eframe::App for OmniBoardStudio {
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(block_library)).clicked() {
-                        debug!("View block library");
+                        state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
@@ -403,9 +477,7 @@ impl eframe::App for OmniBoardStudio {
         match current_tab {
             state_machine::AppTab::Hub => self.hub_tab_ui(ctx),
             state_machine::AppTab::VisualEditor => {
-                egui::CentralPanel::default().show(ctx, |ui| {
-                    ui.label("Visual Editor");
-                });
+                self.visual_editor.show_visual_editor(ctx);
             },
             state_machine::AppTab::CodeEditor => {
                 egui::CentralPanel::default().show(ctx, |ui| {

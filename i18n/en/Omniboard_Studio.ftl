@@ -3,201 +3,221 @@
 ## main_GUI
 
 # _metadata
-main-GUI--metadata-language-name = English
-main-GUI--metadata-version = 1.0
-main-GUI--metadata-app-title = OmniBoard Studio
+main-gui--metadata-language-name = English
+main-gui--metadata-version = 1.0
+main-gui--metadata-app-title = OmniBoard Studio
 
 # menu
-main-GUI-menu-file = File
-main-GUI-menu-new = New
-main-GUI-menu-open = Open
-main-GUI-menu-save = Save
-main-GUI-menu-save-as = Save As
-main-GUI-menu-exit = Exit
-main-GUI-menu-edit = Edit
-main-GUI-menu-view = View
-main-GUI-menu-blocks = Blocks
-main-GUI-menu-block-library = Block Library
-main-GUI-menu-settings = Settings
-main-GUI-menu-help = Help
-main-GUI-menu-get-started = Get Started
-main-GUI-menu-tutorials = Tutorials
-main-GUI-menu-faq = FAQ
-main-GUI-menu-compile = Compile
-main-GUI-menu-compile-code = Compile Code
-main-GUI-menu-hub = Hub
-main-GUI-menu-visual-editor = Visual Editor
-main-GUI-menu-code-editor = Code Editor
+main-gui-menu-file = File
+main-gui-menu-new = New
+main-gui-menu-open = Open
+main-gui-menu-save = Save
+main-gui-menu-save-as = Save As
+main-gui-menu-exit = Exit
+main-gui-menu-edit = Edit
+main-gui-menu-view = View
+main-gui-menu-blocks = Blocks
+main-gui-menu-block-library = Block Library
+main-gui-menu-settings = Settings
+main-gui-menu-help = Help
+main-gui-menu-get-started = Get Started
+main-gui-menu-tutorials = Tutorials
+main-gui-menu-faq = FAQ
+main-gui-menu-compile = Compile
+main-gui-menu-compile-code = Compile Code
+main-gui-menu-hub = Hub
+main-gui-menu-visual-editor = Visual Editor
+main-gui-menu-code-editor = Code Editor
 
 # top_toolbar
-main-GUI-top-toolbar-toolbar = Main Toolbar
-main-GUI-top-toolbar-save = Save
-main-GUI-top-toolbar-open = Open
-main-GUI-top-toolbar-new = New
-main-GUI-top-toolbar-block-library = Block Library
-main-GUI-top-toolbar-settings = Settings
-main-GUI-top-toolbar-compile-upload = Compile and Upload
-main-GUI-top-toolbar-run = Run
-main-GUI-top-toolbar-stop = Stop Execution
-main-GUI-top-toolbar-hub = Hub
-main-GUI-top-toolbar-visual-editor = Visual Editor
-main-GUI-top-toolbar-code-editor = Code Editor
+main-gui-top-toolbar-toolbar = Main Toolbar
+main-gui-top-toolbar-save = Save
+main-gui-top-toolbar-open = Open
+main-gui-top-toolbar-new = New
+main-gui-top-toolbar-block-library = Block Library
+main-gui-top-toolbar-settings = Settings
+main-gui-top-toolbar-compile-upload = Compile and Upload
+main-gui-top-toolbar-run = Run
+main-gui-top-toolbar-stop = Stop Execution
+main-gui-top-toolbar-hub = Hub
+main-gui-top-toolbar-visual-editor = Visual Editor
+main-gui-top-toolbar-code-editor = Code Editor
 
 # bottom_toolbar
-main-GUI-bottom-toolbar-toolbar = Bottom Toolbar
-main-GUI-bottom-toolbar-pan = Pan Canvas
+main-gui-bottom-toolbar-toolbar = Bottom Toolbar
+main-gui-bottom-toolbar-pan = Pan Canvas
 
 # sidebar
-main-GUI-sidebar-main = Main
-main-GUI-sidebar-variables = variables
-main-GUI-sidebar-devices = devices
-main-GUI-sidebar-canvas = Canvas
-main-GUI-sidebar-internal-variables = Internal Variables
-main-GUI-sidebar-new-canvas = Add New Canvas
+main-gui-sidebar-main = Main
+main-gui-sidebar-variables = variables
+main-gui-sidebar-devices = devices
+main-gui-sidebar-canvas = Canvas
+main-gui-sidebar-internal-variables = Internal Variables
+main-gui-sidebar-new-canvas = Add New Canvas
+
+#block-context-menu
+main-gui-block-context-menu-copy = Copy
+main-gui-block-context-menu-delete = Delete
+
+#block-interacive-field
+block-interacive-field-start = Entry point
+block-interacive-field-end = Exit point
+block-interacive-field-for = For loop
+block-interacive-field-if = If loop part
+block-interacive-field-else = Else loop part
+block-interacive-field-while = While loop
+block-interacive-field-add = Add
+block-interacive-field-subtract = Subtract
+block-interacive-field-multiply = Multiply
+block-interacive-field-divide = Divide
+block-interacive-field-input = Input
+block-interacive-field-output = Output
 
 # variables_tab
-main-GUI-variables-tab-variables = Variables
-main-GUI-variables-tab-name-placeholder = Enter variable name
-main-GUI-variables-tab-type = Type
-main-GUI-variables-tab-initial-value-placeholder = Enter initial value
-main-GUI-variables-tab-add-variable = Add Variable
-main-GUI-variables-tab-current-value-placeholder = Current value
+main-gui-variables-tab-variables = Variables
+main-gui-variables-tab-name-placeholder = Enter variable name
+main-gui-variables-tab-type = Type
+main-gui-variables-tab-initial-value-placeholder = Enter initial value
+main-gui-variables-tab-add-variable = Add Variable
+main-gui-variables-tab-current-value-placeholder = Current value
 
 # devices_tab
-main-GUI-devices-tab-devices = Devices
-main-GUI-devices-tab-name-placeholder = Enter device name
-main-GUI-devices-tab-type = Type
-main-GUI-devices-tab-output = Output
-main-GUI-devices-tab-input = Input
-main-GUI-devices-tab-button = Button
-main-GUI-devices-tab-pin = Pin
-main-GUI-devices-tab-add-device = Add Device
-main-GUI-devices-tab-current-state-placeholder = Current value
+main-gui-devices-tab-devices = Devices
+main-gui-devices-tab-name-placeholder = Enter device name
+main-gui-devices-tab-type = Type
+main-gui-devices-tab-output = Output
+main-gui-devices-tab-input = Input
+main-gui-devices-tab-button = Button
+main-gui-devices-tab-pin = Pin
+main-gui-devices-tab-add-device = Add Device
+main-gui-devices-tab-current-state-placeholder = Current value
 
 # internal_tab
-main-GUI-internal-tab-header = Internal Variables and Devices
-main-GUI-internal-tab-variable-name-placeholder = Enter variable name
-main-GUI-internal-tab-device-name-placeholder = Enter device name
-main-GUI-internal-tab-output = Output
-main-GUI-internal-tab-input = Input
-main-GUI-internal-tab-button = Button
-main-GUI-internal-tab-initial-value = Initial Value
-main-GUI-internal-tab-add-internal-variable = Add Internal Variable
-main-GUI-internal-tab-add-internal-device = Add Internal Device
+main-gui-internal-tab-header = Internal Variables and Devices
+main-gui-internal-tab-variable-name-placeholder = Enter variable name
+main-gui-internal-tab-device-name-placeholder = Enter device name
+main-gui-internal-tab-output = Output
+main-gui-internal-tab-input = Input
+main-gui-internal-tab-button = Button
+main-gui-internal-tab-initial-value = Initial Value
+main-gui-internal-tab-add-internal-variable = Add Internal Variable
+main-gui-internal-tab-add-internal-device = Add Internal Device
 
 # inspector
-main-GUI-inspector-title = Inspector
-main-GUI-inspector-position = Position
-main-GUI-inspector-size = Size
-main-GUI-inspector-interval-ms = Interval ms
-main-GUI-inspector-interval-ms-placeholder = Interval in ms
-main-GUI-inspector-value-1-name = Value 1 Name
-main-GUI-inspector-value-1-name-placeholder = Enter name of first variable
-main-GUI-inspector-operator = Operator
-main-GUI-inspector-value-2-name = Value 2 Name
-main-GUI-inspector-value-2-name-placeholder = Enter name of second variable
-main-GUI-inspector-device-variable-name = Device/Variable Name
-main-GUI-inspector-device-variable-name-placeholder = Enter name of device or variable
-main-GUI-inspector-device-name = Device Name
-main-GUI-inspector-device-name-placeholder = Enter device name
-main-GUI-inspector-led-device-name = LED Device Name
-main-GUI-inspector-led-device-name-placeholder = Enter LED device name
-main-GUI-inspector-pwm-value = PWM Value (0-255)
-main-GUI-inspector-pwm-value-placeholder = Enter PWM value (0-255)
-main-GUI-inspector-first-variable = First Variable Name
-main-GUI-inspector-first-variable-placeholder = Enter first variable name
-main-GUI-inspector-second-variable = Second Variable Name
-main-GUI-inspector-second-variable-placeholder = Enter second variable name
-main-GUI-inspector-result-variable = Result Variable Name
-main-GUI-inspector-result-variable-placeholder = Enter result variable name
-main-GUI-inspector-input-variable = Input Variable
-main-GUI-inspector-ref-variable = Reference Variable
-main-GUI-inspector-main-variable = Main Variable
-main-GUI-inspector-main-variable-placeholder = Enter main variable name
-main-GUI-inspector-input-devices = Input Devices
-main-GUI-inspector-ref-devices = Reference Devices
-main-GUI-inspector-main-devices = Main Devices
-main-GUI-inspector-main-devices-placeholder = Enter main device name
-main-GUI-inspector-blink-interval-ms = Blink Interval (ms)
-main-GUI-inspector-blink-interval-ms-placeholder = Enter blink interval in ms
+main-gui-inspector-title = Inspector
+main-gui-inspector-position = Position
+main-gui-inspector-size = Size
+main-gui-inspector-interval-ms = Interval ms
+main-gui-inspector-interval-ms-placeholder = Interval in ms
+main-gui-inspector-value-1-name = Value 1 Name
+main-gui-inspector-value-1-name-placeholder = Enter name of first variable
+main-gui-inspector-operator = Operator
+main-gui-inspector-value-2-name = Value 2 Name
+main-gui-inspector-value-2-name-placeholder = Enter name of second variable
+main-gui-inspector-device-variable-name = Device/Variable Name
+main-gui-inspector-device-variable-name-placeholder = Enter name of device or variable
+main-gui-inspector-device-name = Device Name
+main-gui-inspector-device-name-placeholder = Enter device name
+main-gui-inspector-led-device-name = LED Device Name
+main-gui-inspector-led-device-name-placeholder = Enter LED device name
+main-gui-inspector-pwm-value = PWM Value (0-255)
+main-gui-inspector-pwm-value-placeholder = Enter PWM value (0-255)
+main-gui-inspector-first-variable = First Variable Name
+main-gui-inspector-first-variable-placeholder = Enter first variable name
+main-gui-inspector-second-variable = Second Variable Name
+main-gui-inspector-second-variable-placeholder = Enter second variable name
+main-gui-inspector-result-variable = Result Variable Name
+main-gui-inspector-result-variable-placeholder = Enter result variable name
+main-gui-inspector-input-variable = Input Variable
+main-gui-inspector-ref-variable = Reference Variable
+main-gui-inspector-main-variable = Main Variable
+main-gui-inspector-main-variable-placeholder = Enter main variable name
+main-gui-inspector-input-devices = Input Devices
+main-gui-inspector-ref-devices = Reference Devices
+main-gui-inspector-main-devices = Main Devices
+main-gui-inspector-main-devices-placeholder = Enter main device name
+main-gui-inspector-blink-interval-ms = Blink Interval (ms)
+main-gui-inspector-blink-interval-ms-placeholder = Enter blink interval in ms
 
 # settings
-main-GUI-settings-window-title = Settings
-main-GUI-settings-device = Device Settings
-main-GUI-settings-rpi-model = Select your RPI model
-main-GUI-settings-rpi-host = Raspberry Pi Host
-main-GUI-settings-rpi-user = Username
-main-GUI-settings-rpi-password = Password
-main-GUI-settings-language = Language
-main-GUI-settings-rpi-connection = Raspberry Pi Connection
-main-GUI-settings-auto-detect = Auto-Detect Raspberry Pi
-main-GUI-settings-manual = Or enter manually
-main-GUI-settings-status = Status
-main-GUI-settings-status-not-connected = Status: Not connected
-main-GUI-settings-additional-settings = Additional Settings
+main-gui-settings-window-title = Settings
+main-gui-settings-device = Device Settings
+main-gui-settings-rpi-model = Select your RPI model
+main-gui-settings-rpi-host = Raspberry Pi Host
+main-gui-settings-rpi-user = Username
+main-gui-settings-rpi-password = Password
+main-gui-settings-language = Language
+main-gui-settings-rpi-connection = Raspberry Pi Connection
+main-gui-settings-auto-detect = Auto-Detect Raspberry Pi
+main-gui-settings-manual = Or enter manually
+main-gui-settings-status = Status
+main-gui-settings-status-not-connected = Status: Not connected
+main-gui-settings-additional-settings = Additional Settings
 
 # dialogs.file_dialogs
-main-GUI-dialogs-file-dialogs-save-project = Save project?
-main-GUI-dialogs-file-dialogs-save-project-close = Save untitled project before closing?
-main-GUI-dialogs-file-dialogs-save-project-as = Save project as?
-main-GUI-dialogs-file-dialogs-enter-project-name = Enter project name:
-main-GUI-dialogs-file-dialogs-no-projects = No projects
-main-GUI-dialogs-file-dialogs-no-saved-projects-found = No saved projects found
-main-GUI-dialogs-file-dialogs-open-project = Open Project
-main-GUI-dialogs-file-dialogs-unsaved-changes = Do you want to save changes to { $name } before closing?
-main-GUI-dialogs-file-dialogs-confirm-delete = Are you sure you want to delete { $name }?
-main-GUI-dialogs-file-dialogs-confirm-new-title = Create New Project?
-main-GUI-dialogs-file-dialogs-confirm-new-message = Are you sure you want to create a new project? Unsaved changes will be lost.
+main-gui-dialogs-file-dialogs-open-title = Load file
+main-gui-dialogs-file-dialogs-save-title = Save file
+main-gui-dialogs-file-dialogs-save-project = Save project?
+main-gui-dialogs-file-dialogs-save-project-close = Save untitled project before closing?
+main-gui-dialogs-file-dialogs-save-project-as = Save project as?
+main-gui-dialogs-file-dialogs-enter-project-name = Enter project name:
+main-gui-dialogs-file-dialogs-no-projects = No projects
+main-gui-dialogs-file-dialogs-no-saved-projects-found = No saved projects found
+main-gui-dialogs-file-dialogs-open-project = Open Project
+main-gui-dialogs-file-dialogs-unsaved-changes = Do you want to save changes to { $name } before closing?
+main-gui-dialogs-file-dialogs-confirm-delete = Are you sure you want to delete { $name }?
+main-gui-dialogs-file-dialogs-confirm-new-title = Create New Project?
+main-gui-dialogs-file-dialogs-confirm-new-message = Are you sure you want to create a new project? Unsaved changes will be lost.
 
 # dialogs.changes_dialogs
-main-GUI-dialogs-changes-dialogs-main-canvas-changes = Main canvas changes:
-main-GUI-dialogs-changes-dialogs-blocks-added = block(s) added
-main-GUI-dialogs-changes-dialogs-blocks-removed = block(s) removed
-main-GUI-dialogs-changes-dialogs-blocks-modified = block(s) modified
-main-GUI-dialogs-changes-dialogs-connections-added = connection(s) added
-main-GUI-dialogs-changes-dialogs-connections-removed = connection(s) removed
-main-GUI-dialogs-changes-dialogs-function-canvas-changes = Function canvas changes:
-main-GUI-dialogs-changes-dialogs-function-added = function(s) added
-main-GUI-dialogs-changes-dialogs-function-removed = function(s) removed
-main-GUI-dialogs-changes-dialogs-function-blocks-modified = function(s) with blocks modified
-main-GUI-dialogs-changes-dialogs-function-connections-modified = function(s) with connections modified
-main-GUI-dialogs-changes-dialogs-variables-changes = Variables changes:
-main-GUI-dialogs-changes-dialogs-variables-added = variable(s) added
-main-GUI-dialogs-changes-dialogs-variables-removed = variable(s) removed
-main-GUI-dialogs-changes-dialogs-variables-modified = variable(s) modified
-main-GUI-dialogs-changes-dialogs-devices-changes = Devices changes:
-main-GUI-dialogs-changes-dialogs-devices-added = device(s) added
-main-GUI-dialogs-changes-dialogs-devices-removed = device(s) removed
-main-GUI-dialogs-changes-dialogs-devices-modified = device(s) modified
-main-GUI-dialogs-changes-dialogs-settings-changes = Settings: { $len_settings_changes } settings changed
-main-GUI-dialogs-changes-dialogs-no-changes-detected = No changes detected
-main-GUI-dialogs-changes-dialogs-unsaved-changes-detected = Unsaved Changes Detected:
+main-gui-dialogs-changes-dialogs-main-canvas-changes = Main canvas changes:
+main-gui-dialogs-changes-dialogs-blocks-added = block(s) added
+main-gui-dialogs-changes-dialogs-blocks-removed = block(s) removed
+main-gui-dialogs-changes-dialogs-blocks-modified = block(s) modified
+main-gui-dialogs-changes-dialogs-connections-added = connection(s) added
+main-gui-dialogs-changes-dialogs-connections-removed = connection(s) removed
+main-gui-dialogs-changes-dialogs-function-canvas-changes = Function canvas changes:
+main-gui-dialogs-changes-dialogs-function-added = function(s) added
+main-gui-dialogs-changes-dialogs-function-removed = function(s) removed
+main-gui-dialogs-changes-dialogs-function-blocks-modified = function(s) with blocks modified
+main-gui-dialogs-changes-dialogs-function-connections-modified = function(s) with connections modified
+main-gui-dialogs-changes-dialogs-variables-changes = Variables changes:
+main-gui-dialogs-changes-dialogs-variables-added = variable(s) added
+main-gui-dialogs-changes-dialogs-variables-removed = variable(s) removed
+main-gui-dialogs-changes-dialogs-variables-modified = variable(s) modified
+main-gui-dialogs-changes-dialogs-devices-changes = Devices changes:
+main-gui-dialogs-changes-dialogs-devices-added = device(s) added
+main-gui-dialogs-changes-dialogs-devices-removed = device(s) removed
+main-gui-dialogs-changes-dialogs-devices-modified = device(s) modified
+main-gui-dialogs-changes-dialogs-settings-changes = Settings: { $len_settings_changes } settings changed
+main-gui-dialogs-changes-dialogs-no-changes-detected = No changes detected
+main-gui-dialogs-changes-dialogs-unsaved-changes-detected = Unsaved Changes Detected:
 
 # dialogs.progress_dialogs
-main-GUI-dialogs-progress-dialogs-compiling = Compiling...
-main-GUI-dialogs-progress-dialogs-compilation-message = Compiling your code and preparing upload...
-main-GUI-dialogs-progress-dialogs-compilation-error = Compilation Error
-main-GUI-dialogs-progress-dialogs-compilation-error-message =
+main-gui-dialogs-progress-dialogs-compiling = Compiling...
+main-gui-dialogs-progress-dialogs-compilation-message = Compiling your code and preparing upload...
+main-gui-dialogs-progress-dialogs-compilation-error = Compilation Error
+main-gui-dialogs-progress-dialogs-compilation-error-message =
     An error occurred during code compilation. Please check your blocks and try again.
     Error details:
     { $error_details }
-main-GUI-dialogs-progress-dialogs-execution-started = Execution Started
-main-GUI-dialogs-progress-dialogs-execution-message =
+main-gui-dialogs-progress-dialogs-execution-started = Execution Started
+main-gui-dialogs-progress-dialogs-execution-message =
     Code is being executed on your Raspberry Pi.
      Check the status messages for updates.
-main-GUI-dialogs-progress-dialogs-execution-issue = Execution Issue
-main-GUI-dialogs-progress-dialogs-execution-error = Execution Error
-main-GUI-dialogs-progress-dialogs-execution-output = Execution Output
-main-GUI-dialogs-progress-dialogs-execution-report = Execution Report
-main-GUI-dialogs-progress-dialogs-execution-issue-message = Code compiled but execution encountered issues. Check device connection and try again.
-main-GUI-dialogs-progress-dialogs-success = Success
-main-GUI-dialogs-progress-dialogs-success-message = Code compiled, executed, and uploaded successfully!
-main-GUI-dialogs-progress-dialogs-error = Error
-main-GUI-dialogs-progress-dialogs-unknown-model = Unknown Raspberry Pi model: { $model }. Please select your model manually in settings.
-main-GUI-dialogs-progress-dialogs-config-error = Configuration Error
-main-GUI-dialogs-progress-dialogs-config-error-message = Raspberry Pi configuration is incomplete or invalid. Please check your settings.
-main-GUI-dialogs-progress-dialogs-host-key-verification = Host Key Verification
-main-GUI-dialogs-progress-dialogs-host-key-verification-message =
+main-gui-dialogs-progress-dialogs-execution-issue = Execution Issue
+main-gui-dialogs-progress-dialogs-execution-error = Execution Error
+main-gui-dialogs-progress-dialogs-execution-output = Execution Output
+main-gui-dialogs-progress-dialogs-execution-report = Execution Report
+main-gui-dialogs-progress-dialogs-execution-issue-message = Code compiled but execution encountered issues. Check device connection and try again.
+main-gui-dialogs-progress-dialogs-success = Success
+main-gui-dialogs-progress-dialogs-success-message = Code compiled, executed, and uploaded successfully!
+main-gui-dialogs-progress-dialogs-error = Error
+main-gui-dialogs-progress-dialogs-unknown-model = Unknown Raspberry Pi model: { $model }. Please select your model manually in settings.
+main-gui-dialogs-progress-dialogs-config-error = Configuration Error
+main-gui-dialogs-progress-dialogs-config-error-message = Raspberry Pi configuration is incomplete or invalid. Please check your settings.
+main-gui-dialogs-progress-dialogs-host-key-verification = Host Key Verification
+main-gui-dialogs-progress-dialogs-host-key-verification-message =
     The authenticity of host '{ $hostname }' can't be established.
 
     Key type: { $key_type }
@@ -206,28 +226,28 @@ main-GUI-dialogs-progress-dialogs-host-key-verification-message =
     Do you trust this host?
 
 # dialogs.update_manager
-main-GUI-dialogs-update-manager-update-available-title = Update Available
-main-GUI-dialogs-update-manager-update-available-message =
+main-gui-dialogs-update-manager-update-available-title = Update Available
+main-gui-dialogs-update-manager-update-available-message =
     A new version of OmniBoard Studio is available: { $version }.
     Would you like to download it now?
-main-GUI-dialogs-update-manager-connection-error-title = Connection Error
-main-GUI-dialogs-update-manager-connection-error-message = Failed to check for updates. Please check your internet connection.
-main-GUI-dialogs-update-manager-no-update-available = No Update Available
-main-GUI-dialogs-update-manager-version-up-to-date = You are already using the latest version ({ $version }).
-main-GUI-dialogs-update-manager-downloading-update = Downloading Update...
-main-GUI-dialogs-update-manager-cancel = Cancel
+main-gui-dialogs-update-manager-connection-error-title = Connection Error
+main-gui-dialogs-update-manager-connection-error-message = Failed to check for updates. Please check your internet connection.
+main-gui-dialogs-update-manager-no-update-available = No Update Available
+main-gui-dialogs-update-manager-version-up-to-date = You are already using the latest version ({ $version }).
+main-gui-dialogs-update-manager-downloading-update = Downloading Update...
+main-gui-dialogs-update-manager-cancel = Cancel
 
 # dialogs
-main-GUI-dialogs-new-canvas = New Canvas
-main-GUI-dialogs-enter-canvas-name = Enter name for new canvas
+main-gui-dialogs-new-canvas = New Canvas
+main-gui-dialogs-enter-canvas-name = Enter name for new canvas
 
 # messages
-main-GUI-messages-status-not-connected = Status: Not connected
-main-GUI-messages-status-connected = Connected!
-main-GUI-messages-status-error = Status: Error during detection
-main-GUI-messages-no-pi-found = No Pi detected
-main-GUI-messages-position = Position { $x }, { $y }
-main-GUI-messages-size = Size { $width } x { $height }
+main-gui-messages-status-not-connected = Status: Not connected
+main-gui-messages-status-connected = Connected!
+main-gui-messages-status-error = Status: Error during detection
+main-gui-messages-no-pi-found = No Pi detected
+main-gui-messages-position = Position { $x }, { $y }
+main-gui-messages-size = Size { $width } x { $height }
 
 
 ## hub
@@ -235,114 +255,123 @@ main-GUI-messages-size = Size { $width } x { $height }
 hub-file-sidebar-title = Projects
 
 
-## blocks_window
+## blocks-library
 
-blocks-window-window-title = Blocks Window
-blocks-window-block-details = Block Details
-blocks-window-add-block = Add Block
+blocks-library-window-title = Blocks library
+blocks-library-block-details = Block Details
+blocks-library-add-block-button = Add { $block_name }
+blocks-library-tab-basic = Basic blocks
+blocks-library-tab-logic = Logic blocks
+blocks-library-tab-math = Math blocks
+blocks-library-tab-io = I/O blocks
+blocks-library-tab-functions = Functions
 
 # basic_blocks_tab
-blocks-window-basic-blocks-tab-tab-title = Basic blocks
-blocks-window-basic-blocks-tab-Start = Start
-blocks-window-basic-blocks-tab-End = End
-blocks-window-basic-blocks-tab-Timer = Timer
-blocks-window-basic-blocks-tab-Networks = Networks
-blocks-window-basic-blocks-tab-Return = Return
+blocks-library-basic-blocks-tab-tab-title = Basic blocks
+blocks-library-basic-blocks-tab-start = Start
+blocks-library-basic-blocks-tab-end = End
+blocks-library-basic-blocks-tab-timer = Timer
+blocks-library-basic-blocks-tab-networks = Networks
+blocks-library-basic-blocks-tab-return = Return
 
 # logic_blocks_tab
-blocks-window-logic-blocks-tab-tab-title = Logic blocks
-blocks-window-logic-blocks-tab-Cycles = Cycles
-blocks-window-logic-blocks-tab-Comparison = Comparison
-blocks-window-logic-blocks-tab-Bool-logic = Boolean Logic
-blocks-window-logic-blocks-tab-If = If
-blocks-window-logic-blocks-tab-While = While
-blocks-window-logic-blocks-tab-While-true = While true
-blocks-window-logic-blocks-tab-Switch = Switch
-blocks-window-logic-blocks-tab-For-Loop = For Loop
-blocks-window-logic-blocks-tab-Lower = Lower
-blocks-window-logic-blocks-tab-Greater = Greater
-blocks-window-logic-blocks-tab-Equal = Equal
-blocks-window-logic-blocks-tab-Not-equal = Not equal
-blocks-window-logic-blocks-tab-Greater-equal = Greater or equal
-blocks-window-logic-blocks-tab-Lower-equal = Lower or equal
-blocks-window-logic-blocks-tab-Not = Not
-blocks-window-logic-blocks-tab-And = And
-blocks-window-logic-blocks-tab-Nand = Nand
-blocks-window-logic-blocks-tab-Or = Or
-blocks-window-logic-blocks-tab-Nor = Nor
-blocks-window-logic-blocks-tab-Xor = Xor
-blocks-window-logic-blocks-tab-Xnor = Xnor
+blocks-library-logic-blocks-tab-tab-title = Logic blocks
+blocks-library-logic-blocks-tab-cycles = Cycles
+blocks-library-logic-blocks-tab-comparison = Comparison
+blocks-library-logic-blocks-tab-bool-logic = Boolean Logic
+blocks-library-logic-blocks-tab-if = If
+blocks-library-logic-blocks-tab-else = Else
+blocks-library-logic-blocks-tab-while = While
+blocks-library-logic-blocks-tab-for = For
+blocks-library-logic-blocks-tab-while-true = While true
+blocks-library-logic-blocks-tab-switch = Switch
+blocks-library-logic-blocks-tab-for-loop = For Loop
+blocks-library-logic-blocks-tab-lower = Lower
+blocks-library-logic-blocks-tab-greater = Greater
+blocks-library-logic-blocks-tab-equal = Equal
+blocks-library-logic-blocks-tab-not-equal = Not equal
+blocks-library-logic-blocks-tab-greater-equal = Greater or equal
+blocks-library-logic-blocks-tab-lower-equal = Lower or equal
+blocks-library-logic-blocks-tab-not = Not
+blocks-library-logic-blocks-tab-and = And
+blocks-library-logic-blocks-tab-nand = Nand
+blocks-library-logic-blocks-tab-or = Or
+blocks-library-logic-blocks-tab-nor = Nor
+blocks-library-logic-blocks-tab-xor = Xor
+blocks-library-logic-blocks-tab-xnor = Xnor
 
 # io_blocks_tab
-blocks-window-io-blocks-tab-tab-title = I/O blocks
-blocks-window-io-blocks-tab-Button = Button
-blocks-window-io-blocks-tab-LED = LED
-blocks-window-io-blocks-tab-Blink-LED = Blink LED
-blocks-window-io-blocks-tab-Toggle-LED = Toggle LED
-blocks-window-io-blocks-tab-LED-ON = LED ON
-blocks-window-io-blocks-tab-LED-OFF = LED OFF
-blocks-window-io-blocks-tab-RGB-LED = RGB LED control
-blocks-window-io-blocks-tab-PWM-LED = PWM LED control
+blocks-library-io-blocks-tab-tab-title = I/O blocks
+blocks-library-io-blocks-tab-button = Button
+blocks-library-io-blocks-tab-led = LED
+blocks-library-io-blocks-tab-blink-led = Blink LED
+blocks-library-io-blocks-tab-toggle-led = Toggle LED
+blocks-library-io-blocks-tab-led-on = LED ON
+blocks-library-io-blocks-tab-led-off = LED OFF
+blocks-library-io-blocks-tab-rgb-led = RGB LED control
+blocks-library-io-blocks-tab-pwm-led = PWM LED 
+blocks-library-io-blocks-tab-input = Input
+blocks-library-io-blocks-tab-output = Output
 
 # math_blocks_tab
-blocks-window-math-blocks-tab-tab-title = Math blocks
-blocks-window-math-blocks-tab-Plus = Plus
-blocks-window-math-blocks-tab-Minus = Minus
-blocks-window-math-blocks-tab-Multiply = Multiply
-blocks-window-math-blocks-tab-Divide = Divide
-blocks-window-math-blocks-tab-Modulo = Modulo
-blocks-window-math-blocks-tab-Power = Power
-blocks-window-math-blocks-tab-Root = Root
-blocks-window-math-blocks-tab-Plus-one = Plus 1
-blocks-window-math-blocks-tab-Minus-one = Minus 1
-blocks-window-math-blocks-tab-Random-number = Random Number
+blocks-library-math-blocks-tab-tab-title = Math blocks
+blocks-library-math-blocks-tab-add = Plus
+blocks-library-math-blocks-tab-subtract = Minus
+blocks-library-math-blocks-tab-multiply = Multiply
+blocks-library-math-blocks-tab-divide = Divide
+blocks-library-math-blocks-tab-modulo = Modulo
+blocks-library-math-blocks-tab-power = Power
+blocks-library-math-blocks-tab-root = Root
+blocks-library-math-blocks-tab-plus-one = Plus 1
+blocks-library-math-blocks-tab-minus-one = Minus 1
+blocks-library-math-blocks-tab-random-number = Random Number
 
 # function_blocks_tab
-blocks-window-function-blocks-tab-tab-title = Function
+blocks-library-function-blocks-tab-tab-title = Function
 
 # blocks_descriptions
-blocks-window-blocks-descriptions-Start = The starting point of the program execution.
-blocks-window-blocks-descriptions-End = The endpoint of the program execution.
-blocks-window-blocks-descriptions-Timer = A block that triggers actions at specified time intervals.
-blocks-window-blocks-descriptions-Networks = Controls the order of execution flow, allowing for branching.
-blocks-window-blocks-descriptions-Return = A block that returns a value from a function and exits its execution.
-blocks-window-blocks-descriptions-If = A conditional block that executes actions based on a true/false condition.
-blocks-window-blocks-descriptions-While = A loop block that continues executing as long as a condition is true.
-blocks-window-blocks-descriptions-While-true = A loop that runs indefinitely until externally stopped.
-blocks-window-blocks-descriptions-Switch = A block that selects one of many possible actions based on a value.
-blocks-window-blocks-descriptions-For-Loop = A loop that iterates a specific number of times.
-blocks-window-blocks-descriptions-Button = Represents a physical button input device.
-blocks-window-blocks-descriptions-Lower = Compares two values and returns true if the first is less than the second.
-blocks-window-blocks-descriptions-Greater = Compares two values and returns true if the first is greater than the second.
-blocks-window-blocks-descriptions-Equal = Compares two values and returns true if they are equal.
-blocks-window-blocks-descriptions-Not-equal = Compares two values and returns true if they are not equal.
-blocks-window-blocks-descriptions-Greater-equal = Compares two values and returns true if the first is greater than or equal to the second.
-blocks-window-blocks-descriptions-Lower-equal = Compares two values and returns true if the first is less than or equal to the second.
-blocks-window-blocks-descriptions-Not = Returns the opposite of a boolean value.
-blocks-window-blocks-descriptions-And = Returns true if both input values are true.
-blocks-window-blocks-descriptions-Nand = Returns true if at least one input value is false.
-blocks-window-blocks-descriptions-Or = Returns true if at least one input value is true.
-blocks-window-blocks-descriptions-Nor = Returns true if both input values are false.
-blocks-window-blocks-descriptions-Xor = Returns true if exactly one input value is true.
-blocks-window-blocks-descriptions-Xnor = Returns true if both input values are the same (both true or both false).
-blocks-window-blocks-descriptions-LED = Represents a physical LED output device.
-blocks-window-blocks-descriptions-Blink-LED = Controls an LED to blink at specified intervals.
-blocks-window-blocks-descriptions-Toggle-LED = Toggles the state of an LED on or off.
-blocks-window-blocks-descriptions-PWM-LED = Controls the brightness of an LED using PWM (Pulse Width Modulation).
-blocks-window-blocks-descriptions-LED-ON = Turns an LED on.
-blocks-window-blocks-descriptions-LED-OFF = Turns an LED off.
-blocks-window-blocks-descriptions-RGB-LED = Controls an RGB LED.
-blocks-window-blocks-descriptions-Plus = Adds two values together and stores the result in a target variable.
-blocks-window-blocks-descriptions-Minus = Subtracts the second value from the first and stores the result in a target variable.
-blocks-window-blocks-descriptions-Multiply = Multiplies two values together and stores the result in a target variable.
-blocks-window-blocks-descriptions-Divide = Divides the first value by the second and stores the result in a target variable.
-blocks-window-blocks-descriptions-Modulo = Calculates the remainder of dividing the first value by the second and stores the result in a target variable.
-blocks-window-blocks-descriptions-Power = Raises the first value to the power of the second value and stores the result in a target variable.
-blocks-window-blocks-descriptions-Root = Calculates the square root of the first value and stores the result in a target variable.
-blocks-window-blocks-descriptions-Plus-one = Adds 1 to the specified variable.
-blocks-window-blocks-descriptions-Minus-one = Subtracts 1 from the specified variable.
-blocks-window-blocks-descriptions-Random-number = Generates a random number within a specified range.
-blocks-window-blocks-descriptions-no-description = No description available.
+blocks-library-blocks-descriptions-start = The starting point of the program execution.
+blocks-library-blocks-descriptions-end = The endpoint of the program execution.
+blocks-library-blocks-descriptions-timer = A block that triggers actions at specified time intervals.
+blocks-library-blocks-descriptions-networks = Controls the order of execution flow, allowing for branching.
+blocks-library-blocks-descriptions-return = A block that returns a value from a function and exits its execution.
+blocks-library-blocks-descriptions-if = A conditional block that executes actions based on a true/false condition.
+blocks-library-blocks-descriptions-while = A loop block that continues executing as long as a condition is true.
+blocks-library-blocks-descriptions-while-true = A loop that runs indefinitely until externally stopped.
+blocks-library-blocks-descriptions-switch = A block that selects one of many possible actions based on a value.
+blocks-library-blocks-descriptions-for-loop = A loop that iterates a specific number of times.
+blocks-library-blocks-descriptions-button = Represents a physical button input device.
+blocks-library-blocks-descriptions-lower = Compares two values and returns true if the first is less than the second.
+blocks-library-blocks-descriptions-greater = Compares two values and returns true if the first is greater than the second.
+blocks-library-blocks-descriptions-equal = Compares two values and returns true if they are equal.
+blocks-library-blocks-descriptions-not-equal = Compares two values and returns true if they are not equal.
+blocks-library-blocks-descriptions-greater-equal = Compares two values and returns true if the first is greater than or equal to the second.
+blocks-library-blocks-descriptions-lower-equal = Compares two values and returns true if the first is less than or equal to the second.
+blocks-library-blocks-descriptions-not = Returns the opposite of a boolean value.
+blocks-library-blocks-descriptions-and = Returns true if both input values are true.
+blocks-library-blocks-descriptions-nand = Returns true if at least one input value is false.
+blocks-library-blocks-descriptions-or = Returns true if at least one input value is true.
+blocks-library-blocks-descriptions-nor = Returns true if both input values are false.
+blocks-library-blocks-descriptions-xor = Returns true if exactly one input value is true.
+blocks-library-blocks-descriptions-xnor = Returns true if both input values are the same (both true or both false).
+blocks-library-blocks-descriptions-led = Represents a physical LED output device.
+blocks-library-blocks-descriptions-blink-led = Controls an LED to blink at specified intervals.
+blocks-library-blocks-descriptions-toggle-led = Toggles the state of an LED on or off.
+blocks-library-blocks-descriptions-pwm-led = Controls the brightness of an LED using PWM (Pulse Width Modulation).
+blocks-library-blocks-descriptions-led-on = Turns an LED on.
+blocks-library-blocks-descriptions-led-off = Turns an LED off.
+blocks-library-blocks-descriptions-rgb-led = Controls an RGB LED.
+blocks-library-blocks-descriptions-plus = Adds two values together and stores the result in a target variable.
+blocks-library-blocks-descriptions-minus = Subtracts the second value from the first and stores the result in a target variable.
+blocks-library-blocks-descriptions-multiply = Multiplies two values together and stores the result in a target variable.
+blocks-library-blocks-descriptions-divide = Divides the first value by the second and stores the result in a target variable.
+blocks-library-blocks-descriptions-modulo = Calculates the remainder of dividing the first value by the second and stores the result in a target variable.
+blocks-library-blocks-descriptions-power = Raises the first value to the power of the second value and stores the result in a target variable.
+blocks-library-blocks-descriptions-root = Calculates the square root of the first value and stores the result in a target variable.
+blocks-library-blocks-descriptions-plus-one = Adds 1 to the specified variable.
+blocks-library-blocks-descriptions-minus-one = Subtracts 1 from the specified variable.
+blocks-library-blocks-descriptions-random-number = Generates a random number within a specified range.
+blocks-library-blocks-descriptions-no-description = No description available.
 
 
 ## code_editor_window

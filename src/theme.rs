@@ -325,7 +325,7 @@ pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {
         "Monokai" => Palette::monokai(),
         "OneDark" => Palette::one_dark(),
         "Catppuccin" => Palette::catppuccin(),
-        "Custom" => settings::Settings::load().custom_theme.unwrap(),
+        "Custom" => settings::Settings::load().custom_theme.unwrap_or_else(Palette::dark),
         _ => Palette::dark(),
     };
     install(ctx, palette);

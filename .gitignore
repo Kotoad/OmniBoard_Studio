@@ -10,6 +10,7 @@ compare/
 Config/
 debug/
 commented/
+demo/
 
 # Virtual environment
 venv/
