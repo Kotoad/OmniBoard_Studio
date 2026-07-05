@@ -3,6 +3,107 @@ use serde::{Deserialize, Serialize};
 
 use crate::{state_machine};
 
+pub struct BlockMeta {
+    pub color: egui::Color32,
+    pub title_key: &'static str,
+    pub field_key: &'static str,
+    pub description_key: &'static str,
+}
+
+impl BlockKind {
+    pub const ALL: [BlockKind; 12] = [
+        BlockKind::Basic(BasicBlockData::Start),
+        BlockKind::Basic(BasicBlockData::End),
+        BlockKind::Logic(LogicBlockData::If),
+        BlockKind::Logic(LogicBlockData::Else),
+        BlockKind::Logic(LogicBlockData::While),
+        BlockKind::Logic(LogicBlockData::For),
+        BlockKind::Math(MathBlockData::Add),
+        BlockKind::Math(MathBlockData::Subtract),
+        BlockKind::Math(MathBlockData::Multiply),
+        BlockKind::Math(MathBlockData::Divide),
+        BlockKind::IO(IOBlockData::Input),
+        BlockKind::IO(IOBlockData::Output),
+    ];
+
+    pub fn meta(&self) -> BlockMeta {
+        match self {
+            BlockKind::Basic(BasicBlockData::Start) => BlockMeta {
+                color: egui::Color32::from_rgb(106, 174, 139),
+                title_key: "blocks-library-basic-blocks-tab-start",
+                field_key: "blocks-library-basic-blocks-tab-start-field",
+                description_key: "blocks-library-basic-blocks-tab-start-description",
+            },
+            BlockKind::Basic(BasicBlockData::End) => BlockMeta {
+                color: egui::Color32::from_rgb(214, 93, 93),
+                title_key: "blocks-library-basic-blocks-tab-end",
+                field_key: "blocks-library-basic-blocks-tab-end-field",
+                description_key: "blocks-library-basic-blocks-tab-end-description",
+            },
+            BlockKind::Logic(LogicBlockData::If) => BlockMeta {
+                color: egui::Color32::from_rgb(122, 155, 201),
+                title_key: "blocks-library-logic-blocks-tab-if",
+                field_key: "blocks-library-logic-blocks-tab-if-field",
+                description_key: "blocks-library-logic-blocks-tab-if-description",
+            },
+            BlockKind::Logic(LogicBlockData::Else) => BlockMeta {
+                color: egui::Color32::from_rgb(122, 155, 201),
+                title_key: "blocks-library-logic-blocks-tab-else",
+                field_key: "blocks-library-logic-blocks-tab-else-field",
+                description_key: "blocks-library-logic-blocks-tab-else-description",
+            },
+            BlockKind::Logic(LogicBlockData::While) => BlockMeta {
+                color: egui::Color32::from_rgb(122, 155, 201),
+                title_key: "blocks-library-logic-blocks-tab-while",
+                field_key: "blocks-library-logic-blocks-tab-while-field",
+                description_key: "blocks-library-logic-blocks-tab-while-description",
+            },
+            BlockKind::Logic(LogicBlockData::For) => BlockMeta {
+                color: egui::Color32::from_rgb(122, 155, 201),
+                title_key: "blocks-library-logic-blocks-tab-for",
+                field_key: "blocks-library-logic-blocks-tab-for-field",
+                description_key: "blocks-library-logic-blocks-tab-for-description",
+            },
+            BlockKind::Math(MathBlockData::Add) => BlockMeta {
+                color: egui::Color32::from_rgb(94, 178, 178),
+                title_key: "blocks-library-math-blocks-tab-add",
+                field_key: "blocks-library-math-blocks-tab-add-field",
+                description_key: "blocks-library-math-blocks-tab-add-description",
+            },
+            BlockKind::Math(MathBlockData::Subtract) => BlockMeta {
+                color: egui::Color32::from_rgb(94, 178, 178),
+                title_key: "blocks-library-math-blocks-tab-subtract",
+                field_key: "blocks-library-math-blocks-tab-subtract-field",
+                description_key: "blocks-library-math-blocks-tab-subtract-description",
+            },
+            BlockKind::Math(MathBlockData::Multiply) => BlockMeta {
+                color: egui::Color32::from_rgb(94, 178, 178),
+                title_key: "blocks-library-math-blocks-tab-multiply",
+                field_key: "blocks-library-math-blocks-tab-multiply-field",
+                description_key: "blocks-library-math-blocks-tab-multiply-description",
+            },
+            BlockKind::Math(MathBlockData::Divide) => BlockMeta {
+                color: egui::Color32::from_rgb(94, 178, 178),
+                title_key: "blocks-library-math-blocks-tab-divide",
+                field_key: "blocks-library-math-blocks-tab-divide-field",
+                description_key: "blocks-library-math-blocks-tab-divide-description",
+            },
+            BlockKind::IO(IOBlockData::Input) => BlockMeta {
+                color: egui::Color32::from_rgb(203, 146, 66),
+                title_key: "blocks-library-io-blocks-tab-input",
+                field_key: "blocks-library-io-blocks-tab-input-field",
+                description_key: "blocks-library-io-blocks-tab-input-description",
+            },
+            BlockKind::IO(IOBlockData::Output) => BlockMeta {
+                color: egui::Color32::from_rgb(203, 146, 66),
+                title_key: "blocks-library-io-blocks-tab-output",
+                field_key: "blocks-library-io-blocks-tab-output-field",
+                description_key: "blocks-library-io-blocks-tab-output-description",
+            },
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     pub id: usize,
@@ -63,20 +164,7 @@ impl Block {
     }
 
     pub fn color(&self) -> egui::Color32 {
-        match self.kind {
-            BlockKind::Basic(BasicBlockData::Start) => egui::Color32::from_rgb(106, 174, 139),
-            BlockKind::Basic(BasicBlockData::End) => egui::Color32::from_rgb(214, 93, 93),
-            BlockKind::Logic(LogicBlockData::If) => egui::Color32::from_rgb(122, 155, 201),
-            BlockKind::Logic(LogicBlockData::Else) => egui::Color32::from_rgb(122, 155, 201),
-            BlockKind::Logic(LogicBlockData::While) => egui::Color32::from_rgb(122, 155, 201),
-            BlockKind::Logic(LogicBlockData::For) => egui::Color32::from_rgb(122, 155, 201),
-            BlockKind::Math(MathBlockData::Add) => egui::Color32::from_rgb(94, 178, 178),
-            BlockKind::Math(MathBlockData::Subtract) => egui::Color32::from_rgb(94, 178, 178),
-            BlockKind::Math(MathBlockData::Multiply) => egui::Color32::from_rgb(94, 178, 178),
-            BlockKind::Math(MathBlockData::Divide) => egui::Color32::from_rgb(94, 178, 178),
-            BlockKind::IO(IOBlockData::Input) => egui::Color32::from_rgb(203, 146, 66),
-            BlockKind::IO(IOBlockData::Output) => egui::Color32::from_rgb(203, 146, 66),
-        }
+        self.kind.meta().color
     }
 
     pub fn out_port(&self) -> egui::Pos2 { 

@@ -311,20 +311,7 @@ impl VisualEditor {
                                 .show(ui, |ui| {
                                     ui.set_min_width(170.0);
                                     ui.horizontal(|ui| {
-                                        let block_kind = match block.kind {
-                                            blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::Start) => fl!(LOADER, "blocks-library-basic-blocks-tab-start"),
-                                            blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::End) => fl!(LOADER, "blocks-library-basic-blocks-tab-end"),
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::If) => fl!(LOADER, "blocks-library-logic-blocks-tab-if"),
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::Else) => fl!(LOADER, "blocks-library-logic-blocks-tab-else"),
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::While) => fl!(LOADER, "blocks-library-logic-blocks-tab-while"),
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::For) => fl!(LOADER, "blocks-library-logic-blocks-tab-for"),
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Add) => fl!(LOADER, "blocks-library-math-blocks-tab-add"),
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Subtract) => fl!(LOADER, "blocks-library-math-blocks-tab-subtract"),
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Multiply) => fl!(LOADER, "blocks-library-math-blocks-tab-multiply"),
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Divide) => fl!(LOADER, "blocks-library-math-blocks-tab-divide"),
-                                            blocks_data::BlockKind::IO(blocks_data::IOBlockData::Input) => fl!(LOADER, "blocks-library-io-blocks-tab-input"),
-                                            blocks_data::BlockKind::IO(blocks_data::IOBlockData::Output) => fl!(LOADER, "blocks-library-io-blocks-tab-output"),
-                                        };
+                                        let block_kind = LOADER.get(block.kind.meta().title_key);
                                         ui.label(RichText::new(block_kind).color(Color32::WHITE).strong());
 
                                         ui.with_layout(
@@ -371,44 +358,7 @@ impl VisualEditor {
                                     .inner_margin(egui::Margin::same(8.0))
                                     .show(ui, |ui| {
                                         ui.spacing_mut().item_spacing.y = 4.0;
-                                        match block.kind {
-                                            blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::Start) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-start")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::End) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-end")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::For) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-for")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::If) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-if")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::Else) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-else")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Logic(blocks_data::LogicBlockData::While) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-while")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Add) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-add")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Subtract) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-subtract")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Multiply) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-multiply")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::Math(blocks_data::MathBlockData::Divide) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-divide")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::IO(blocks_data::IOBlockData::Input) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-input")).italics().size(11.0));
-                                            }
-                                            blocks_data::BlockKind::IO(blocks_data::IOBlockData::Output) => {
-                                                ui.label(RichText::new(fl!(LOADER, "block-interacive-field-output")).italics().size(11.0));
-                                            }
-                                        }
+                                        ui.label(RichText::new(LOADER.get(block.kind.meta().field_key)).color(Color32::from_white_alpha(200)));
                                     })
                         });
                     let rect = shell.response.rect;
@@ -526,7 +476,7 @@ impl VisualEditor {
 mod tests {
     use super::*;
     use proptest::prelude::*;
-    use crate::blocks_data::{Block, BlockKind, BasicBlockData, Wire};
+    use crate::{blocks_data::{BasicBlockData, Block, BlockKind, Wire}, translation_manager};
 
     fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
         Block {
@@ -534,6 +484,21 @@ mod tests {
             pos: Pos2::new(x, y),
             rect: egui::Rect::NOTHING,
             kind,
+        }
+    }
+
+    #[test]
+    fn all_block_meta_keys_exist() {
+        let (loader, langs) = translation_manager::all_languages_loader();
+        for lang in &langs {
+            let ids: std::collections::HashSet<String> =
+                loader.with_message_iter(lang, |iter| iter.map(|m| m.id.name.to_string()).collect());
+            for kind in blocks_data::BlockKind::ALL {
+                let m = kind.meta();
+                for key in &[m.title_key, m.field_key, m.description_key] {
+                    assert!(ids.contains(*key), "Missing i18n key: {} in language {}", key, lang);
+                }
+            }
         }
     }
 

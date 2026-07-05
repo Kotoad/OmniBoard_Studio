@@ -1,6 +1,6 @@
-### OmniBoard Studio — Czech translations
+## OmniBoard Studio — Czech translations
 
-## main_GUI
+# main_GUI
 
 # _metadata
 main-gui--metadata-language-name = Čeština
@@ -55,23 +55,9 @@ main-gui-sidebar-canvas = Plátno
 main-gui-sidebar-internal-variables = Interní proměnné
 main-gui-sidebar-new-canvas = Přidat nové plátno
 
-#block-context-menu
+# block-context-menu
 main-gui-block-context-menu-duplicate = Duplikovat
 main-gui-block-context-menu-delete = Smazat
-
-#block-interacive-field
-block-interacive-field-start = Vstupní bod
-block-interacive-field-end = Výstupní bod
-block-interacive-field-for = For cyklus
-block-interacive-field-if = If cyklus část
-block-interacive-field-else = Else cyklus část
-block-interacive-field-while = While cyklus
-block-interacive-field-add = Přičíst
-block-interacive-field-subtract = Odečíst
-block-interacive-field-multiply = Vynásobit
-block-interacive-field-divide = Vydělit
-block-interacive-field-input = Vstup
-block-interacive-field-output = Výstup
 
 # variables_tab
 main-gui-variables-tab-variables = Proměnné
@@ -250,12 +236,12 @@ main-gui-messages-position = Pozice { $x }, { $y }
 main-gui-messages-size = Velikost { $width } x { $height }
 
 
-## hub
+# hub
 
 hub-file-sidebar-title = Soubory
 
 
-## blocks-library
+# blocks-library
 
 blocks-library-window-title = Knihovna bloků
 blocks-library-block-details = Podrobnosti bloku
@@ -328,52 +314,69 @@ blocks-library-math-blocks-tab-random-number = Náhodné číslo
 # function_blocks_tab
 blocks-library-function-blocks-tab-tab-title = Funkce
 
+# blocks-library-field
+blocks-library-basic-blocks-tab-start-field = Vstupní bod
+blocks-library-basic-blocks-tab-end-field = Výstupní bod
+blocks-library-logic-blocks-tab-for-field = For cyklus
+blocks-library-logic-blocks-tab-if-field = If cyklus část
+blocks-library-logic-blocks-tab-else-field = Else cyklus část
+blocks-library-logic-blocks-tab-while-field = While cyklus
+blocks-library-math-blocks-tab-add-field = Přičíst
+blocks-library-math-blocks-tab-subtract-field = Odečíst
+blocks-library-math-blocks-tab-multiply-field = Vynásobit
+blocks-library-math-blocks-tab-divide-field = Vydělit
+blocks-library-io-blocks-tab-input-field = Vstup
+blocks-library-io-blocks-tab-output-field = Výstup
+
 # blocks_descriptions
-blocks-library-blocks-descriptions-start = Počáteční bod spuštění programu.
-blocks-library-blocks-descriptions-end = Koncový bod spuštění programu.
-blocks-library-blocks-descriptions-timer = Blok, který spouští akce v zadaných časových intervalech.
-blocks-library-blocks-descriptions-networks = Ovládá pořadí toku vykonávání, umožňuje větvení.
-blocks-library-blocks-descriptions-if = Podmínkový blok, který provádí akce na základě podmínky pravda/nepravda.
-blocks-library-blocks-descriptions-return = Blok, který vrací hodnotu z funkce a ukončuje její vykonávání.
-blocks-library-blocks-descriptions-while = Blok smyčky, který pokračuje v provádění, pokud je podmínka pravdivá.
-blocks-library-blocks-descriptions-while-true = Smyčka, která běží neurčitě, dokud není externě zastavena.
-blocks-library-blocks-descriptions-switch = Blok, který vybere jednu z mnoha možných akcí na základě hodnoty.
-blocks-library-blocks-descriptions-for = Smyčka, která se iteruje určitý počet krát.
-blocks-library-blocks-descriptions-button = Představuje fyzické tlačítko vstupního zařízení.
-blocks-library-blocks-descriptions-lower = Porovnává dvě hodnoty a vrací pravda, pokud je první menší než druhá.
-blocks-library-blocks-descriptions-greater = Porovnává dvě hodnoty a vrací pravda, pokud je první větší než druhá.
-blocks-library-blocks-descriptions-equal = Porovnává dvě hodnoty a vrací pravda, pokud jsou stejné.
-blocks-library-blocks-descriptions-not-equal = Porovnává dvě hodnoty a vrací pravda, pokud nejsou stejné.
-blocks-library-blocks-descriptions-greater-equal = Porovnává dvě hodnoty a vrací pravda, pokud je první větší nebo rovna druhé.
-blocks-library-blocks-descriptions-lower-equal = Porovnává dvě hodnoty a vrací pravda, pokud je první menší nebo rovna druhé.
-blocks-library-blocks-descriptions-not = Vrací opak boolean hodnoty.
-blocks-library-blocks-descriptions-and = Vrací pravda, pokud jsou oba vstupní hodnoty pravdivé.
-blocks-library-blocks-descriptions-nand = Vrací pravda, pokud je alespoň jedna vstupní hodnota nepravdivá.
-blocks-library-blocks-descriptions-or = Vrací pravda, pokud je alespoň jedna vstupní hodnota pravdivá.
-blocks-library-blocks-descriptions-nor = Vrací pravda, pokud jsou oba vstupní hodnoty nepravdivé.
-blocks-library-blocks-descriptions-xor = Vrací pravda, pokud je přesně jedna vstupní hodnota pravdivá.
-blocks-library-blocks-descriptions-xnor = Vrací pravda, pokud jsou obě vstupní hodnoty stejné (obě pravdivé nebo obě nepravdivé).
-blocks-library-blocks-descriptions-led = Představuje fyzické LED výstupní zařízení.
-blocks-library-blocks-descriptions-blink-led = Řídí blikání LED v zadaných intervalech.
-blocks-library-blocks-descriptions-toggle-led = Přepíná stav LED zapnuto nebo vypnuto.
-blocks-library-blocks-descriptions-pwm-led = Řídí jas LED pomocí PWM (pulzní modulace šířky).
-blocks-library-blocks-descriptions-led-on = Zapíná LED.
-blocks-library-blocks-descriptions-led-off = Vypíná LED.
-blocks-library-blocks-descriptions-rgb-led = Ovládá RGB LED.
-blocks-library-blocks-descriptions-add = Sčítá dvě hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-subtract = Odečítá druhou hodnotu od první a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-multiply = Násobí dvě hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-divide = Dělí první hodnotu druhou a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-modulo = Vypočítává zbytek po dělení první hodnoty druhou a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-power = Zvedá první hodnotu na exponent druhé hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-root = Vypočítává druhou odmocninu první hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-add-one = Přidá 1 k zadané proměnné.
-blocks-library-blocks-descriptions-subtract-one = Odečte 1 od zadané proměnné.
-blocks-library-blocks-descriptions-random-number = Generuje náhodné číslo v zadaném rozsahu.
+blocks-library-basic-blocks-tab-start-description = Počáteční bod spuštění programu.
+blocks-library-basic-blocks-tab-end-description = Koncový bod spuštění programu.
+blocks-library-basic-blocks-tab-timer-description = Blok, který spouští akce v zadaných časových intervalech.
+blocks-library-basic-blocks-tab-networks-description = Blok, který zpracovává síťové akce.
+blocks-library-basic-blocks-tab-return-description = Blok, který vrací hodnotu z funkce a ukončuje její vykonávání.
+blocks-library-logic-blocks-tab-if-description = Podmínkový blok, který provádí akce na základě podmínky pravda/nepravda.
+blocks-library-logic-blocks-tab-else-description = Část else podmínkového bloku, která se spustí, pokud je podmínka if nepravdivá.
+blocks-library-logic-blocks-tab-while-description = Blok smyčky, který pokračuje v provádění, pokud je podmínka pravdivá.
+blocks-library-logic-blocks-tab-while-true-description = Smyčka, která běží neurčitě, dokud není externě zastavena.
+blocks-library-logic-blocks-tab-switch-description = Blok, který vybere jednu z mnoha možných akcí na základě hodnoty.
+blocks-library-logic-blocks-tab-for-description = Smyčka, která se iteruje určitý počet krát.
+blocks-library-logic-blocks-tab-lower-description = Porovnává dvě hodnoty a vrací pravda, pokud je první menší než druhá.
+blocks-library-logic-blocks-tab-greater-description = Porovnává dvě hodnoty a vrací pravda, pokud je první větší než druhá.
+blocks-library-logic-blocks-tab-equal-description = Porovnává dvě hodnoty a vrací pravda, pokud jsou stejné.
+blocks-library-logic-blocks-tab-not-equal-description = Porovnává dvě hodnoty a vrací pravda, pokud nejsou stejné.
+blocks-library-logic-blocks-tab-greater-equal-description = Porovnává dvě hodnoty a vrací pravda, pokud je první větší nebo rovna druhé.
+blocks-library-logic-blocks-tab-lower-equal-description = Porovnává dvě hodnoty a vrací pravda, pokud je první menší nebo rovna druhé.
+blocks-library-logic-blocks-tab-not-description = Vrací opak boolean hodnoty.
+blocks-library-logic-blocks-tab-and-description = Vrací pravda, pokud jsou oba vstupní hodnoty pravdivé.
+blocks-library-logic-blocks-tab-nand-description = Vrací pravda, pokud je alespoň jedna vstupní hodnota nepravdivá.
+blocks-library-logic-blocks-tab-or-description = Vrací pravda, pokud je alespoň jedna vstupní hodnota pravdivá.
+blocks-library-logic-blocks-tab-nor-description = Vrací pravda, pokud jsou oba vstupní hodnoty nepravdivé.
+blocks-library-logic-blocks-tab-xor-description = Vrací pravda, pokud je přesně jedna vstupní hodnota pravdivá.
+blocks-library-logic-blocks-tab-xnor-description = Vrací pravda, pokud jsou obě vstupní hodnoty stejné (obě pravdivé nebo obě nepravdivé).
+blocks-library-io-blocks-tab-button-description = Představuje fyzické tlačítko vstupního zařízení.
+blocks-library-io-blocks-tab-led-description = Představuje fyzické LED výstupní zařízení.
+blocks-library-io-blocks-tab-blink-led-description = Řídí blikání LED v zadaných intervalech.
+blocks-library-io-blocks-tab-toggle-led-description = Přepíná stav LED zapnuto nebo vypnuto.
+blocks-library-io-blocks-tab-pwm-led-description = Řídí jas LED pomocí PWM (pulzní modulace šířky).
+blocks-library-io-blocks-tab-led-on-description = Zapíná LED.
+blocks-library-io-blocks-tab-led-off-description = Vypíná LED.
+blocks-library-io-blocks-tab-rgb-led-description = Ovládá RGB LED.
+blocks-library-io-blocks-tab-input-description = Představuje vstupní zařízení, které poskytuje hodnoty.
+blocks-library-io-blocks-tab-output-description = Představuje výstupní zařízení, které přijímá hodnoty a provádí akce.
+blocks-library-math-blocks-tab-add-description = Sčítá dvě hodnoty a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-subtract-description = Odečítá druhou hodnotu od první a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-multiply-description = Násobí dvě hodnoty a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-divide-description = Dělí první hodnotu druhou a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-modulo-description = Vypočítává zbytek po dělení první hodnoty druhou a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-power-description = Zvedá první hodnotu na exponent druhé hodnoty a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-root-description = Vypočítává druhou odmocninu první hodnoty a ukládá výsledek do cílové proměnné.
+blocks-library-math-blocks-tab-add-one-description = Přidá 1 k zadané proměnné.
+blocks-library-math-blocks-tab-subtract-one-description = Odečte 1 od zadané proměnné.
+blocks-library-math-blocks-tab-random-number-description = Generuje náhodné číslo v zadaném rozsahu.
 blocks-library-blocks-descriptions-no-description = Žádný popis není k dispozici.
 
 
-## code_editor_window
+# code_editor_window
 
 code-editor-window-window-title = Editor kódu
 code-editor-window-save-button = Uložit
@@ -383,13 +386,13 @@ code-editor-window-file-not-found = Soubor.py nenalezen
 code-editor-window-error-reading-file = Chyba při čtení souboru: { $error_type }: { $error_message }
 
 
-## settings-window
+# settings-window
 settings-window-title = Nastavení
 settings-window-general-tab = Obecné
 settings-window-theme-tab = Téma
 settings-window-rpi-tab = Raspberry
 
-#general-tab
+# general-tab
 settings-window-general-tab-heading = Základní nastavení
 settings-window-general-tab-language = Vyberte jazyk
 settings-window-general-tab-language-combo = Jazyk

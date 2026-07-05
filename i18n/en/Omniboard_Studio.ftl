@@ -1,6 +1,6 @@
-### OmniBoard Studio — English translations
+## OmniBoard Studio — English translations
 
-## main_GUI
+# main_GUI
 
 # _metadata
 main-gui--metadata-language-name = English
@@ -55,23 +55,9 @@ main-gui-sidebar-canvas = Canvas
 main-gui-sidebar-internal-variables = Internal Variables
 main-gui-sidebar-new-canvas = Add New Canvas
 
-#block-context-menu
+# block-context-menu
 main-gui-block-context-menu-duplicate = Duplicate
 main-gui-block-context-menu-delete = Delete
-
-#block-interacive-field
-block-interacive-field-start = Entry point
-block-interacive-field-end = Exit point
-block-interacive-field-for = For loop
-block-interacive-field-if = If loop part
-block-interacive-field-else = Else loop part
-block-interacive-field-while = While loop
-block-interacive-field-add = Add
-block-interacive-field-subtract = Subtract
-block-interacive-field-multiply = Multiply
-block-interacive-field-divide = Divide
-block-interacive-field-input = Input
-block-interacive-field-output = Output
 
 # variables_tab
 main-gui-variables-tab-variables = Variables
@@ -250,12 +236,12 @@ main-gui-messages-position = Position { $x }, { $y }
 main-gui-messages-size = Size { $width } x { $height }
 
 
-## hub
+# hub
 
 hub-file-sidebar-title = Projects
 
 
-## blocks-library
+# blocks-library
 
 blocks-library-window-title = Blocks library
 blocks-library-block-details = Block Details
@@ -328,53 +314,69 @@ blocks-library-math-blocks-tab-random-number = Random Number
 # function_blocks_tab
 blocks-library-function-blocks-tab-tab-title = Function
 
+# blocks-library-field
+blocks-library-basic-blocks-tab-start-field = Entry point
+blocks-library-basic-blocks-tab-end-field = Exit point
+blocks-library-logic-blocks-tab-for-field = For loop
+blocks-library-logic-blocks-tab-if-field = If loop part
+blocks-library-logic-blocks-tab-else-field = Else loop part
+blocks-library-logic-blocks-tab-while-field = While loop
+blocks-library-math-blocks-tab-add-field = Add
+blocks-library-math-blocks-tab-subtract-field = Subtract
+blocks-library-math-blocks-tab-multiply-field = Multiply
+blocks-library-math-blocks-tab-divide-field = Divide
+blocks-library-io-blocks-tab-input-field = Input
+blocks-library-io-blocks-tab-output-field = Output
+
 # blocks_descriptions
-blocks-library-blocks-descriptions-start = The starting point of the program execution.
-blocks-library-blocks-descriptions-end = The endpoint of the program execution.
-blocks-library-blocks-descriptions-timer = A block that triggers actions at specified time intervals.
-blocks-library-blocks-descriptions-networks = Controls the order of execution flow, allowing for branching.
-blocks-library-blocks-descriptions-return = A block that returns a value from a function and exits its execution.
-blocks-library-blocks-descriptions-if = A conditional block that executes actions based on a true/false condition.
-blocks-library-blocks-descriptions-while = A loop block that continues executing as long as a condition is true.
-blocks-library-blocks-descriptions-while-true = A loop that runs indefinitely until externally stopped.
-blocks-library-blocks-descriptions-switch = A block that selects one of many possible actions based on a value.
-blocks-library-blocks-descriptions-for = A loop that iterates a specific number of times.
-blocks-library-blocks-descriptions-button = Represents a physical button input device.
-blocks-library-blocks-descriptions-lower = Compares two values and returns true if the first is less than the second.
-blocks-library-blocks-descriptions-greater = Compares two values and returns true if the first is greater than the second.
-blocks-library-blocks-descriptions-equal = Compares two values and returns true if they are equal.
-blocks-library-blocks-descriptions-not-equal = Compares two values and returns true if they are not equal.
-blocks-library-blocks-descriptions-greater-equal = Compares two values and returns true if the first is greater than or equal to the second.
-blocks-library-blocks-descriptions-lower-equal = Compares two values and returns true if the first is less than or equal to the second.
-blocks-library-blocks-descriptions-not = Returns the opposite of a boolean value.
-blocks-library-blocks-descriptions-and = Returns true if both input values are true.
-blocks-library-blocks-descriptions-nand = Returns true if at least one input value is false.
-blocks-library-blocks-descriptions-or = Returns true if at least one input value is true.
-blocks-library-blocks-descriptions-nor = Returns true if both input values are false.
-blocks-library-blocks-descriptions-xor = Returns true if exactly one input value is true.
-blocks-library-blocks-descriptions-xnor = Returns true if both input values are the same (both true or both false).
-blocks-library-blocks-descriptions-led = Represents a physical LED output device.
-blocks-library-blocks-descriptions-blink-led = Controls an LED to blink at specified intervals.
-blocks-library-blocks-descriptions-toggle-led = Toggles the state of an LED on or off.
-blocks-library-blocks-descriptions-pwm-led = Controls the brightness of an LED using PWM (Pulse Width Modulation).
-blocks-library-blocks-descriptions-led-on = Turns an LED on.
-blocks-library-blocks-descriptions-led-off = Turns an LED off.
-blocks-library-blocks-descriptions-rgb-led = Controls an RGB LED.
-blocks-library-blocks-descriptions-add = Adds two values together and stores the result in a target variable.
-blocks-library-blocks-descriptions-subtract = Subtracts the second value from the first and stores the result in a target variable.
-blocks-library-blocks-descriptions-multiply = Multiplies two values together and stores the result in a target variable.
-blocks-library-blocks-descriptions-divide = Divides the first value by the second and stores the result in a target variable.
-blocks-library-blocks-descriptions-modulo = Calculates the remainder of dividing the first value by the second and stores the result in a target variable.
-blocks-library-blocks-descriptions-power = Raises the first value to the power of the second value and stores the result in a target variable.
-blocks-library-blocks-descriptions-root = Calculates the square root of the first value and stores the result in a target variable.
-blocks-library-blocks-descriptions-add-one = Adds 1 to the specified variable.
-blocks-library-blocks-descriptions-subtract-one = Subtracts 1 from the specified variable.
-blocks-library-blocks-descriptions-random-number = Generates a random number within a specified range.
+blocks-library-basic-blocks-tab-start-description = The starting point of the program execution.
+blocks-library-basic-blocks-tab-end-description = The endpoint of the program execution.
+blocks-library-basic-blocks-tab-timer-description = A block that triggers actions after a specified time interval.
+blocks-library-basic-blocks-tab-networks-description = A block that handles network-related actions.
+blocks-library-basic-blocks-tab-return-description = A block that returns a value from a function or method.
+blocks-library-logic-blocks-tab-if-description = A conditional block that executes actions based on a true/false condition.
+blocks-library-logic-blocks-tab-else-description = The else part of a conditional block that executes actions when the if condition is false.
+blocks-library-logic-blocks-tab-while-description = A loop block that continues executing as long as a condition is true.
+blocks-library-logic-blocks-tab-while-true-description = A loop that runs indefinitely until externally stopped.
+blocks-library-logic-blocks-tab-switch-description = A block that selects one of many possible actions based on a value.
+blocks-library-logic-blocks-tab-for-description = A loop that iterates a specific number of times.
+blocks-library-logic-blocks-tab-lower-description = Compares two values and returns true if the first is less than the second.
+blocks-library-logic-blocks-tab-greater-description = Compares two values and returns true if the first is greater than the second.
+blocks-library-logic-blocks-tab-equal-description = Compares two values and returns true if they are equal.
+blocks-library-logic-blocks-tab-not-equal-description = Compares two values and returns true if they are not equal.
+blocks-library-logic-blocks-tab-greater-equal-description = Compares two values and returns true if the first is greater than or equal to the second.
+blocks-library-logic-blocks-tab-lower-equal-description = Compares two values and returns true if the first is less than or equal to the second.
+blocks-library-logic-blocks-tab-not-description = Returns the opposite of a boolean value.
+blocks-library-logic-blocks-tab-and-description = Returns true if both input values are true.
+blocks-library-logic-blocks-tab-nand-description = Returns true if at least one input value is false.
+blocks-library-logic-blocks-tab-or-description = Returns true if at least one input value is true.
+blocks-library-logic-blocks-tab-nor-description = Returns true if both input values are false.
+blocks-library-logic-blocks-tab-xor-description = Returns true if exactly one input value is true.
+blocks-library-logic-blocks-tab-xnor-description = Returns true if both input values are the same (both true or both false).
+blocks-library-io-blocks-tab-button-description = Represents a physical button input device.
+blocks-library-io-blocks-tab-led-description = Represents a physical LED output device.
+blocks-library-io-blocks-tab-blink-led-description = Controls an LED to blink at specified intervals.
+blocks-library-io-blocks-tab-toggle-led-description = Toggles the state of an LED on or off.
+blocks-library-io-blocks-tab-pwm-led-description = Controls the brightness of an LED using PWM (Pulse Width Modulation).
+blocks-library-io-blocks-tab-led-on-description = Turns an LED on.
+blocks-library-io-blocks-tab-led-off-description = Turns an LED off.
+blocks-library-io-blocks-tab-rgb-led-description = Controls an RGB LED.
+blocks-library-io-blocks-tab-input-description = Represents an input device that can receive signals.
+blocks-library-io-blocks-tab-output-description = Represents an output device that can send signals.
+blocks-library-math-blocks-tab-add-description = Adds two values and stores the result in a target variable.
+blocks-library-math-blocks-tab-subtract-description = Subtracts the second value from the first value and stores the result in a target variable.
+blocks-library-math-blocks-tab-multiply-description = Multiplies two values and stores the result in a target variable.
+blocks-library-math-blocks-tab-divide-description = Divides the first value by the second value and stores the result in a target variable.
+blocks-library-math-blocks-tab-modulo-description = Calculates the remainder of dividing the first value by the second and stores the result in a target variable.
+blocks-library-math-blocks-tab-power-description = Raises the first value to the power of the second value and stores the result in a target variable.
+blocks-library-math-blocks-tab-root-description = Calculates the square root of the first value and stores the result in a target variable.
+blocks-library-math-blocks-tab-add-one-description = Adds 1 to the specified variable.
+blocks-library-math-blocks-tab-subtract-one-description = Subtracts 1 from the specified variable.
+blocks-library-math-blocks-tab-random-number-description = Generates a random number within a specified range.
 blocks-library-blocks-descriptions-no-description = No description available.
 
 
-## code_editor_window
-
+# code_editor_window
 code-editor-window-window-title = Code Editor
 code-editor-window-save-button = Save
 code-editor-window-save-success = Code saved successfully!
@@ -383,8 +385,7 @@ code-editor-window-file-not-found = File.py not found
 code-editor-window-error-reading-file = Error reading file: { $error_type }: { $error_message }
 
 
-## settings_window
-
+# settings_window
 settings-window-title = Settings
 settings-window-general-tab = General
 settings-window-theme-tab = Theme

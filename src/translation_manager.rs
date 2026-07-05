@@ -25,3 +25,10 @@ pub fn switch_language(language: &str) {
         let _ = i18n_embed::select(&*LOADER, &TranslationManager, &[id]);
     }
 }
+
+pub fn all_languages_loader() -> (FluentLanguageLoader, Vec<unic_langid::LanguageIdentifier>) {
+    let loader = fluent_language_loader!();
+    let languages = loader.available_languages(&TranslationManager).unwrap();
+    loader.load_languages(&TranslationManager, &languages).unwrap();
+    (loader, languages)
+}

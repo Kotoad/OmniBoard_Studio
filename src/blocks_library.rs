@@ -37,8 +37,10 @@ impl visual_editor::VisualEditor {
                 state_machine::BasicBlock::Start => {
                     ui.vertical(|ui| {
                         ui.heading(fl!(LOADER, "blocks-library-basic-blocks-tab-start"));
+                        ui.separator();
                         //ui.image(img_src_details!("start_block.png"));
-                        ui.label(fl!(LOADER, "blocks-library-blocks-descriptions-start"));
+                        ui.separator();
+                        ui.label(fl!(LOADER, "blocks-library-basic-blocks-tab-start-description"));
                         if ui.button(fl!(LOADER, "blocks-library-add-block-button", block_name = fl!(LOADER, "blocks-library-basic-blocks-tab-start"))).clicked() {
                             let block = state_machine::Block::Basic(state_machine::BasicBlock::Start);
                             visual_editor::VisualEditor::add_block(self, block);
@@ -49,8 +51,10 @@ impl visual_editor::VisualEditor {
                 state_machine::BasicBlock::End => {
                     ui.vertical(|ui| {
                         ui.heading(fl!(LOADER, "blocks-library-basic-blocks-tab-end"));
+                        ui.separator();
                         //ui.image(img_src_details!("end_block.png"));
-                        ui.label(fl!(LOADER, "blocks-library-blocks-descriptions-end"));
+                        ui.separator();
+                        ui.label(fl!(LOADER, "blocks-library-basic-blocks-tab-end-description"));
                         if ui.button(fl!(LOADER, "blocks-library-add-block-button", block_name = fl!(LOADER, "blocks-library-basic-blocks-tab-end"))).clicked() {
                             let block = state_machine::Block::Basic(state_machine::BasicBlock::End);
                             visual_editor::VisualEditor::add_block(self, block);
