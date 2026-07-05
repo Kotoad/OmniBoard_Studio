@@ -2,7 +2,7 @@ use crate::visual_editor;
 use crate::state_machine;
 use crate::translation_manager::LOADER;
 
-use log::{debug, info, warn, error};
+use log::debug;
 use i18n_embed_fl::fl;
 
 macro_rules! img_src_details {
@@ -21,11 +21,11 @@ impl visual_editor::VisualEditor {
         let mut current_block_details = state_machine::with(|sm| sm.get_current_basic_block_details());
 
         egui::SidePanel::left("basic_blocks_library_panel")
-            .resizable(false)
-            .default_width(200.0)
+            .resizable(true)
+            .default_width(100.0)
             .show_inside(ui, |ui| {
-                egui::ScrollArea::vertical().show(ui, |ui| {
-                    ui.vertical(|ui| {
+                egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
+                    ui.with_layout(egui::Layout::top_down_justified(egui::Align::Center), |ui| {
                         ui.selectable_value(&mut current_block_details, state_machine::BasicBlock::Start, fl!(LOADER, "blocks-library-basic-blocks-tab-start"));
                         ui.selectable_value(&mut current_block_details, state_machine::BasicBlock::End, fl!(LOADER, "blocks-library-basic-blocks-tab-end"));
                     });

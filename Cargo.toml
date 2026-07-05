@@ -5,6 +5,9 @@ edition = "2021"
 publish = false
 license-file = "LICENCE.txt"
 
+[dev-dependencies]
+proptest = "1"
+
 [dependencies]
 eframe = {version = "0.30", default-features = false, features = ["glow", "default_fonts"]}
 egui = { version = "0.30", features = ["serde"] }

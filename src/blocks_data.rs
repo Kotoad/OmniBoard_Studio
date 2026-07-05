@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{state_machine};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Block {
     pub id: usize,
     pub pos: egui::Pos2,
@@ -12,13 +12,13 @@ pub struct Block {
     pub kind: BlockKind,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Wire {
     pub from: usize,
     pub to: usize,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BlockKind {
     Basic(BasicBlockData),
     Logic(LogicBlockData),
@@ -26,16 +26,16 @@ pub enum BlockKind {
     IO(IOBlockData),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum BasicBlockData { Start, End }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum LogicBlockData { If, Else, While, For }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum MathBlockData { Add, Subtract, Multiply, Divide }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum IOBlockData { Input, Output }
 
 fn rect_nothing() -> egui::Rect {

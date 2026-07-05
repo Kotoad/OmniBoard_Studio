@@ -1,5 +1,3 @@
-use std::u16;
-
 use egui::{Color32, Pos2, RichText, Sense, Stroke, Vec2};
 use i18n_embed_fl::fl;
 use serde::{Deserialize, Serialize};
@@ -33,7 +31,7 @@ pub(crate) struct VisualEditor {
     snap_to_grid: bool,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
 struct GraphFile {
     blocks: Vec<blocks_data::Block>,
     wires: Vec<blocks_data::Wire>,
@@ -71,6 +69,30 @@ fn dist_to_polyline(p: Pos2, pts: &[Pos2]) -> f32 {
         .fold(f32::INFINITY, f32::min)
 }
 
+fn encode_graph(file: &GraphFile) -> Result<Vec<u8>, String> {
+    let payload = bincode::serde::encode_to_vec(file, bincode::config::standard()).map_err(|e| e.to_string())?;
+    let mut out = Vec::with_capacity(6 + payload.len());
+    out.extend_from_slice(MAGIC);
+    out.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
+    out.extend_from_slice(&payload);
+    Ok(out)
+}
+
+fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
+    if bytes.len() < 6 || &bytes[..4] != MAGIC {
+        return Err("Invalid file format".to_string());
+    }
+    let version = u16::from_le_bytes([bytes[4], bytes[5]]);
+    if version != FORMAT_VERSION {
+        return Err(format!(
+            "Unsupported file version: {} (expected {})",
+            version, FORMAT_VERSION
+        ));
+    }
+    bincode::serde::decode_from_slice::<GraphFile, _>(&bytes[6..], bincode::config::standard())
+        .map(|(file, _len)| file)
+        .map_err(|e| e.to_string())
+}
 
 impl VisualEditor {
     pub(crate) fn new() -> Self {
@@ -108,7 +130,7 @@ impl VisualEditor {
         }
     }
 
-    fn copy_block(&mut self, id: usize) {
+    fn duplicate_block(&mut self, id: usize) {
         if let Some(src) = self.block(id) {
             let mut copy = src.clone();
             copy.id = self.next_block_id;
@@ -126,15 +148,8 @@ impl VisualEditor {
             wires: self.wires.clone(),
             next_block_id: self.next_block_id,
         };
-        match bincode::serde::encode_to_vec(&file, bincode::config::standard())
-            .map_err(|e| e.to_string())
-            .and_then(|payload| {
-                let mut out = Vec::with_capacity(6 + payload.len());
-                out.extend_from_slice(MAGIC);
-                out.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
-                out.extend_from_slice(&payload);
-                std::fs::write(path, out).map_err(|e| e.to_string())
-            })
+        match encode_graph(&file)
+            .and_then(|bytes| std::fs::write(path, bytes).map_err(|e| e.to_string()))
         {
             Ok(()) => debug!("Graph saved to {}", path.display()),
             Err(e) => error!("Failed to save graph: {}", e),
@@ -157,21 +172,7 @@ impl VisualEditor {
         if path.extension().and_then(|e| e.to_str()) == Some("omni") {
             match std::fs::read(path)
                 .map_err(|e| e.to_string())
-                .and_then(|bytes| {
-                    if bytes.len() < 6 || &bytes[..4] != MAGIC {
-                        return Err("Invalid file format".to_string());
-                    }
-                    let version = u16::from_le_bytes([bytes[4], bytes[5]]);
-                    if version != FORMAT_VERSION {
-                        return Err(format!(
-                            "Unsupported file version: {} (expected {})",
-                            version, FORMAT_VERSION
-                        ));
-                    }
-                    bincode::serde::decode_from_slice::<GraphFile, _>(&bytes[6..], bincode::config::standard())
-                        .map(|(file, _len)| file)
-                        .map_err(|e| e.to_string())
-                })
+                .and_then(|bytes| decode_graph(&bytes))
             {
                 Ok(file) => {
                     self.blocks = file.blocks;
@@ -201,6 +202,14 @@ impl VisualEditor {
                 Err(e) => error!("Failed to load graph: {}", e),
             }
         }
+    }
+
+    pub fn add_block(&mut self, block_kind: state_machine::Block) {
+        let id = self.next_block_id;
+        self.next_block_id += 1;
+        let pos = Pos2::new(100.0 + (id as f32 * 20.0), 100.0);
+        let block = blocks_data::Block::new(block_kind, pos, id);
+        self.blocks.push(block);
     }
 
 
@@ -264,7 +273,7 @@ impl VisualEditor {
             let run_current = self.run.map(|r| r.current);
             let snap = self.snap_to_grid;
             let mut pending_delete: Option<usize> = None;
-            let mut pending_copy: Option<usize> = None;
+            let mut pending_duplicate: Option<usize> = None;
             let mut pending_select: Option<usize> = None;
 
             for block in &mut self.blocks{
@@ -348,8 +357,8 @@ impl VisualEditor {
                                     pending_select = Some(block.id);
                                 }
                                 header_drag.context_menu(|ui| {
-                                    if ui.button(fl!(LOADER, "main-gui-block-context-menu-copy")).clicked() {
-                                        pending_copy = Some(block.id);
+                                    if ui.button(fl!(LOADER, "main-gui-block-context-menu-duplicate")).clicked() {
+                                        pending_duplicate = Some(block.id);
                                         ui.close_menu();
                                     }
                                     if ui.button(fl!(LOADER, "main-gui-block-context-menu-delete")).clicked() {
@@ -423,8 +432,8 @@ impl VisualEditor {
             if let Some(id) = pending_delete {
                 self.delete_block(id);
             }
-            if let Some(id) = pending_copy {
-                self.copy_block(id);
+            if let Some(id) = pending_duplicate {
+                self.duplicate_block(id);
             }
 
             //MARK: - Wire events
@@ -511,12 +520,95 @@ impl VisualEditor {
             }
         });
     }
-
-    pub fn add_block(&mut self, block_kind: state_machine::Block) {
-        let id = self.next_block_id;
-        self.next_block_id += 1;
-        let pos = Pos2::new(100.0 + (id as f32 * 20.0), 100.0);
-        let block = blocks_data::Block::new(block_kind, pos, id);
-        self.blocks.push(block);
-    }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use proptest::prelude::*;
+    use crate::blocks_data::{Block, BlockKind, BasicBlockData, Wire};
+
+    fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
+        Block {
+            id,
+            pos: Pos2::new(x, y),
+            rect: egui::Rect::NOTHING,
+            kind,
+        }
+    }
+
+    #[test]
+    fn empty_graph_round_trips() {
+        let graph = GraphFile {blocks: vec![], wires: vec![], next_block_id: 0};
+        assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
+    }
+
+    #[test]
+    fn simple_graph_round_trips() {
+        let graph = GraphFile {
+            blocks: vec![
+                block(0, 10.0, 20.0, BlockKind::Basic(BasicBlockData::Start)),
+                block(1, 30.0, 40.0, BlockKind::Basic(BasicBlockData::End)),
+            ],
+            wires: vec![Wire { from: 0, to: 1 }],
+            next_block_id: 2,
+        };
+        assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
+    }
+
+    #[test]
+    fn bad_magic_rejected() { assert!(decode_graph(b"JUNKdata").is_err()); }
+
+    #[test]
+    fn truncated_rejected() { assert!(decode_graph(b"OMN").is_err()); }
+
+    #[test]
+    fn future_version_rejected() {
+        let mut bytes = encode_graph(&GraphFile { blocks: vec![], wires: vec![], next_block_id: 0 }).unwrap();
+        bytes[4..6].copy_from_slice(&99u16.to_le_bytes());
+        let err = decode_graph(&bytes).unwrap_err();
+        assert!(err.contains("Unsupported file version"));
+    }
+
+    fn arbitrary_block() -> impl Strategy<Value = BlockKind> {
+        use crate::blocks_data::{BasicBlockData::*, LogicBlockData::*, MathBlockData::*, IOBlockData::*};
+        prop_oneof![
+            Just(BlockKind::Basic(Start)),
+            Just(BlockKind::Basic(End)),
+            Just(BlockKind::Logic(If)),
+            Just(BlockKind::Logic(Else)),
+            Just(BlockKind::Logic(While)),
+            Just(BlockKind::Logic(For)),
+            Just(BlockKind::Math(Add)),
+            Just(BlockKind::Math(Subtract)),
+            Just(BlockKind::Math(Multiply)),
+            Just(BlockKind::Math(Divide)),
+            Just(BlockKind::IO(Input)),
+            Just(BlockKind::IO(Output))
+        ]
+    }
+
+    fn arbitrary_graph() -> impl Strategy<Value = GraphFile> {
+        (
+            prop::collection::vec((any::<usize>(), -1e6f32..1e6, -1e6f32..1e6, arbitrary_block()), 0..40),
+            prop::collection::vec((any::<usize>(), any::<usize>()), 0..40),
+            any::<usize>(),
+        ).prop_map(|(bs, ws, next)| GraphFile {
+            blocks: bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
+            wires: ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+            next_block_id: next,
+        })
+    }
+
+    proptest! {
+        #[test]
+        fn any_graph_round_trips(graph in arbitrary_graph()) {
+            prop_assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
+        }
+
+        #[test]
+        fn garbage_never_panics(bytes in prop::collection::vec(any::<u8>(), 0..512)) {
+            let _ = decode_graph(&bytes);
+        }
+    }
+}  

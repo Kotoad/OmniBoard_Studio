@@ -55,6 +55,24 @@ main-gui-sidebar-canvas = Plátno
 main-gui-sidebar-internal-variables = Interní proměnné
 main-gui-sidebar-new-canvas = Přidat nové plátno
 
+#block-context-menu
+main-gui-block-context-menu-duplicate = Duplikovat
+main-gui-block-context-menu-delete = Smazat
+
+#block-interacive-field
+block-interacive-field-start = Vstupní bod
+block-interacive-field-end = Výstupní bod
+block-interacive-field-for = For cyklus
+block-interacive-field-if = If cyklus část
+block-interacive-field-else = Else cyklus část
+block-interacive-field-while = While cyklus
+block-interacive-field-add = Přičíst
+block-interacive-field-subtract = Odečíst
+block-interacive-field-multiply = Vynásobit
+block-interacive-field-divide = Vydělit
+block-interacive-field-input = Vstup
+block-interacive-field-output = Výstup
+
 # variables_tab
 main-gui-variables-tab-variables = Proměnné
 main-gui-variables-tab-name-placeholder = Zadejte název proměnné
@@ -136,7 +154,9 @@ main-gui-settings-status = Stav
 main-gui-settings-status-not-connected = Stav: Nepřipojeno
 main-gui-settings-additional-settings = Další nastavení
 
-# dialogs.file_dialogs
+# dialogs-file-dialogs
+main-gui-dialogs-file-dialogs-open-title = Načíst soubor
+main-gui-dialogs-file-dialogs-save-title = Uložit soubor
 main-gui-dialogs-file-dialogs-save-project = Uložit projekt?
 main-gui-dialogs-file-dialogs-save-project-close = Uložit nepojmenovaný projekt před zavřením?
 main-gui-dialogs-file-dialogs-save-project-as = Uložit projekt jako?
@@ -239,7 +259,7 @@ hub-file-sidebar-title = Soubory
 
 blocks-library-window-title = Knihovna bloků
 blocks-library-block-details = Podrobnosti bloku
-blocks-library-add-block = Přidat blok
+blocks-library-add-block-button = Přidat { $block_name }
 blocks-library-tab-basic = Základní bloky
 blocks-library-tab-logic = Logické bloky
 blocks-library-tab-math = Matematické bloky
@@ -260,10 +280,11 @@ blocks-library-logic-blocks-tab-cycles = Cykly
 blocks-library-logic-blocks-tab-comparison = Porovnání
 blocks-library-logic-blocks-tab-bool-logic = Boolová logika
 blocks-library-logic-blocks-tab-if = Pokud
+blocks-library-logic-blocks-tab-else = Jinak
 blocks-library-logic-blocks-tab-while = Pokud platí
 blocks-library-logic-blocks-tab-while-true = Pokud platí vždy
 blocks-library-logic-blocks-tab-switch = Přepínač
-blocks-library-logic-blocks-tab-for-loop = Cyklus For
+blocks-library-logic-blocks-tab-for = Pro
 blocks-library-logic-blocks-tab-lower = Menší než
 blocks-library-logic-blocks-tab-greater = Větší než
 blocks-library-logic-blocks-tab-equal = Rovná se
@@ -288,18 +309,20 @@ blocks-library-io-blocks-tab-led-on = LED zapnuto
 blocks-library-io-blocks-tab-led-off = LED vypnuto
 blocks-library-io-blocks-tab-rgb-led = Řízení RGB LED
 blocks-library-io-blocks-tab-pwm-led = Řízení PWM LED
+blocks-library-io-blocks-tab-input = Vstup
+blocks-library-io-blocks-tab-output = Výstup
 
 # math_blocks_tab
 blocks-library-math-blocks-tab-tab-title = Matematické bloky
-blocks-library-math-blocks-tab-plus = Sčítání
-blocks-library-math-blocks-tab-minus = Odčítání
+blocks-library-math-blocks-tab-add = Sčítání
+blocks-library-math-blocks-tab-subtract = Odčítání
 blocks-library-math-blocks-tab-multiply = Násobení
 blocks-library-math-blocks-tab-divide = Dělení
 blocks-library-math-blocks-tab-modulo = Modulo
 blocks-library-math-blocks-tab-power = Mocnina
 blocks-library-math-blocks-tab-root = Odmocnina
-blocks-library-math-blocks-tab-plus-one = Přidat 1
-blocks-library-math-blocks-tab-minus-one = Odečíst 1
+blocks-library-math-blocks-tab-add-one = Přidat 1
+blocks-library-math-blocks-tab-subtract-one = Odečíst 1
 blocks-library-math-blocks-tab-random-number = Náhodné číslo
 
 # function_blocks_tab
@@ -315,7 +338,7 @@ blocks-library-blocks-descriptions-return = Blok, který vrací hodnotu z funkce
 blocks-library-blocks-descriptions-while = Blok smyčky, který pokračuje v provádění, pokud je podmínka pravdivá.
 blocks-library-blocks-descriptions-while-true = Smyčka, která běží neurčitě, dokud není externě zastavena.
 blocks-library-blocks-descriptions-switch = Blok, který vybere jednu z mnoha možných akcí na základě hodnoty.
-blocks-library-blocks-descriptions-for-loop = Smyčka, která se iteruje určitý počet krát.
+blocks-library-blocks-descriptions-for = Smyčka, která se iteruje určitý počet krát.
 blocks-library-blocks-descriptions-button = Představuje fyzické tlačítko vstupního zařízení.
 blocks-library-blocks-descriptions-lower = Porovnává dvě hodnoty a vrací pravda, pokud je první menší než druhá.
 blocks-library-blocks-descriptions-greater = Porovnává dvě hodnoty a vrací pravda, pokud je první větší než druhá.
@@ -337,15 +360,15 @@ blocks-library-blocks-descriptions-pwm-led = Řídí jas LED pomocí PWM (pulzn�
 blocks-library-blocks-descriptions-led-on = Zapíná LED.
 blocks-library-blocks-descriptions-led-off = Vypíná LED.
 blocks-library-blocks-descriptions-rgb-led = Ovládá RGB LED.
-blocks-library-blocks-descriptions-plus = Sčítá dvě hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-minus = Odečítá druhou hodnotu od první a ukládá výsledek do cílové proměnné.
+blocks-library-blocks-descriptions-add = Sčítá dvě hodnoty a ukládá výsledek do cílové proměnné.
+blocks-library-blocks-descriptions-subtract = Odečítá druhou hodnotu od první a ukládá výsledek do cílové proměnné.
 blocks-library-blocks-descriptions-multiply = Násobí dvě hodnoty a ukládá výsledek do cílové proměnné.
 blocks-library-blocks-descriptions-divide = Dělí první hodnotu druhou a ukládá výsledek do cílové proměnné.
 blocks-library-blocks-descriptions-modulo = Vypočítává zbytek po dělení první hodnoty druhou a ukládá výsledek do cílové proměnné.
 blocks-library-blocks-descriptions-power = Zvedá první hodnotu na exponent druhé hodnoty a ukládá výsledek do cílové proměnné.
 blocks-library-blocks-descriptions-root = Vypočítává druhou odmocninu první hodnoty a ukládá výsledek do cílové proměnné.
-blocks-library-blocks-descriptions-plus-one = Přidá 1 k zadané proměnné.
-blocks-library-blocks-descriptions-minus-one = Odečte 1 od zadané proměnné.
+blocks-library-blocks-descriptions-add-one = Přidá 1 k zadané proměnné.
+blocks-library-blocks-descriptions-subtract-one = Odečte 1 od zadané proměnné.
 blocks-library-blocks-descriptions-random-number = Generuje náhodné číslo v zadaném rozsahu.
 blocks-library-blocks-descriptions-no-description = Žádný popis není k dispozici.
 

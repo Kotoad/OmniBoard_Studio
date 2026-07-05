@@ -56,7 +56,7 @@ main-gui-sidebar-internal-variables = Internal Variables
 main-gui-sidebar-new-canvas = Add New Canvas
 
 #block-context-menu
-main-gui-block-context-menu-copy = Copy
+main-gui-block-context-menu-duplicate = Duplicate
 main-gui-block-context-menu-delete = Delete
 
 #block-interacive-field
@@ -154,7 +154,7 @@ main-gui-settings-status = Status
 main-gui-settings-status-not-connected = Status: Not connected
 main-gui-settings-additional-settings = Additional Settings
 
-# dialogs.file_dialogs
+# dialogs-file-dialogs
 main-gui-dialogs-file-dialogs-open-title = Load file
 main-gui-dialogs-file-dialogs-save-title = Save file
 main-gui-dialogs-file-dialogs-save-project = Save project?
@@ -282,10 +282,9 @@ blocks-library-logic-blocks-tab-bool-logic = Boolean Logic
 blocks-library-logic-blocks-tab-if = If
 blocks-library-logic-blocks-tab-else = Else
 blocks-library-logic-blocks-tab-while = While
-blocks-library-logic-blocks-tab-for = For
 blocks-library-logic-blocks-tab-while-true = While true
 blocks-library-logic-blocks-tab-switch = Switch
-blocks-library-logic-blocks-tab-for-loop = For Loop
+blocks-library-logic-blocks-tab-for = For Loop
 blocks-library-logic-blocks-tab-lower = Lower
 blocks-library-logic-blocks-tab-greater = Greater
 blocks-library-logic-blocks-tab-equal = Equal
@@ -315,15 +314,15 @@ blocks-library-io-blocks-tab-output = Output
 
 # math_blocks_tab
 blocks-library-math-blocks-tab-tab-title = Math blocks
-blocks-library-math-blocks-tab-add = Plus
-blocks-library-math-blocks-tab-subtract = Minus
+blocks-library-math-blocks-tab-add = Add
+blocks-library-math-blocks-tab-subtract = Subtract
 blocks-library-math-blocks-tab-multiply = Multiply
 blocks-library-math-blocks-tab-divide = Divide
 blocks-library-math-blocks-tab-modulo = Modulo
 blocks-library-math-blocks-tab-power = Power
 blocks-library-math-blocks-tab-root = Root
-blocks-library-math-blocks-tab-plus-one = Plus 1
-blocks-library-math-blocks-tab-minus-one = Minus 1
+blocks-library-math-blocks-tab-add-one = Add 1
+blocks-library-math-blocks-tab-subtract-one = Subtract 1
 blocks-library-math-blocks-tab-random-number = Random Number
 
 # function_blocks_tab
@@ -339,7 +338,7 @@ blocks-library-blocks-descriptions-if = A conditional block that executes action
 blocks-library-blocks-descriptions-while = A loop block that continues executing as long as a condition is true.
 blocks-library-blocks-descriptions-while-true = A loop that runs indefinitely until externally stopped.
 blocks-library-blocks-descriptions-switch = A block that selects one of many possible actions based on a value.
-blocks-library-blocks-descriptions-for-loop = A loop that iterates a specific number of times.
+blocks-library-blocks-descriptions-for = A loop that iterates a specific number of times.
 blocks-library-blocks-descriptions-button = Represents a physical button input device.
 blocks-library-blocks-descriptions-lower = Compares two values and returns true if the first is less than the second.
 blocks-library-blocks-descriptions-greater = Compares two values and returns true if the first is greater than the second.
@@ -361,15 +360,15 @@ blocks-library-blocks-descriptions-pwm-led = Controls the brightness of an LED u
 blocks-library-blocks-descriptions-led-on = Turns an LED on.
 blocks-library-blocks-descriptions-led-off = Turns an LED off.
 blocks-library-blocks-descriptions-rgb-led = Controls an RGB LED.
-blocks-library-blocks-descriptions-plus = Adds two values together and stores the result in a target variable.
-blocks-library-blocks-descriptions-minus = Subtracts the second value from the first and stores the result in a target variable.
+blocks-library-blocks-descriptions-add = Adds two values together and stores the result in a target variable.
+blocks-library-blocks-descriptions-subtract = Subtracts the second value from the first and stores the result in a target variable.
 blocks-library-blocks-descriptions-multiply = Multiplies two values together and stores the result in a target variable.
 blocks-library-blocks-descriptions-divide = Divides the first value by the second and stores the result in a target variable.
 blocks-library-blocks-descriptions-modulo = Calculates the remainder of dividing the first value by the second and stores the result in a target variable.
 blocks-library-blocks-descriptions-power = Raises the first value to the power of the second value and stores the result in a target variable.
 blocks-library-blocks-descriptions-root = Calculates the square root of the first value and stores the result in a target variable.
-blocks-library-blocks-descriptions-plus-one = Adds 1 to the specified variable.
-blocks-library-blocks-descriptions-minus-one = Subtracts 1 from the specified variable.
+blocks-library-blocks-descriptions-add-one = Adds 1 to the specified variable.
+blocks-library-blocks-descriptions-subtract-one = Subtracts 1 from the specified variable.
 blocks-library-blocks-descriptions-random-number = Generates a random number within a specified range.
 blocks-library-blocks-descriptions-no-description = No description available.
 

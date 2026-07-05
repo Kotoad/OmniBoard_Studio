@@ -39,10 +39,9 @@ fn read_omni_files() -> Vec<std::path::PathBuf> {
             .filter_map(Result::ok)
             .filter(|entry| entry.file_type().map(|ft| ft.is_file()).unwrap_or(false))
             .filter(|entry| {
-                entry.path()
-                    .extension()
-                    .and_then(|ext| ext.to_str())
-                    == Some("omni")
+                let binding = entry.path();
+                let ext = binding.extension().and_then(|ext| ext.to_str());
+                ext == Some("omni") || (cfg!(debug_assertions) && ext == Some("json"))
             })
             .map(|entry| entry.path())
             .collect(),
@@ -164,6 +163,11 @@ impl OmniBoardStudio {
     }
 
     //MARK: - File Management
+
+    fn new_file(&mut self) {
+        self.visual_editor = visual_editor::VisualEditor::new();
+        self.current_file = None;
+    }
 
     fn open_via_file_dialog(&mut self) {
         let mut dialog = rfd::FileDialog::new()
@@ -317,7 +321,7 @@ impl eframe::App for OmniBoardStudio {
 
                 ui.menu_button(fl!(LOADER, "main-gui-menu-file"), |ui| {
                     if ui.button(fl!(LOADER, "main-gui-menu-new")).clicked() {
-                        debug!("New file");
+                        self.new_file();
                         ui.close_menu();
                     }
                     if ui.button(fl!(LOADER, "main-gui-menu-open")).clicked() {
@@ -405,7 +409,7 @@ impl eframe::App for OmniBoardStudio {
                         .fit_to_exact_size(egui::vec2(h, h))
                         .tint(ui.visuals().text_color());
                     if ui.add(egui::ImageButton::new(new_file)).clicked() {
-                        debug!("New file");
+                        self.new_file();
                     }
 
                     let open_file = egui::Image::new(tool_img!("Open_file.png"))

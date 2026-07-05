@@ -240,7 +240,7 @@ impl OmniBoardStudio {
             });
 
         if state_machine::with(|sm| sm.theme_changed(current_theme)) {
-            state_machine::with_mut(|sm| sm.set_current_theme(current_theme.clone()));
+            state_machine::with_mut(|sm| sm.set_current_theme(current_theme));
             current_theme_str = state_machine::with(|sm| sm.get_theme_str());
             theme::install_theme_from_str(ui.ctx(), &current_theme_str);
             settings::update(|s| s.theme = current_theme_str.clone());
