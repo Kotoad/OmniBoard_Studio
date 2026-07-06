@@ -1,6 +1,4 @@
-use egui::{
-    self, FontId, Rounding, Ui, TextFormat
-};
+use egui::{self, FontId, Rounding, Ui, TextFormat};
 use egui::text::LayoutJob;
 
 pub fn file_button_simple(ui: &mut Ui, filename: &str, created: &str, last_modified: &str) -> egui::Response {

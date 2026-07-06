@@ -59,6 +59,9 @@ main-gui-sidebar-new-canvas = Add New Canvas
 main-gui-block-context-menu-duplicate = Duplicate
 main-gui-block-context-menu-delete = Delete
 
+# wire-context-menu
+main-gui-wire-context-menu-delete = Delete Wire
+
 # variables_tab
 main-gui-variables-tab-variables = Variables
 main-gui-variables-tab-name-placeholder = Enter variable name
@@ -244,13 +247,15 @@ hub-file-sidebar-title = Projects
 # blocks-library
 
 blocks-library-window-title = Blocks library
-blocks-library-block-details = Block Details
+blocks-library-block-details-heading = Block Details
+blocks-library-block-image-heading = Block Image
 blocks-library-add-block-button = Add { $block_name }
 blocks-library-tab-basic = Basic blocks
 blocks-library-tab-logic = Logic blocks
 blocks-library-tab-math = Math blocks
 blocks-library-tab-io = I/O blocks
 blocks-library-tab-functions = Functions
+blocks-library-tab-empty = No blocks available
 
 # basic_blocks_tab
 blocks-library-basic-blocks-tab-tab-title = Basic blocks

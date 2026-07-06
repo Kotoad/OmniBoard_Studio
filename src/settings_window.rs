@@ -8,7 +8,7 @@ use crate::translation_manager::LOADER;
 //MARK: - Color ruw
 fn color_row(ui: &mut Ui, color_category: &str) -> bool {
     ui.horizontal(|ui|{
-        let mut pal = theme::palette(ui.ctx());
+        let mut pal = state_machine::with(|sm| sm.get_current_palette());
 
         let mut c = match color_category {
             "main_darker" => pal.window,

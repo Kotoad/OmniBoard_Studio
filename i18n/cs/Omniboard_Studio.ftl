@@ -47,6 +47,9 @@ main-gui-top-toolbar-code-editor = Editor kódu
 main-gui-bottom-toolbar-toolbar = Dolní panel nástrojů
 main-gui-bottom-toolbar-pan = Pohybovat plátnem
 
+# wire-context-menu
+main-gui-wire-context-menu-delete = Smazat spojení
+
 # sidebar
 main-gui-sidebar-main = Hlavní
 main-gui-sidebar-variables = proměnné
@@ -244,13 +247,15 @@ hub-file-sidebar-title = Soubory
 # blocks-library
 
 blocks-library-window-title = Knihovna bloků
-blocks-library-block-details = Podrobnosti bloku
+blocks-library-block-details-heading = Podrobnosti bloku
+blocks-library-block-image-heading = Obrázek bloku
 blocks-library-add-block-button = Přidat { $block_name }
 blocks-library-tab-basic = Základní bloky
 blocks-library-tab-logic = Logické bloky
 blocks-library-tab-math = Matematické bloky
 blocks-library-tab-io = I/O bloky
 blocks-library-tab-functions = Funkce
+blocks-library-tab-empty = Žádné bloky k dispozici
 
 # basic_blocks_tab
 blocks-library-basic-blocks-tab-tab-title = Základní bloky

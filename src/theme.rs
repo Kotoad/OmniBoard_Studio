@@ -292,8 +292,7 @@ const ROUNDING: f32 = 4.0;
 const BORDER: f32 = 1.0;
 
 pub fn style_from(p: Palette) -> Style {
-    let mut style = Style::default();
-    style.visuals = visuals(&p);
+    let mut style = Style{ visuals: visuals(&p), ..Default::default() };
     apply_text_sizes(&mut style);
     apply_spacing(&mut style);
     style
@@ -306,11 +305,6 @@ fn palette_id() -> egui::Id {
 pub fn install(ctx: &egui::Context, p: Palette) {
     ctx.set_style(style_from(p));
     ctx.data_mut(|d| d.insert_temp(palette_id(), p));
-}
-
-pub fn palette(ctx: &egui::Context) -> Palette {
-    ctx.data(|d| d.get_temp::<Palette>(palette_id()))
-        .unwrap_or_else(Palette::dark)
 }
 
 pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {

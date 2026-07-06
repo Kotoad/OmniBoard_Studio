@@ -29,6 +29,8 @@ pub(crate) struct VisualEditor {
     panning: bool,
     
     snap_to_grid: bool,
+    dirty: bool,
+    context_wire: Option<(usize, usize)>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
@@ -109,25 +111,36 @@ impl VisualEditor {
             pan_start: Pos2::ZERO,
             panning: false,
 
-            snap_to_grid: false
+            snap_to_grid: false,
+
+            dirty: false,
+            context_wire: None,
         }
     }
 
     //MARK: - Helpers
-
     fn block(&self, id: usize) -> Option<&blocks_data::Block> {
         self.blocks.iter().find(|b| b.id == id)
+    }
+
+    pub fn is_dirty(&self) -> bool {
+        self.dirty
     }
 
     fn delete_block(&mut self, id: usize) {
         self.blocks.retain(|b| b.id != id);
         self.wires.retain(|w| w.from != id && w.to != id);
+        self.blocks.iter_mut().for_each(|b| {
+            b.wires.from_wires.retain(|w| w.from != id && w.to != id);
+            b.wires.to_wires.retain(|w| w.from != id && w.to != id);
+        });
         if self.selected == Some(id) {
             self.selected = None;
         }
         if self.run.map(|r| r.current) == Some(id) {
             self.run = None;
         }
+        self.dirty = true;
     }
 
     fn duplicate_block(&mut self, id: usize) {
@@ -136,9 +149,10 @@ impl VisualEditor {
             copy.id = self.next_block_id;
             copy.pos += Vec2::new(20.0, 20.0);
             copy.rect = egui::Rect::NOTHING;
+            copy.wires = blocks_data::Wires::default();
             self.next_block_id += 1;
             self.blocks.push(copy);
-
+            self.dirty = true;
         }
     }
 
@@ -151,7 +165,7 @@ impl VisualEditor {
         match encode_graph(&file)
             .and_then(|bytes| std::fs::write(path, bytes).map_err(|e| e.to_string()))
         {
-            Ok(()) => debug!("Graph saved to {}", path.display()),
+            Ok(()) => {debug!("Graph saved to {}", path.display()); self.dirty = false},
             Err(e) => error!("Failed to save graph: {}", e),
         }
 
@@ -162,7 +176,7 @@ impl VisualEditor {
                 .map_err(|e| e.to_string())
                 .and_then(|json| std::fs::write(&json_path, json).map_err(|e| e.to_string()))
             {
-                Ok(()) => debug!("Graph saved to {}", json_path.display()),
+                Ok(()) => {debug!("Graph saved to {}", json_path.display()); self.dirty = false},
                 Err(e) => error!("Failed to save graph: {}", e),
             }
         }
@@ -181,6 +195,7 @@ impl VisualEditor {
                     self.selected = None;
                     self.run = None;
                     self.wire_from = None;
+                    self.dirty = false;
                     debug!("Graph loaded from {}", path.display());
                 }
                 Err(e) => error!("Failed to load graph: {}", e),
@@ -197,6 +212,7 @@ impl VisualEditor {
                     self.selected = None;
                     self.run = None;
                     self.wire_from = None;
+                    self.dirty = false;
                     debug!("Graph loaded from {}", path.display());
                 }
                 Err(e) => error!("Failed to load graph: {}", e),
@@ -204,12 +220,13 @@ impl VisualEditor {
         }
     }
 
-    pub fn add_block(&mut self, block_kind: state_machine::Block) {
+    pub fn add_block(&mut self, block_kind: blocks_data::BlockKind) {
         let id = self.next_block_id;
         self.next_block_id += 1;
         let pos = Pos2::new(100.0 + (id as f32 * 20.0), 100.0);
         let block = blocks_data::Block::new(block_kind, pos, id);
         self.blocks.push(block);
+        self.dirty = true;
     }
 
 
@@ -242,7 +259,7 @@ impl VisualEditor {
             //MARK: - Draw grid
             let painter = ui.painter_at(canvas_rect);
 
-            let pal = crate::theme::palette(ctx);
+            let pal = state_machine::with(|sm| sm.get_current_palette());
 
             let grid_size = 25.0;
             let ox = self.canvas_offset.x.rem_euclid(grid_size);
@@ -331,6 +348,7 @@ impl VisualEditor {
                                 if header_drag.dragged_by(egui::PointerButton::Primary) {
                                     block.pos += header_drag.drag_delta();
                                     ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+                                    self.dirty = true;
                                 } else if header_drag.hovered() {
                                     ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
                                 }
@@ -392,19 +410,29 @@ impl VisualEditor {
                 if rmb_pressed {
                     for block in &self.blocks {
                         if pos.distance(block.out_port()) < 16.0 {
-                            self.wire_from = Some(block.id);
-                            grabbed_port = true;
-                            break;
+                            if block.wires.from_wires.is_empty() {
+                                self.wire_from = Some(block.id);
+                                grabbed_port = true;
+                                break;
+                            }
                         }
                     }
                 }
                 if rmb_released {
                     if let Some(from) = self.wire_from.take() {
-                        for block in &self.blocks {
-                            if block.id != from && pos.distance(block.in_port()) < 16.0 {
-                                let dup = self.wires.iter().any(|w| w.from == from && w.to == block.id);
+                        let from_idx = self.blocks.iter().position(|b| b.id == from);
+                        for to_idx in 0..self.blocks.len() {
+                            if self.blocks[to_idx].id != from && pos.distance(self.blocks[to_idx].in_port()) < 16.0 {
+                                let to_id = self.blocks[to_idx].id;
+                                let dup = self.wires.iter().any(|w| w.from == from && w.to == to_id);
                                 if !dup {
-                                    self.wires.push(blocks_data::Wire { from, to: block.id });
+                                    let wire = blocks_data::Wire { from, to: to_id };
+                                    self.wires.push(wire.clone());
+                                    if let Some(from_idx) = from_idx {
+                                        self.blocks[from_idx].wires.from_wires.push(wire.clone());
+                                    }
+                                    self.blocks[to_idx].wires.to_wires.push(wire.clone());
+                                    self.dirty = true;
                                 }
                                 break;
                             }
@@ -430,14 +458,21 @@ impl VisualEditor {
                 }
                 wire_paths.push(path);
             }
-            if rmb_pressed && !grabbed_port {
-                if let Some(i) = hovered_wire {
-                    self.wires.remove(i);
-                    wire_paths.remove(i);
-                    hovered_wire = None;
-                }
+            if _response.secondary_clicked() && !grabbed_port {
+                self.context_wire = hovered_wire.map(|i| (self.wires[i].from, self.wires[i].to));
             }
-
+            _response.context_menu(|ui| {
+                if let Some((from, to)) = self.context_wire {
+                    if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
+                        self.wires.retain(|w| !(w.from == from && w.to == to));
+                        self.blocks.iter_mut().for_each(|b| {
+                            b.wires.from_wires.retain(|w| !(w.from == from && w.to == to));
+                            b.wires.to_wires.retain(|w| !(w.from == from && w.to == to));
+                        });
+                        ui.close_menu();
+                    }
+                }
+            });
             let wire_painter = ctx
                 .layer_painter(egui::LayerId::new(
                     egui::Order::Background,
@@ -476,7 +511,7 @@ impl VisualEditor {
 mod tests {
     use super::*;
     use proptest::prelude::*;
-    use crate::{blocks_data::{BasicBlockData, Block, BlockKind, Wire}, translation_manager};
+    use crate::{blocks_data::{BasicBlockData, Block, BlockKind, Wire, Wires}, translation_manager};
 
     fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
         Block {
@@ -484,6 +519,7 @@ mod tests {
             pos: Pos2::new(x, y),
             rect: egui::Rect::NOTHING,
             kind,
+            wires: Wires::default(),
         }
     }
 

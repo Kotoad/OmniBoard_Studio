@@ -1,7 +1,7 @@
 use egui::{Pos2};
 use serde::{Deserialize, Serialize};
 
-use crate::{state_machine};
+use crate::state_machine;
 
 pub struct BlockMeta {
     pub color: egui::Color32,
@@ -25,6 +25,15 @@ impl BlockKind {
         BlockKind::IO(IOBlockData::Input),
         BlockKind::IO(IOBlockData::Output),
     ];
+
+    pub fn category(&self) -> state_machine::BlocksLibraryTab {
+        match self {
+            BlockKind::Basic(_) => state_machine::BlocksLibraryTab::Basic,
+            BlockKind::Logic(_) => state_machine::BlocksLibraryTab::Logic,
+            BlockKind::Math(_) => state_machine::BlocksLibraryTab::Math,
+            BlockKind::IO(_) => state_machine::BlocksLibraryTab::IO,
+        }
+    }
 
     pub fn meta(&self) -> BlockMeta {
         match self {
@@ -111,6 +120,14 @@ pub struct Block {
     #[serde(skip, default="rect_nothing")]
     pub rect: egui::Rect,
     pub kind: BlockKind,
+    #[serde(skip)]
+    pub wires: Wires,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
+pub struct Wires {
+    pub from_wires: Vec<Wire>,
+    pub to_wires: Vec<Wire>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -145,22 +162,8 @@ fn rect_nothing() -> egui::Rect {
 
 impl Block {
 
-    pub fn new(block_kind: state_machine::Block, pos: Pos2, id: usize) -> Self {
-        let kind = match block_kind {
-            state_machine::Block::Basic(state_machine::BasicBlock::Start) => BlockKind::Basic(BasicBlockData::Start),
-            state_machine::Block::Basic(state_machine::BasicBlock::End) => BlockKind::Basic(BasicBlockData::End),
-            state_machine::Block::Logic(state_machine::LogicBlock::If) => BlockKind::Logic(LogicBlockData::If),
-            state_machine::Block::Logic(state_machine::LogicBlock::Else) => BlockKind::Logic(LogicBlockData::Else),
-            state_machine::Block::Logic(state_machine::LogicBlock::While) => BlockKind::Logic(LogicBlockData::While),
-            state_machine::Block::Logic(state_machine::LogicBlock::For) => BlockKind::Logic(LogicBlockData::For),
-            state_machine::Block::Math(state_machine::MathBlock::Add) => BlockKind::Math(MathBlockData::Add),
-            state_machine::Block::Math(state_machine::MathBlock::Subtract) => BlockKind::Math(MathBlockData::Subtract),
-            state_machine::Block::Math(state_machine::MathBlock::Multiply) => BlockKind::Math(MathBlockData::Multiply),
-            state_machine::Block::Math(state_machine::MathBlock::Divide) => BlockKind::Math(MathBlockData::Divide),
-            state_machine::Block::IO(state_machine::IOBlock::Input) => BlockKind::IO(IOBlockData::Input),
-            state_machine::Block::IO(state_machine::IOBlock::Output) => BlockKind::IO(IOBlockData::Output),
-        };
-        Self { id, pos, kind, rect: egui::Rect::NOTHING }
+    pub fn new(kind: BlockKind, pos: Pos2, id: usize) -> Self {
+        Self { id, pos, kind, rect: egui::Rect::NOTHING, wires: Wires::default() }
     }
 
     pub fn color(&self) -> egui::Color32 {

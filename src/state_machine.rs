@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 use std::sync::{RwLock, OnceLock};
 
-use crate::settings;
-use crate::state_machine::BasicBlock::Start;
+use crate::{settings, state_machine};
+use crate::blocks_data::{self, BlockKind};
+use crate::theme::Palette;
 
 
 
@@ -42,22 +43,6 @@ pub enum Theme { Dark, Light, SolarizedLight, SolarizedDark, Monokai, Dracula, C
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Language { English, Czech }
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum Block { Basic(BasicBlock), Logic(LogicBlock), Math(MathBlock), IO(IOBlock) }
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum BasicBlock { Start, End }
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum LogicBlock { If, Else, While, For }
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum MathBlock { Add, Subtract, Multiply, Divide }
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub enum IOBlock { Input, Output }
-
 pub struct AppStateMachine {
     scale: f32,
     state: AppState,
@@ -68,11 +53,11 @@ pub struct AppStateMachine {
     blocks_library_tab: BlocksLibraryTab,
     current_theme: Theme,
     current_language: Language,
-    block: Block,
-    basic_block: BasicBlock,
-    logic_block: LogicBlock,
-    math_block: MathBlock,
-    io_block: IOBlock,
+    block: blocks_data::BlockKind,
+    basic_block: blocks_data::BasicBlockData,
+    logic_block: blocks_data::LogicBlockData,
+    math_block: blocks_data::MathBlockData,
+    io_block: blocks_data::IOBlockData,
 }
 
 fn theme_from_str(theme_str: &str) -> Theme {
@@ -115,11 +100,11 @@ impl AppStateMachine {
             blocks_library_tab: BlocksLibraryTab::Basic,
             current_theme,
             current_language,
-            block: Block::Basic(Start),
-            basic_block: BasicBlock::Start,
-            logic_block: LogicBlock::If,
-            math_block: MathBlock::Add,
-            io_block: IOBlock::Input,
+            block: blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::Start),
+            basic_block: blocks_data::BasicBlockData::Start,
+            logic_block: blocks_data::LogicBlockData::If,
+            math_block: blocks_data::MathBlockData::Add,
+            io_block: blocks_data::IOBlockData::Input,
         }
     }
 
@@ -185,6 +170,22 @@ impl AppStateMachine {
 
     pub fn get_theme_from_str(&self, theme_str: &str) -> Theme { theme_from_str(theme_str) }
 
+    pub fn get_current_palette(&self) -> Palette {
+        match self.current_theme {
+            Theme::Light => Palette::light(),
+            Theme::Dark => Palette::dark(),
+            Theme::SolarizedLight => Palette::solarized_light(),
+            Theme::SolarizedDark => Palette::solarized_dark(),
+            Theme::Monokai => Palette::monokai(),
+            Theme::Dracula => Palette::dracula(),
+            Theme::Catppuccin => Palette::catppuccin(),
+            Theme::OneDark => Palette::one_dark(),
+            Theme::Gruvbox => Palette::gruvbox(),
+            Theme::Nord => Palette::nord(),
+            Theme::Custom => settings::with(|s| s.custom_theme.clone()).unwrap_or(Palette::dark()),
+        }
+    }
+
     pub fn set_current_language(&mut self, language: Language) {
         self.current_language = language;
     }
@@ -229,11 +230,33 @@ impl AppStateMachine {
         self.blocks_library_tab = tab;
     }
 
-    pub fn get_current_basic_block_details(&self) -> BasicBlock {
-        self.basic_block
+    pub fn get_current_block(&self) -> blocks_data::BlockKind {
+        self.block.clone()
     }
 
-    pub fn set_current_basic_block_details(&mut self, block: BasicBlock) {
-        self.basic_block = block;
+    pub fn get_current_basic_block(&self) -> blocks_data::BlockKind {
+        blocks_data::BlockKind::Basic(self.basic_block.clone())
+    }
+
+    pub fn get_current_logic_block(&self) -> blocks_data::BlockKind {
+        blocks_data::BlockKind::Logic(self.logic_block.clone())
+    }
+
+    pub fn get_current_math_block(&self) -> blocks_data::BlockKind {
+        blocks_data::BlockKind::Math(self.math_block.clone())
+    }
+
+    pub fn get_current_io_block(&self) -> blocks_data::BlockKind {
+        blocks_data::BlockKind::IO(self.io_block.clone())
+    }
+
+    pub fn set_current_block(&mut self, block: blocks_data::BlockKind) {
+        self.block = block.clone();
+        match &block {
+            blocks_data::BlockKind::Basic(basic_block) => self.basic_block = basic_block.clone(),
+            blocks_data::BlockKind::Logic(logic_block) => self.logic_block = logic_block.clone(),
+            blocks_data::BlockKind::Math(math_block) => self.math_block = math_block.clone(),
+            blocks_data::BlockKind::IO(io_block) => self.io_block = io_block.clone(),
+        }
     }
 }

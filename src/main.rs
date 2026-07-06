@@ -63,6 +63,21 @@ fn create_projects_directory() {
     }
 }
 
+fn tool_button(ui: &mut egui::Ui, image_key: egui::ImageSource<'_>, h: f32) -> egui::Response {
+    let tool_button = egui::Image::new(image_key)
+        .fit_to_exact_size(egui::vec2(h, h))
+        .tint(ui.visuals().text_color());
+    ui.add(egui::ImageButton::new(tool_button))
+}
+
+fn project_path(path: PathBuf) -> PathBuf {
+    if path.extension().and_then(|e| e.to_str()) == Some("json") {
+        path.with_extension("")
+    } else {
+        path
+    }
+}
+
 //MARK: - Main
 fn main() -> eframe::Result<()> {
     
@@ -133,6 +148,7 @@ struct OmniBoardStudio {
     _watcher: Option<RecommendedWatcher>,
     visual_editor: visual_editor::VisualEditor,
     current_file: Option<PathBuf>,
+    window_title: String,
 }
 
 //MARK: - OmniBoardStudio Implementation
@@ -157,6 +173,7 @@ impl OmniBoardStudio {
             _watcher: watcher,
             visual_editor: visual_editor::VisualEditor::new(),
             current_file: None,
+            window_title: String::new(),
             };
         app.refresh_files();
         app
@@ -179,11 +196,7 @@ impl OmniBoardStudio {
 
         if let Some(path) = dialog.pick_file() {
             self.visual_editor.load(&path);
-            if path.extension().and_then(|e| e.to_str()) == Some("json") {
-                self.current_file = Some(path.with_extension(""))
-            } else {
-                self.current_file = Some(path)
-            }
+            self.current_file = Some(project_path(path));
             state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
         }
     }
@@ -206,11 +219,7 @@ impl OmniBoardStudio {
                 path.set_extension("omni");
             }
             self.visual_editor.save(&path);
-            if path.extension().and_then(|e| e.to_str()) == Some("json") {
-                self.current_file = Some(path.with_extension(""))
-            } else {
-                self.current_file = Some(path)
-            }
+            self.current_file = Some(project_path(path))
         }
     }
 
@@ -276,11 +285,7 @@ impl OmniBoardStudio {
                         for file in &self.files {
                             if file_button_simple(ui, &file.name, &file.created, &file.last_modified).clicked() {
                                 self.visual_editor.load(&file.path);
-                                if file.path.extension().and_then(|e| e.to_str()) == Some("json") {
-                                    self.current_file = Some(file.path.with_extension(""))
-                                } else {
-                                    self.current_file = Some(file.path.clone())
-                                }
+                                self.current_file = Some(project_path(file.path.clone()));
                                 state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
                             }
                         }
@@ -303,6 +308,17 @@ impl eframe::App for OmniBoardStudio {
 
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
 
+        let project = self.current_file.as_ref()
+            .and_then(|p| p.file_stem())
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "Untitled".into());
+        let dirty_mark = if self.visual_editor.is_dirty() { "*" } else { "" };
+        let title = format!("OmniBoard Studio - {project}{dirty_mark}");
+        if title != self.window_title {
+            self.window_title = title.clone();
+            ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
+        }
+
         let mut changed = false;
         while self.fs_rx.try_recv().is_ok() { changed = true; }
         if changed { self.refresh_files(); }
@@ -310,7 +326,7 @@ impl eframe::App for OmniBoardStudio {
 
         let current_tab = state_machine::with(|sm| sm.get_app_tab());
 
-        let pal = crate::theme::palette(ctx);
+        let pal = state_machine::with(|sm| sm.get_current_palette());
         egui::TopBottomPanel::top("Menu bar")
             .frame(egui::Frame::none().fill(pal.base).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
             .show(ctx, |ui| {
@@ -405,74 +421,48 @@ impl eframe::App for OmniBoardStudio {
                     v.widgets.noninteractive.bg_stroke.color = pal.window; 
 
                     let h = 16.0;
-                    let new_file = egui::Image::new(tool_img!("New_file.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(new_file)).clicked() {
+                    
+                    if tool_button(ui, tool_img!("New_file.png"), h).clicked() {
                         self.new_file();
                     }
 
-                    let open_file = egui::Image::new(tool_img!("Open_file.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(open_file)).clicked() {
+                    if tool_button(ui, tool_img!("Open_file.png"), h).clicked() {
                         self.open_via_file_dialog();
                     }
 
-                    let save_file = egui::Image::new(tool_img!("Save_file.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(save_file)).clicked() {
+                    if tool_button(ui, tool_img!("Save_file.png"), h).clicked() {
                         self.save();
                     }
                     
                     ui.add(egui::Separator::default().spacing(0.0));
 
-                    let block_library = egui::Image::new(tool_img!("Block_library.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(block_library)).clicked() {
-                        state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
+                    if tool_button(ui, tool_img!("Block_library.png"), h).clicked() {
+                        state_machine::with_mut(|sm| { sm.on_open_blocks_library_window(); });
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
 
-                    let view_hub = egui::Image::new(tool_img!("View_hub.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(view_hub)).clicked() {
+                    if tool_button(ui, tool_img!("View_hub.png"), h).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::Hub); });
                     }
 
-                    let view_visual_editor = egui::Image::new(tool_img!("View_visual_editor.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(view_visual_editor)).clicked() {
+                    if tool_button(ui, tool_img!("View_visual_editor.png"), h).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::VisualEditor); });
                     }
 
-                    let view_code_editor = egui::Image::new(tool_img!("View_code_editor.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(view_code_editor)).clicked() {
+                    if tool_button(ui, tool_img!("View_code_editor.png"), h).clicked() {
                         state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::CodeEditor); });
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
 
-                    let compile_code = egui::Image::new(tool_img!("Run_and_compile.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(compile_code)).clicked() {
+                    if tool_button(ui, tool_img!("Run_and_compile.png"), h).clicked() {
                         debug!("Compile code");
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
 
-                    let settings = egui::Image::new(tool_img!("Settings.png"))
-                        .fit_to_exact_size(egui::vec2(h, h))
-                        .tint(ui.visuals().text_color());
-                    if ui.add(egui::ImageButton::new(settings)).clicked() {
+                    if tool_button(ui, tool_img!("Settings.png"), h).clicked() {
                         state_machine::with_mut(|sm| { sm.on_open_settings_window(); });
                     }
                 });
