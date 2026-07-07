@@ -2,9 +2,11 @@ use egui::{Color32, Pos2, RichText, Sense, Stroke, Vec2};
 use i18n_embed_fl::fl;
 use serde::{Deserialize, Serialize};
 use log::{debug, error};
+use chrono::{DateTime, Utc};
 
 use crate::{blocks_data, state_machine};
 use crate::translation_manager::LOADER;
+use crate::omni_format::{v1};
 
 const MAGIC: &[u8; 4] = b"OMNI";
 const FORMAT_VERSION: u16 = 1;
@@ -31,16 +33,30 @@ pub(crate) struct VisualEditor {
     snap_to_grid: bool,
     dirty: bool,
     context_wire: Option<(usize, usize)>,
+
+    created: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
 struct GraphFile {
-    blocks: Vec<blocks_data::Block>,
-    wires: Vec<blocks_data::Wire>,
+    meta: Meta,
+    graphs: Vec<Graph>,
     next_block_id: usize,
 }
 
-//MARK: - Grapgic helpers
+#[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
+struct Meta {
+    created: Option<DateTime<Utc>>,
+    modified: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
+struct Graph {
+    blocks: Vec<blocks_data::Block>,
+    wires: Vec<blocks_data::Wire>,
+}
+
+//MARK: - Helpers
 fn wire_points(from: Pos2, to: Pos2) -> Vec<Pos2> {
     let ctrl = ((to.x - from.x) * 0.5).max(40.0);
     let c0 = Pos2::new(from.x + ctrl, from.y);
@@ -80,20 +96,72 @@ fn encode_graph(file: &GraphFile) -> Result<Vec<u8>, String> {
     Ok(out)
 }
 
-fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
+impl From<v1::GraphFile> for GraphFile {
+    fn from(v1_graph_file: v1::GraphFile) -> Self {
+        Self {
+            meta: Meta {
+                created: v1_graph_file.meta.created,
+                modified: v1_graph_file.meta.modified,
+            },
+            graphs: v1_graph_file.graphs.into_iter().map(|g| Graph {
+                blocks: g.blocks.into_iter().map(|b| blocks_data::Block {
+                    id: b.id,
+                    pos: egui::Pos2::new(b.pos.x, b.pos.y),
+                    rect: egui::Rect::NOTHING,
+                    wires: blocks_data::Wires::default(),
+                    kind: match b.kind {
+                        v1::BlockKind::Basic(b) => blocks_data::BlockKind::Basic(match b {
+                            v1::BasicBlock::Start => blocks_data::BasicBlockData::Start,
+                            v1::BasicBlock::End => blocks_data::BasicBlockData::End,
+                        }),
+                        v1::BlockKind::Logic(b) => blocks_data::BlockKind::Logic(match b {
+                            v1::LogicBlock::If => blocks_data::LogicBlockData::If,
+                            v1::LogicBlock::Else => blocks_data::LogicBlockData::Else,
+                            v1::LogicBlock::While => blocks_data::LogicBlockData::While,
+                            v1::LogicBlock::For => blocks_data::LogicBlockData::For,
+                        }),
+                        v1::BlockKind::Math(b) => blocks_data::BlockKind::Math(match b {
+                            v1::MathBlock::Add => blocks_data::MathBlockData::Add,
+                            v1::MathBlock::Subtract => blocks_data::MathBlockData::Subtract,
+                            v1::MathBlock::Multiply => blocks_data::MathBlockData::Multiply,
+                            v1::MathBlock::Divide => blocks_data::MathBlockData::Divide,
+                        }),
+                        v1::BlockKind::IO(b) => blocks_data::BlockKind::IO(match b {
+                            v1::IOBlock::Input => blocks_data::IOBlockData::Input,
+                            v1::IOBlock::Output => blocks_data::IOBlockData::Output,
+                        }),
+                    },
+                }).collect(),
+                wires: g.wires.into_iter().map(|w| blocks_data::Wire { from: w.from, to: w.to }).collect(),
+            }).collect(),
+            next_block_id: v1_graph_file.next_block_id,
+        }
+    }
+}
+
+fn parse_header(bytes: &[u8]) -> Result<(u16, &[u8]), String> {
     if bytes.len() < 6 || &bytes[..4] != MAGIC {
         return Err("Invalid file format".to_string());
     }
     let version = u16::from_le_bytes([bytes[4], bytes[5]]);
-    if version != FORMAT_VERSION {
-        return Err(format!(
-            "Unsupported file version: {} (expected {})",
-            version, FORMAT_VERSION
-        ));
-    }
-    bincode::serde::decode_from_slice::<GraphFile, _>(&bytes[6..], bincode::config::standard())
+    Ok((version, &bytes[6..]))
+}
+
+fn decode_payload<T: for<'de> Deserialize<'de>>(payload: &[u8]) -> Result<T, String> {
+    bincode::serde::decode_from_slice::<T, _>(payload, bincode::config::standard())
         .map(|(file, _len)| file)
         .map_err(|e| e.to_string())
+}
+
+fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
+    let (version, payload) = parse_header(bytes)?;
+    match version {
+        1 => decode_payload::<v1::GraphFile>(payload).map(GraphFile::from),
+        v if v > FORMAT_VERSION => Err(format!(
+            "This file was saved by a newer version of OmniBoard Studio (format {v}). Please update the app."
+        )),
+        v => Err(format!("Unknown file version: {v}")),
+    }
 }
 
 impl VisualEditor {
@@ -112,13 +180,14 @@ impl VisualEditor {
             panning: false,
 
             snap_to_grid: false,
-
             dirty: false,
             context_wire: None,
+
+            created: Option::<DateTime::<Utc>>::None,
         }
     }
 
-    //MARK: - Helpers
+    //MARK: - Block management
     fn block(&self, id: usize) -> Option<&blocks_data::Block> {
         self.blocks.iter().find(|b| b.id == id)
     }
@@ -156,17 +225,38 @@ impl VisualEditor {
         }
     }
 
+    //MARK: - File management
     pub fn save(&mut self, path: &std::path::Path) {
+        let temp = path.with_extension("omni.tmp");
+        if self.created.is_none() {
+            self.created = Some(Utc::now());
+        }
         let file = GraphFile {
-            blocks: self.blocks.clone(),
-            wires: self.wires.clone(),
+            meta: Meta {
+                created: self.created,
+                modified: Some(Utc::now()),
+            },
+            graphs: vec![Graph {
+                blocks: self.blocks.clone(),
+                wires: self.wires.clone(),
+            }],
             next_block_id: self.next_block_id,
         };
         match encode_graph(&file)
-            .and_then(|bytes| std::fs::write(path, bytes).map_err(|e| e.to_string()))
+            .and_then(|bytes| std::fs::write(&temp, bytes).map_err(|e| e.to_string()))
         {
-            Ok(()) => {debug!("Graph saved to {}", path.display()); self.dirty = false},
-            Err(e) => error!("Failed to save graph: {}", e),
+            Ok(()) => {
+                debug!("Graph saved to {}", path.display());
+                if let Err(e) = std::fs::rename(&temp, path) {
+                    error!("Failed to rename temp file: {}", e);
+                } else {
+                    debug!("Temp file renamed to {}", path.display());
+                    self.dirty = false
+                }
+            },
+            Err(e) => {
+                error!("Failed to save graph: {}", e);
+            },
         }
 
         #[cfg(debug_assertions)]
@@ -176,10 +266,24 @@ impl VisualEditor {
                 .map_err(|e| e.to_string())
                 .and_then(|json| std::fs::write(&json_path, json).map_err(|e| e.to_string()))
             {
-                Ok(()) => {debug!("Graph saved to {}", json_path.display()); self.dirty = false},
+                Ok(()) => {debug!("Graph saved to {}", json_path.display());},
                 Err(e) => error!("Failed to save graph: {}", e),
             }
         }
+    }
+
+    fn ok_load(&mut self, file: GraphFile) {
+        let graph = file.graphs.get(0).cloned().unwrap_or_default();
+        self.blocks = graph.blocks.clone();
+        self.wires = graph.wires;
+        self.next_block_id = graph.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1);
+        self.selected = None;
+        self.run = None;
+        self.wire_from = None;
+        self.dirty = false;
+        self.context_wire = None;
+        self.created = file.meta.created;
+        self.blocks.iter_mut().for_each(|b| self.wires.iter().for_each(|w| if w.from == b.id { b.wires.from_wires.push(w.clone()) } else if w.to == b.id { b.wires.to_wires.push(w.clone()) }));
     }
 
     pub fn load(&mut self, path: &std::path::Path) {
@@ -189,35 +293,24 @@ impl VisualEditor {
                 .and_then(|bytes| decode_graph(&bytes))
             {
                 Ok(file) => {
-                    self.blocks = file.blocks;
-                    self.wires = file.wires;
-                    self.next_block_id = file.next_block_id;
-                    self.selected = None;
-                    self.run = None;
-                    self.wire_from = None;
-                    self.dirty = false;
+                    self.ok_load(file);
                     debug!("Graph loaded from {}", path.display());
                 }
                 Err(e) => error!("Failed to load graph: {}", e),
             }
-        } else if path.extension().and_then(|e| e.to_str()) == Some("json") {
+        } else if path.extension().and_then(|e  | e.to_str()) == Some("json") {
             match std::fs::read_to_string(path)
                 .map_err(|e| e.to_string())
                 .and_then(|json| serde_json::from_str::<GraphFile>(&json).map_err(|e| e.to_string()))
             {
                 Ok(file) => {
-                    self.blocks = file.blocks;
-                    self.wires = file.wires;
-                    self.next_block_id = file.next_block_id;
-                    self.selected = None;
-                    self.run = None;
-                    self.wire_from = None;
-                    self.dirty = false;
+                    self.ok_load(file);
                     debug!("Graph loaded from {}", path.display());
                 }
                 Err(e) => error!("Failed to load graph: {}", e),
             }
         }
+        
     }
 
     pub fn add_block(&mut self, block_kind: blocks_data::BlockKind) {
@@ -426,13 +519,15 @@ impl VisualEditor {
                                 let to_id = self.blocks[to_idx].id;
                                 let dup = self.wires.iter().any(|w| w.from == from && w.to == to_id);
                                 if !dup {
-                                    let wire = blocks_data::Wire { from, to: to_id };
-                                    self.wires.push(wire.clone());
-                                    if let Some(from_idx) = from_idx {
-                                        self.blocks[from_idx].wires.from_wires.push(wire.clone());
+                                    if self.blocks[to_idx].wires.to_wires.is_empty() {
+                                        let wire = blocks_data::Wire { from, to: to_id };
+                                        self.wires.push(wire.clone());
+                                        if let Some(from_idx) = from_idx {
+                                            self.blocks[from_idx].wires.from_wires.push(wire.clone());
+                                        }
+                                        self.blocks[to_idx].wires.to_wires.push(wire.clone());
+                                        self.dirty = true;
                                     }
-                                    self.blocks[to_idx].wires.to_wires.push(wire.clone());
-                                    self.dirty = true;
                                 }
                                 break;
                             }
@@ -461,18 +556,20 @@ impl VisualEditor {
             if _response.secondary_clicked() && !grabbed_port {
                 self.context_wire = hovered_wire.map(|i| (self.wires[i].from, self.wires[i].to));
             }
-            _response.context_menu(|ui| {
-                if let Some((from, to)) = self.context_wire {
-                    if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
-                        self.wires.retain(|w| !(w.from == from && w.to == to));
-                        self.blocks.iter_mut().for_each(|b| {
-                            b.wires.from_wires.retain(|w| !(w.from == from && w.to == to));
-                            b.wires.to_wires.retain(|w| !(w.from == from && w.to == to));
-                        });
-                        ui.close_menu();
+            if self.context_wire.is_some() {
+                _response.context_menu(|ui| {
+                    if let Some((from, to)) = self.context_wire {
+                        if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
+                            self.wires.retain(|w| !(w.from == from && w.to == to));
+                            self.blocks.iter_mut().for_each(|b| {
+                                b.wires.from_wires.retain(|w| !(w.from == from && w.to == to));
+                                b.wires.to_wires.retain(|w| !(w.from == from && w.to == to));
+                            });
+                            ui.close_menu();
+                        }
                     }
-                }
-            });
+                });
+            }
             let wire_painter = ctx
                 .layer_painter(egui::LayerId::new(
                     egui::Order::Background,
@@ -523,6 +620,34 @@ mod tests {
         }
     }
 
+    fn v1_fixture_graph() -> GraphFile {
+        let blocks: Vec<Block> = BlockKind::ALL
+            .iter()
+            .enumerate()
+            .map(|(i, kind)| block(i, i as f32 * 37.5 - 100.25, -(i as f32) *12.5 + 3.75, kind.clone()))
+            .collect();
+        GraphFile {
+            meta: Meta {
+                created: Option::<DateTime::<Utc>>::None,
+                modified: Option::<DateTime::<Utc>>::None,
+            },
+            graphs: vec![Graph {
+                blocks: blocks.clone(),
+                wires: vec![
+                    Wire { from: 2, to: 5 },
+                    Wire { from: 5, to: 3 },
+                    Wire { from: 3, to: 4 },
+                    Wire { from: 4, to: 6 },
+                    Wire { from: 6, to: 7 },
+                    Wire { from: 7, to: 1 },
+                    Wire { from: 1, to: 0 },
+                    Wire { from: 0, to: 2 },
+                ],
+            }],
+            next_block_id: 25,
+        }
+    }
+
     #[test]
     fn all_block_meta_keys_exist() {
         let (loader, langs) = translation_manager::all_languages_loader();
@@ -540,21 +665,46 @@ mod tests {
 
     #[test]
     fn empty_graph_round_trips() {
-        let graph = GraphFile {blocks: vec![], wires: vec![], next_block_id: 0};
+        let graph = GraphFile {meta: Meta::default(), graphs: vec![], next_block_id: 0};
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
 
     #[test]
     fn simple_graph_round_trips() {
         let graph = GraphFile {
-            blocks: vec![
-                block(0, 10.0, 20.0, BlockKind::Basic(BasicBlockData::Start)),
-                block(1, 30.0, 40.0, BlockKind::Basic(BasicBlockData::End)),
-            ],
-            wires: vec![Wire { from: 0, to: 1 }],
+            meta: Meta {
+                created: Option::<DateTime::<Utc>>::None,
+                modified: Option::<DateTime::<Utc>>::None,
+            },
+            graphs: vec![Graph {
+                blocks: vec![
+                    block(0, 10.0, 20.0, BlockKind::Basic(BasicBlockData::Start)),
+                    block(1, 30.0, 40.0, BlockKind::Basic(BasicBlockData::End)),
+                ],
+                wires: vec![Wire { from: 0, to: 1 }],
+            }],
             next_block_id: 2,
         };
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
+    }
+
+    #[test]
+    #[ignore = "one-time generator: cargo test generate_v1_fixture -- --ignored --nocapture"]
+    fn generate_v1_fixture() {
+        assert_eq!(FORMAT_VERSION, 1, "app no longer writes v1 - regenerating would corrupt the fixture");
+        std::fs::create_dir_all(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures")).unwrap();
+        std::fs::write(
+            concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/v1_fixture.omni"),
+            encode_graph(&v1_fixture_graph()).unwrap(),
+        )
+        .unwrap();
+    }
+    
+    #[test]
+    fn v1_fixture_loads() {
+        let bytes = include_bytes!("../tests/fixtures/v1_fixture.omni");
+        let graph = decode_graph(bytes).unwrap();
+        assert_eq!(graph, v1_fixture_graph());
     }
 
     #[test]
@@ -565,10 +715,19 @@ mod tests {
 
     #[test]
     fn future_version_rejected() {
-        let mut bytes = encode_graph(&GraphFile { blocks: vec![], wires: vec![], next_block_id: 0 }).unwrap();
-        bytes[4..6].copy_from_slice(&99u16.to_le_bytes());
-        let err = decode_graph(&bytes).unwrap_err();
-        assert!(err.contains("Unsupported file version"));
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], next_block_id: 0 }).unwrap();
+        for v in [(FORMAT_VERSION + 1) as u16, (FORMAT_VERSION + 2) as u16] {
+            bytes[4..6].copy_from_slice(&v.to_le_bytes());
+            let err = decode_graph(&bytes).unwrap_err();
+            assert!(err.contains("newer version"), "version {v}: got: error: {err}");
+        }
+    }
+
+    #[test]
+    fn version_zero_rejected() {
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], next_block_id: 0 }).unwrap();
+        bytes[4..6].copy_from_slice(&0u16.to_le_bytes());
+        assert!(decode_graph(&bytes).unwrap_err().contains("Unknown file version"));
     }
 
     fn arbitrary_block() -> impl Strategy<Value = BlockKind> {
@@ -595,8 +754,14 @@ mod tests {
             prop::collection::vec((any::<usize>(), any::<usize>()), 0..40),
             any::<usize>(),
         ).prop_map(|(bs, ws, next)| GraphFile {
-            blocks: bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
-            wires: ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+            meta: Meta {
+                created: Option::<DateTime::<Utc>>::None,
+                modified: Option::<DateTime::<Utc>>::None,
+            },
+            graphs: vec![Graph {
+                blocks: bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
+                wires: ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+            }],
             next_block_id: next,
         })
     }

@@ -9,6 +9,7 @@ mod settings;
 mod visual_editor;
 mod blocks_library;
 mod blocks_data;
+mod omni_format;
 
 use eframe::egui;
 use std::fs;
