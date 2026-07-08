@@ -6,10 +6,10 @@ use chrono::{DateTime, Utc};
 
 use crate::{blocks_data, state_machine};
 use crate::translation_manager::LOADER;
-use crate::omni_format::{v1};
+use crate::omni_format::{v1, v2};
 
 const MAGIC: &[u8; 4] = b"OMNI";
-const FORMAT_VERSION: u16 = 1;
+const FORMAT_VERSION: u16 = 2;
 
 #[derive(Clone, Copy)]
 struct RunState {
@@ -18,9 +18,8 @@ struct RunState {
 }
 
 pub(crate) struct VisualEditor {
-    blocks: Vec<blocks_data::Block>,
-    wires: Vec<blocks_data::Wire>,
-    next_block_id: usize,
+    graphs: Vec<Graph>,
+    graph_index: usize,
 
     wire_from: Option<usize>,
     selected: Option<usize>,
@@ -41,19 +40,22 @@ pub(crate) struct VisualEditor {
 struct GraphFile {
     meta: Meta,
     graphs: Vec<Graph>,
-    next_block_id: usize,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
 struct Meta {
+    format_version: u16,
     created: Option<DateTime<Utc>>,
     modified: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
 struct Graph {
+    name: String,
     blocks: Vec<blocks_data::Block>,
     wires: Vec<blocks_data::Wire>,
+    #[serde(skip)]
+    next_block_id: usize,
 }
 
 //MARK: - Helpers
@@ -100,16 +102,18 @@ impl From<v1::GraphFile> for GraphFile {
     fn from(v1_graph_file: v1::GraphFile) -> Self {
         Self {
             meta: Meta {
+                format_version: FORMAT_VERSION,
                 created: v1_graph_file.meta.created,
                 modified: v1_graph_file.meta.modified,
             },
-            graphs: v1_graph_file.graphs.into_iter().map(|g| Graph {
-                blocks: g.blocks.into_iter().map(|b| blocks_data::Block {
+            graphs: v1_graph_file.graphs.into_iter().enumerate().map(|(i, g)| Graph {
+                name: format!("Graph {}", i),
+                blocks: g.blocks.iter().map(|b| blocks_data::Block {
                     id: b.id,
                     pos: egui::Pos2::new(b.pos.x, b.pos.y),
                     rect: egui::Rect::NOTHING,
                     wires: blocks_data::Wires::default(),
-                    kind: match b.kind {
+                    kind: match &b.kind {
                         v1::BlockKind::Basic(b) => blocks_data::BlockKind::Basic(match b {
                             v1::BasicBlock::Start => blocks_data::BasicBlockData::Start,
                             v1::BasicBlock::End => blocks_data::BasicBlockData::End,
@@ -133,8 +137,53 @@ impl From<v1::GraphFile> for GraphFile {
                     },
                 }).collect(),
                 wires: g.wires.into_iter().map(|w| blocks_data::Wire { from: w.from, to: w.to }).collect(),
+                next_block_id: 0,
             }).collect(),
-            next_block_id: v1_graph_file.next_block_id,
+        }
+    }
+}
+
+impl From<v2::GraphFile> for GraphFile {
+    fn from(v2_graph_file: v2::GraphFile) -> Self {
+        Self {
+            meta: Meta {
+                format_version: v2_graph_file.meta.format_version,
+                created: v2_graph_file.meta.created,
+                modified: v2_graph_file.meta.modified,
+            },
+            graphs: v2_graph_file.graphs.into_iter().map(|g| Graph {
+                name: g.name,
+                blocks: g.blocks.into_iter().map(|b| blocks_data::Block {
+                    id: b.id,
+                    pos: egui::Pos2::new(b.pos.x, b.pos.y),
+                    rect: egui::Rect::NOTHING,
+                    wires: blocks_data::Wires::default(),
+                    kind: match b.kind {
+                        v2::BlockKind::Basic(b) => blocks_data::BlockKind::Basic(match b {
+                            v2::BasicBlock::Start => blocks_data::BasicBlockData::Start,
+                            v2::BasicBlock::End => blocks_data::BasicBlockData::End,
+                        }),
+                        v2::BlockKind::Logic(b) => blocks_data::BlockKind::Logic(match b {
+                            v2::LogicBlock::If => blocks_data::LogicBlockData::If,
+                            v2::LogicBlock::Else => blocks_data::LogicBlockData::Else,
+                            v2::LogicBlock::While => blocks_data::LogicBlockData::While,
+                            v2::LogicBlock::For => blocks_data::LogicBlockData::For,
+                        }),
+                        v2::BlockKind::Math(b) => blocks_data::BlockKind::Math(match b {
+                            v2::MathBlock::Add => blocks_data::MathBlockData::Add,
+                            v2::MathBlock::Subtract => blocks_data::MathBlockData::Subtract,
+                            v2::MathBlock::Multiply => blocks_data::MathBlockData::Multiply,
+                            v2::MathBlock::Divide => blocks_data::MathBlockData::Divide,
+                        }),
+                        v2::BlockKind::IO(b) => blocks_data::BlockKind::IO(match b {
+                            v2::IOBlock::Input => blocks_data::IOBlockData::Input,
+                            v2::IOBlock::Output => blocks_data::IOBlockData::Output,
+                        }),
+                    },
+                }).collect(),
+                wires: g.wires.into_iter().map(|w| blocks_data::Wire { from: w.from, to: w.to }).collect(),
+                next_block_id: 0,
+            }).collect(),
         }
     }
 }
@@ -157,6 +206,7 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
     let (version, payload) = parse_header(bytes)?;
     match version {
         1 => decode_payload::<v1::GraphFile>(payload).map(GraphFile::from),
+        2 => decode_payload::<v2::GraphFile>(payload).map(GraphFile::from),
         v if v > FORMAT_VERSION => Err(format!(
             "This file was saved by a newer version of OmniBoard Studio (format {v}). Please update the app."
         )),
@@ -167,9 +217,13 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
 impl VisualEditor {
     pub(crate) fn new() -> Self {
         Self {
-            blocks: Vec::new(),
-            wires: Vec::new(),
-            next_block_id: 0,
+            graphs: vec![Graph {
+                name: "Graph 0".into(),
+                blocks: Vec::new(),
+                wires: Vec::new(),
+                next_block_id: 0,
+            }],
+            graph_index: 0,
 
             wire_from: None,
             selected: None,
@@ -189,7 +243,7 @@ impl VisualEditor {
 
     //MARK: - Block management
     fn block(&self, id: usize) -> Option<&blocks_data::Block> {
-        self.blocks.iter().find(|b| b.id == id)
+        self.graphs[self.graph_index].blocks.iter().find(|b| b.id == id)
     }
 
     pub fn is_dirty(&self) -> bool {
@@ -197,9 +251,9 @@ impl VisualEditor {
     }
 
     fn delete_block(&mut self, id: usize) {
-        self.blocks.retain(|b| b.id != id);
-        self.wires.retain(|w| w.from != id && w.to != id);
-        self.blocks.iter_mut().for_each(|b| {
+        self.graphs[self.graph_index].blocks.retain(|b| b.id != id);
+        self.graphs[self.graph_index].wires.retain(|w| w.from != id && w.to != id);
+        self.graphs[self.graph_index].blocks.iter_mut().for_each(|b| {
             b.wires.from_wires.retain(|w| w.from != id && w.to != id);
             b.wires.to_wires.retain(|w| w.from != id && w.to != id);
         });
@@ -215,12 +269,12 @@ impl VisualEditor {
     fn duplicate_block(&mut self, id: usize) {
         if let Some(src) = self.block(id) {
             let mut copy = src.clone();
-            copy.id = self.next_block_id;
+            copy.id = self.graphs[self.graph_index].next_block_id;
             copy.pos += Vec2::new(20.0, 20.0);
             copy.rect = egui::Rect::NOTHING;
             copy.wires = blocks_data::Wires::default();
-            self.next_block_id += 1;
-            self.blocks.push(copy);
+            self.graphs[self.graph_index].next_block_id += 1;
+            self.graphs[self.graph_index].blocks.push(copy);
             self.dirty = true;
         }
     }
@@ -233,14 +287,11 @@ impl VisualEditor {
         }
         let file = GraphFile {
             meta: Meta {
+                format_version: FORMAT_VERSION,
                 created: self.created,
                 modified: Some(Utc::now()),
             },
-            graphs: vec![Graph {
-                blocks: self.blocks.clone(),
-                wires: self.wires.clone(),
-            }],
-            next_block_id: self.next_block_id,
+            graphs: self.graphs.clone(),
         };
         match encode_graph(&file)
             .and_then(|bytes| std::fs::write(&temp, bytes).map_err(|e| e.to_string()))
@@ -273,17 +324,24 @@ impl VisualEditor {
     }
 
     fn ok_load(&mut self, file: GraphFile) {
-        let graph = file.graphs.get(0).cloned().unwrap_or_default();
-        self.blocks = graph.blocks.clone();
-        self.wires = graph.wires;
-        self.next_block_id = graph.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1);
+        self.graphs = file.graphs.clone();
+        if self.graphs.is_empty() {
+            self.graphs.push(Graph {
+                name: "Graph 0".into(),
+                blocks: Vec::new(),
+                wires: Vec::new(),
+                next_block_id: 0,
+            });
+        }
+        self.graph_index = 0;
+        self.graphs.iter_mut().for_each(|g| g.next_block_id = g.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1));
+        self.graphs.iter_mut().for_each(|graph| graph.blocks.iter_mut().for_each(|b| graph.wires.iter().for_each(|w| if w.from == b.id { b.wires.from_wires.push(w.clone()) } else if w.to == b.id { b.wires.to_wires.push(w.clone()) })));
         self.selected = None;
         self.run = None;
         self.wire_from = None;
         self.dirty = false;
         self.context_wire = None;
         self.created = file.meta.created;
-        self.blocks.iter_mut().for_each(|b| self.wires.iter().for_each(|w| if w.from == b.id { b.wires.from_wires.push(w.clone()) } else if w.to == b.id { b.wires.to_wires.push(w.clone()) }));
     }
 
     pub fn load(&mut self, path: &std::path::Path) {
@@ -314,11 +372,11 @@ impl VisualEditor {
     }
 
     pub fn add_block(&mut self, block_kind: blocks_data::BlockKind) {
-        let id = self.next_block_id;
-        self.next_block_id += 1;
+        let id = self.graphs[self.graph_index].next_block_id;
+        self.graphs[self.graph_index].next_block_id += 1;
         let pos = Pos2::new(100.0 + (id as f32 * 20.0), 100.0);
         let block = blocks_data::Block::new(block_kind, pos, id);
-        self.blocks.push(block);
+        self.graphs[self.graph_index].blocks.push(block);
         self.dirty = true;
     }
 
@@ -386,7 +444,7 @@ impl VisualEditor {
             let mut pending_duplicate: Option<usize> = None;
             let mut pending_select: Option<usize> = None;
 
-            for block in &mut self.blocks{
+            for block in &mut self.graphs[self.graph_index].blocks {
                 let area = egui::Area::new(egui::Id::new(("block", block.id)))
                     .fixed_pos(block.pos + offset)
                     .movable(false)
@@ -501,7 +559,7 @@ impl VisualEditor {
             let mut grabbed_port = false;
             if let Some(pos) = pointer {
                 if rmb_pressed {
-                    for block in &self.blocks {
+                    for block in &self.graphs[self.graph_index].blocks {
                         if pos.distance(block.out_port()) < 16.0 {
                             if block.wires.from_wires.is_empty() {
                                 self.wire_from = Some(block.id);
@@ -513,19 +571,19 @@ impl VisualEditor {
                 }
                 if rmb_released {
                     if let Some(from) = self.wire_from.take() {
-                        let from_idx = self.blocks.iter().position(|b| b.id == from);
-                        for to_idx in 0..self.blocks.len() {
-                            if self.blocks[to_idx].id != from && pos.distance(self.blocks[to_idx].in_port()) < 16.0 {
-                                let to_id = self.blocks[to_idx].id;
-                                let dup = self.wires.iter().any(|w| w.from == from && w.to == to_id);
+                        let from_idx = self.graphs[self.graph_index].blocks.iter().position(|b| b.id == from);
+                        for to_idx in 0..self.graphs[self.graph_index].blocks.len() {
+                            if self.graphs[self.graph_index].blocks[to_idx].id != from && pos.distance(self.graphs[self.graph_index].blocks[to_idx].in_port()) < 16.0 {
+                                let to_id = self.graphs[self.graph_index].blocks[to_idx].id;
+                                let dup = self.graphs[self.graph_index].wires.iter().any(|w| w.from == from && w.to == to_id);
                                 if !dup {
-                                    if self.blocks[to_idx].wires.to_wires.is_empty() {
+                                    if self.graphs[self.graph_index].blocks[to_idx].wires.to_wires.is_empty() {
                                         let wire = blocks_data::Wire { from, to: to_id };
-                                        self.wires.push(wire.clone());
+                                        self.graphs[self.graph_index].wires.push(wire.clone());
                                         if let Some(from_idx) = from_idx {
-                                            self.blocks[from_idx].wires.from_wires.push(wire.clone());
+                                            self.graphs[self.graph_index].blocks[from_idx].wires.from_wires.push(wire.clone());
                                         }
-                                        self.blocks[to_idx].wires.to_wires.push(wire.clone());
+                                        self.graphs[self.graph_index].blocks[to_idx].wires.to_wires.push(wire.clone());
                                         self.dirty = true;
                                     }
                                 }
@@ -538,8 +596,8 @@ impl VisualEditor {
 
             //MARK: - Draw wires
             let mut hovered_wire: Option<usize> = None;
-            let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.wires.len());
-            for (i, wire) in self.wires.iter().enumerate() {
+            let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires.len());
+            for (i, wire) in self.graphs[self.graph_index].wires.iter().enumerate() {
                 let path = match (self.block(wire.from), self.block(wire.to)) {
                     (Some(from), Some(to)) => wire_points(from.out_port(), to.in_port()),
                     _ => Vec::new(),
@@ -554,14 +612,14 @@ impl VisualEditor {
                 wire_paths.push(path);
             }
             if _response.secondary_clicked() && !grabbed_port {
-                self.context_wire = hovered_wire.map(|i| (self.wires[i].from, self.wires[i].to));
+                self.context_wire = hovered_wire.map(|i| (self.graphs[self.graph_index].wires[i].from, self.graphs[self.graph_index].wires[i].to));
             }
             if self.context_wire.is_some() {
                 _response.context_menu(|ui| {
                     if let Some((from, to)) = self.context_wire {
                         if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
-                            self.wires.retain(|w| !(w.from == from && w.to == to));
-                            self.blocks.iter_mut().for_each(|b| {
+                            self.graphs[self.graph_index].wires.retain(|w| !(w.from == from && w.to == to));
+                            self.graphs[self.graph_index].blocks.iter_mut().for_each(|b| {
                                 b.wires.from_wires.retain(|w| !(w.from == from && w.to == to));
                                 b.wires.to_wires.retain(|w| !(w.from == from && w.to == to));
                             });
@@ -594,7 +652,7 @@ impl VisualEditor {
                 ))
                 .with_clip_rect(canvas_rect);
             if let (Some(from), Some(pos)) = (self.wire_from, pointer) {
-                if let Some(block) = self.blocks.iter().find(|b| b.id == from) {
+                if let Some(block) = self.graphs[self.graph_index].blocks.iter().find(|b| b.id == from) {
                     for seg in wire_points(block.out_port(), pos).windows(2) {
                         fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
                     }
@@ -620,7 +678,7 @@ mod tests {
         }
     }
 
-    fn v1_fixture_graph() -> GraphFile {
+    fn fixture_graph() -> GraphFile {
         let blocks: Vec<Block> = BlockKind::ALL
             .iter()
             .enumerate()
@@ -628,10 +686,12 @@ mod tests {
             .collect();
         GraphFile {
             meta: Meta {
+                format_version: FORMAT_VERSION,
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
             graphs: vec![Graph {
+                name: "Graph 0".into(),
                 blocks: blocks.clone(),
                 wires: vec![
                     Wire { from: 2, to: 5 },
@@ -643,8 +703,8 @@ mod tests {
                     Wire { from: 1, to: 0 },
                     Wire { from: 0, to: 2 },
                 ],
+                next_block_id: 0,
             }],
-            next_block_id: 25,
         }
     }
 
@@ -665,7 +725,7 @@ mod tests {
 
     #[test]
     fn empty_graph_round_trips() {
-        let graph = GraphFile {meta: Meta::default(), graphs: vec![], next_block_id: 0};
+        let graph = GraphFile {meta: Meta::default(), graphs: vec![]};
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
 
@@ -673,29 +733,30 @@ mod tests {
     fn simple_graph_round_trips() {
         let graph = GraphFile {
             meta: Meta {
+                format_version: FORMAT_VERSION,
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
             graphs: vec![Graph {
+                name: "Graph 0".into(),
                 blocks: vec![
                     block(0, 10.0, 20.0, BlockKind::Basic(BasicBlockData::Start)),
                     block(1, 30.0, 40.0, BlockKind::Basic(BasicBlockData::End)),
                 ],
                 wires: vec![Wire { from: 0, to: 1 }],
+                next_block_id: 0,
             }],
-            next_block_id: 2,
         };
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
 
     #[test]
-    #[ignore = "one-time generator: cargo test generate_v1_fixture -- --ignored --nocapture"]
-    fn generate_v1_fixture() {
-        assert_eq!(FORMAT_VERSION, 1, "app no longer writes v1 - regenerating would corrupt the fixture");
+    #[ignore = "one-time generator: cargo test generate_fixture -- --ignored --nocapture"]
+    fn generate_fixture() {
         std::fs::create_dir_all(concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures")).unwrap();
         std::fs::write(
-            concat!(env!("CARGO_MANIFEST_DIR"), "/tests/fixtures/v1_fixture.omni"),
-            encode_graph(&v1_fixture_graph()).unwrap(),
+            format!("{}/tests/fixtures/v{}_fixture.omni", env!("CARGO_MANIFEST_DIR"), FORMAT_VERSION),
+            encode_graph(&fixture_graph()).unwrap(),
         )
         .unwrap();
     }
@@ -704,7 +765,14 @@ mod tests {
     fn v1_fixture_loads() {
         let bytes = include_bytes!("../tests/fixtures/v1_fixture.omni");
         let graph = decode_graph(bytes).unwrap();
-        assert_eq!(graph, v1_fixture_graph());
+        assert_eq!(graph, fixture_graph());
+    }
+
+    #[test]
+    fn v2_fixture_loads() {
+        let bytes = include_bytes!("../tests/fixtures/v2_fixture.omni");
+        let graph = decode_graph(bytes).unwrap();
+        assert_eq!(graph, fixture_graph());
     }
 
     #[test]
@@ -715,7 +783,7 @@ mod tests {
 
     #[test]
     fn future_version_rejected() {
-        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], next_block_id: 0 }).unwrap();
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![]}).unwrap();
         for v in [(FORMAT_VERSION + 1) as u16, (FORMAT_VERSION + 2) as u16] {
             bytes[4..6].copy_from_slice(&v.to_le_bytes());
             let err = decode_graph(&bytes).unwrap_err();
@@ -725,7 +793,7 @@ mod tests {
 
     #[test]
     fn version_zero_rejected() {
-        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], next_block_id: 0 }).unwrap();
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![]}).unwrap();
         bytes[4..6].copy_from_slice(&0u16.to_le_bytes());
         assert!(decode_graph(&bytes).unwrap_err().contains("Unknown file version"));
     }
@@ -752,17 +820,18 @@ mod tests {
         (
             prop::collection::vec((any::<usize>(), -1e6f32..1e6, -1e6f32..1e6, arbitrary_block()), 0..40),
             prop::collection::vec((any::<usize>(), any::<usize>()), 0..40),
-            any::<usize>(),
-        ).prop_map(|(bs, ws, next)| GraphFile {
+        ).prop_map(|(bs, ws)| GraphFile {
             meta: Meta {
+                format_version: FORMAT_VERSION,
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
             graphs: vec![Graph {
+                name: "Graph 0".into(),
                 blocks: bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
                 wires: ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+                next_block_id: 0,
             }],
-            next_block_id: next,
         })
     }
 
