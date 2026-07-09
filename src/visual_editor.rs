@@ -1,12 +1,15 @@
+use std::collections::HashMap;
 use egui::{Color32, Pos2, RichText, Sense, Stroke, Vec2};
 use i18n_embed_fl::fl;
 use serde::{Deserialize, Serialize};
 use log::{debug, error};
 use chrono::{DateTime, Utc};
 
-use crate::{blocks_data, state_machine};
+use crate::{state_machine};
 use crate::translation_manager::LOADER;
 use crate::omni_format::{v1, v2};
+use crate::graph::{BlockKind, BasicBlock, LogicBlock, MathBlock, IOBlock, Graph,
+    Point, Wire, Block};
 
 const MAGIC: &[u8; 4] = b"OMNI";
 const FORMAT_VERSION: u16 = 2;
@@ -49,16 +52,15 @@ struct Meta {
     modified: Option<DateTime<Utc>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
-struct Graph {
-    name: String,
-    blocks: Vec<blocks_data::Block>,
-    wires: Vec<blocks_data::Wire>,
-    #[serde(skip)]
-    next_block_id: usize,
+//MARK: - Helpers
+fn out_port(rect: &egui::Rect) -> egui::Pos2 {
+    egui::Pos2::new(rect.right(), rect.center().y)
 }
 
-//MARK: - Helpers
+pub fn in_port(rect: &egui::Rect) -> egui::Pos2 {
+    egui::Pos2::new(rect.left(), rect.center().y)
+}
+
 fn wire_points(from: Pos2, to: Pos2) -> Vec<Pos2> {
     let ctrl = ((to.x - from.x) * 0.5).max(40.0);
     let c0 = Pos2::new(from.x + ctrl, from.y);
@@ -106,39 +108,36 @@ impl From<v1::GraphFile> for GraphFile {
                 created: v1_graph_file.meta.created,
                 modified: v1_graph_file.meta.modified,
             },
-            graphs: v1_graph_file.graphs.into_iter().enumerate().map(|(i, g)| Graph {
-                name: format!("Graph {}", i),
-                blocks: g.blocks.iter().map(|b| blocks_data::Block {
+            graphs: v1_graph_file.graphs.into_iter().enumerate().map(|(i, g)| Graph::from_parts(
+                format!("Graph {}", i),
+                g.blocks.iter().map(|b| Block {
                     id: b.id,
-                    pos: egui::Pos2::new(b.pos.x, b.pos.y),
-                    rect: egui::Rect::NOTHING,
-                    wires: blocks_data::Wires::default(),
+                    pos: Point { x: b.pos.x, y: b.pos.y },
                     kind: match &b.kind {
-                        v1::BlockKind::Basic(b) => blocks_data::BlockKind::Basic(match b {
-                            v1::BasicBlock::Start => blocks_data::BasicBlockData::Start,
-                            v1::BasicBlock::End => blocks_data::BasicBlockData::End,
+                        v1::BlockKind::Basic(b) => BlockKind::Basic(match b {
+                            v1::BasicBlock::Start => BasicBlock::Start,
+                            v1::BasicBlock::End => BasicBlock::End,
                         }),
-                        v1::BlockKind::Logic(b) => blocks_data::BlockKind::Logic(match b {
-                            v1::LogicBlock::If => blocks_data::LogicBlockData::If,
-                            v1::LogicBlock::Else => blocks_data::LogicBlockData::Else,
-                            v1::LogicBlock::While => blocks_data::LogicBlockData::While,
-                            v1::LogicBlock::For => blocks_data::LogicBlockData::For,
+                        v1::BlockKind::Logic(b) => BlockKind::Logic(match b {
+                            v1::LogicBlock::If => LogicBlock::If,
+                            v1::LogicBlock::Else => LogicBlock::Else,
+                            v1::LogicBlock::While => LogicBlock::While,
+                            v1::LogicBlock::For => LogicBlock::For,
                         }),
-                        v1::BlockKind::Math(b) => blocks_data::BlockKind::Math(match b {
-                            v1::MathBlock::Add => blocks_data::MathBlockData::Add,
-                            v1::MathBlock::Subtract => blocks_data::MathBlockData::Subtract,
-                            v1::MathBlock::Multiply => blocks_data::MathBlockData::Multiply,
-                            v1::MathBlock::Divide => blocks_data::MathBlockData::Divide,
+                        v1::BlockKind::Math(b) => BlockKind::Math(match b {
+                            v1::MathBlock::Add => MathBlock::Add,
+                            v1::MathBlock::Subtract => MathBlock::Subtract,
+                            v1::MathBlock::Multiply => MathBlock::Multiply,
+                            v1::MathBlock::Divide => MathBlock::Divide,
                         }),
-                        v1::BlockKind::IO(b) => blocks_data::BlockKind::IO(match b {
-                            v1::IOBlock::Input => blocks_data::IOBlockData::Input,
-                            v1::IOBlock::Output => blocks_data::IOBlockData::Output,
+                        v1::BlockKind::IO(b) => BlockKind::IO(match b {
+                            v1::IOBlock::Input => IOBlock::Input,
+                            v1::IOBlock::Output => IOBlock::Output,
                         }),
                     },
                 }).collect(),
-                wires: g.wires.into_iter().map(|w| blocks_data::Wire { from: w.from, to: w.to }).collect(),
-                next_block_id: 0,
-            }).collect(),
+                g.wires.into_iter().map(|w| Wire { from: w.from, to: w.to }).collect(),
+            )).collect(),
         }
     }
 }
@@ -151,39 +150,36 @@ impl From<v2::GraphFile> for GraphFile {
                 created: v2_graph_file.meta.created,
                 modified: v2_graph_file.meta.modified,
             },
-            graphs: v2_graph_file.graphs.into_iter().map(|g| Graph {
-                name: g.name,
-                blocks: g.blocks.into_iter().map(|b| blocks_data::Block {
+            graphs: v2_graph_file.graphs.into_iter().map(|g| Graph::from_parts(
+                g.name,
+                g.blocks.into_iter().map(|b| Block {
                     id: b.id,
-                    pos: egui::Pos2::new(b.pos.x, b.pos.y),
-                    rect: egui::Rect::NOTHING,
-                    wires: blocks_data::Wires::default(),
+                    pos: Point { x: b.pos.x, y: b.pos.y },
                     kind: match b.kind {
-                        v2::BlockKind::Basic(b) => blocks_data::BlockKind::Basic(match b {
-                            v2::BasicBlock::Start => blocks_data::BasicBlockData::Start,
-                            v2::BasicBlock::End => blocks_data::BasicBlockData::End,
+                        v2::BlockKind::Basic(b) => BlockKind::Basic(match b {
+                            v2::BasicBlock::Start => BasicBlock::Start,
+                            v2::BasicBlock::End => BasicBlock::End,
                         }),
-                        v2::BlockKind::Logic(b) => blocks_data::BlockKind::Logic(match b {
-                            v2::LogicBlock::If => blocks_data::LogicBlockData::If,
-                            v2::LogicBlock::Else => blocks_data::LogicBlockData::Else,
-                            v2::LogicBlock::While => blocks_data::LogicBlockData::While,
-                            v2::LogicBlock::For => blocks_data::LogicBlockData::For,
+                        v2::BlockKind::Logic(b) => BlockKind::Logic(match b {
+                            v2::LogicBlock::If => LogicBlock::If,
+                            v2::LogicBlock::Else => LogicBlock::Else,
+                            v2::LogicBlock::While => LogicBlock::While,
+                            v2::LogicBlock::For => LogicBlock::For,
                         }),
-                        v2::BlockKind::Math(b) => blocks_data::BlockKind::Math(match b {
-                            v2::MathBlock::Add => blocks_data::MathBlockData::Add,
-                            v2::MathBlock::Subtract => blocks_data::MathBlockData::Subtract,
-                            v2::MathBlock::Multiply => blocks_data::MathBlockData::Multiply,
-                            v2::MathBlock::Divide => blocks_data::MathBlockData::Divide,
+                        v2::BlockKind::Math(b) => BlockKind::Math(match b {
+                            v2::MathBlock::Add => MathBlock::Add,
+                            v2::MathBlock::Subtract => MathBlock::Subtract,
+                            v2::MathBlock::Multiply => MathBlock::Multiply,
+                            v2::MathBlock::Divide => MathBlock::Divide,
                         }),
-                        v2::BlockKind::IO(b) => blocks_data::BlockKind::IO(match b {
-                            v2::IOBlock::Input => blocks_data::IOBlockData::Input,
-                            v2::IOBlock::Output => blocks_data::IOBlockData::Output,
+                        v2::BlockKind::IO(b) => BlockKind::IO(match b {
+                            v2::IOBlock::Input => IOBlock::Input,
+                            v2::IOBlock::Output => IOBlock::Output,
                         }),
                     },
                 }).collect(),
-                wires: g.wires.into_iter().map(|w| blocks_data::Wire { from: w.from, to: w.to }).collect(),
-                next_block_id: 0,
-            }).collect(),
+                g.wires.into_iter().map(|w| Wire { from: w.from, to: w.to }).collect(),
+            )).collect(),
         }
     }
 }
@@ -217,12 +213,7 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
 impl VisualEditor {
     pub(crate) fn new() -> Self {
         Self {
-            graphs: vec![Graph {
-                name: "Graph 0".into(),
-                blocks: Vec::new(),
-                wires: Vec::new(),
-                next_block_id: 0,
-            }],
+            graphs: vec![Graph::new("Graph 0")],
             graph_index: 0,
 
             wire_from: None,
@@ -242,21 +233,12 @@ impl VisualEditor {
     }
 
     //MARK: - Block management
-    fn block(&self, id: usize) -> Option<&blocks_data::Block> {
-        self.graphs[self.graph_index].blocks.iter().find(|b| b.id == id)
-    }
-
     pub fn is_dirty(&self) -> bool {
         self.dirty
     }
 
     fn delete_block(&mut self, id: usize) {
-        self.graphs[self.graph_index].blocks.retain(|b| b.id != id);
-        self.graphs[self.graph_index].wires.retain(|w| w.from != id && w.to != id);
-        self.graphs[self.graph_index].blocks.iter_mut().for_each(|b| {
-            b.wires.from_wires.retain(|w| w.from != id && w.to != id);
-            b.wires.to_wires.retain(|w| w.from != id && w.to != id);
-        });
+        Graph::delete_block(&mut self.graphs[self.graph_index], id);
         if self.selected == Some(id) {
             self.selected = None;
         }
@@ -267,14 +249,9 @@ impl VisualEditor {
     }
 
     fn duplicate_block(&mut self, id: usize) {
-        if let Some(src) = self.block(id) {
-            let mut copy = src.clone();
-            copy.id = self.graphs[self.graph_index].next_block_id;
-            copy.pos += Vec2::new(20.0, 20.0);
-            copy.rect = egui::Rect::NOTHING;
-            copy.wires = blocks_data::Wires::default();
-            self.graphs[self.graph_index].next_block_id += 1;
-            self.graphs[self.graph_index].blocks.push(copy);
+        if Graph::block_exists(&self.graphs[self.graph_index], id) {
+            let pos = self.graphs[self.graph_index].blocks().iter().find(|b| b.id == id).map(|b| Point { x: b.pos.x + 20.0, y: b.pos.y + 20.0 }).unwrap_or(Point { x: 100.0, y: 100.0 });
+            Graph::duplicate_block(&mut self.graphs[self.graph_index], id, pos);
             self.dirty = true;
         }
     }
@@ -326,16 +303,14 @@ impl VisualEditor {
     fn ok_load(&mut self, file: GraphFile) {
         self.graphs = file.graphs.clone();
         if self.graphs.is_empty() {
-            self.graphs.push(Graph {
-                name: "Graph 0".into(),
-                blocks: Vec::new(),
-                wires: Vec::new(),
-                next_block_id: 0,
-            });
+            self.graphs.push(Graph::from_parts(
+                "Graph 0",
+                Vec::new(),
+                Vec::new(),
+            ));
         }
         self.graph_index = 0;
-        self.graphs.iter_mut().for_each(|g| g.next_block_id = g.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1));
-        self.graphs.iter_mut().for_each(|graph| graph.blocks.iter_mut().for_each(|b| graph.wires.iter().for_each(|w| if w.from == b.id { b.wires.from_wires.push(w.clone()) } else if w.to == b.id { b.wires.to_wires.push(w.clone()) })));
+        self.graphs.iter_mut().for_each(|g| Graph::normalize(g));
         self.selected = None;
         self.run = None;
         self.wire_from = None;
@@ -371,12 +346,10 @@ impl VisualEditor {
         
     }
 
-    pub fn add_block(&mut self, block_kind: blocks_data::BlockKind) {
-        let id = self.graphs[self.graph_index].next_block_id;
-        self.graphs[self.graph_index].next_block_id += 1;
-        let pos = Pos2::new(100.0 + (id as f32 * 20.0), 100.0);
-        let block = blocks_data::Block::new(block_kind, pos, id);
-        self.graphs[self.graph_index].blocks.push(block);
+    pub fn add_block(&mut self, block_kind: BlockKind) {
+        let pos = Point { x: 100.0 + Graph::peak_next_block_id(&self.graphs[self.graph_index]) as f32 * 20.0, y: 100.0 };
+        Graph::add_block(&mut self.graphs[self.graph_index], block_kind, pos);
+        Graph::normalize(&mut self.graphs[self.graph_index]);
         self.dirty = true;
     }
 
@@ -391,6 +364,8 @@ impl VisualEditor {
             let rmb_pressed = ui.input(|i| i.pointer.secondary_pressed());
             let rmb_released = ui.input(|i| i.pointer.secondary_released());
             let mmb_pressed = ui.input(|i| i.pointer.middle_down());
+
+            let mut rects: HashMap<usize, egui::Rect> = HashMap::new();
 
             //MARK: - Handle events
             if mmb_pressed {
@@ -444,9 +419,9 @@ impl VisualEditor {
             let mut pending_duplicate: Option<usize> = None;
             let mut pending_select: Option<usize> = None;
 
-            for block in &mut self.graphs[self.graph_index].blocks {
+            for block in &mut self.graphs[self.graph_index].blocks_mut() {
                 let area = egui::Area::new(egui::Id::new(("block", block.id)))
-                    .fixed_pos(block.pos + offset)
+                    .fixed_pos(Pos2::new(block.pos.x + offset.x, block.pos.y + offset.y))
                     .movable(false)
                     .constrain(false)
                     .order(egui::Order::Middle);
@@ -460,7 +435,7 @@ impl VisualEditor {
                     } else if selected == Some(block.id) {
                         Stroke::new(2.5, Color32::WHITE)
                     } else {
-                        Stroke::new(2.0, blocks_data::Block::color(block))
+                        Stroke::new(2.0, block.kind.meta().color)
                     };
 
                     let shell = egui::Frame::none()
@@ -473,7 +448,7 @@ impl VisualEditor {
                             ui.spacing_mut().item_spacing.y = 0.0;
 
                             let header = egui::Frame::none()
-                                .fill(blocks_data::Block::color(block))
+                                .fill(block.kind.meta().color)
                                 .rounding(egui::Rounding { nw: 5.0, ne: 5.0, sw: 0.0, se: 0.0 })
                                 .inner_margin(egui::Margin::symmetric(8.0, 5.0))
                                 .show(ui, |ui| {
@@ -497,17 +472,17 @@ impl VisualEditor {
 
                                 let header_drag = header.response.interact(Sense::click_and_drag());
                                 if header_drag.dragged_by(egui::PointerButton::Primary) {
-                                    block.pos += header_drag.drag_delta();
+                                    let delta = header_drag.drag_delta();
+                                    block.pos.x += delta.x;
+                                    block.pos.y += delta.y;
                                     ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
                                     self.dirty = true;
                                 } else if header_drag.hovered() {
                                     ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
                                 }
                                 if header_drag.drag_stopped_by(egui::PointerButton::Primary) && snap {
-                                    block.pos = Pos2::new(
-                                        (block.pos.x /  grid_size).round() * grid_size,
-                                        (block.pos.y /  grid_size).round() * grid_size,
-                                    );
+                                    block.pos.x = (block.pos.x /  grid_size).round() * grid_size;
+                                    block.pos.y = (block.pos.y /  grid_size).round() * grid_size
                                 }
                                 if header_drag.clicked() {
                                     pending_select = Some(block.id);
@@ -542,7 +517,7 @@ impl VisualEditor {
                     painter.circle_stroke(ip, if in_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
                 });
 
-                block.rect = resp.response.rect
+                rects.insert(block.id, resp.response.rect);
             }
 
             if let Some(id) = pending_select {
@@ -559,35 +534,25 @@ impl VisualEditor {
             let mut grabbed_port = false;
             if let Some(pos) = pointer {
                 if rmb_pressed {
-                    for block in &self.graphs[self.graph_index].blocks {
-                        if pos.distance(block.out_port()) < 16.0 {
-                            if block.wires.from_wires.is_empty() {
-                                self.wire_from = Some(block.id);
-                                grabbed_port = true;
-                                break;
-                            }
+                    let graph = &self.graphs[self.graph_index];
+                    for block in graph.blocks() {
+                        let Some(rect) = rects.get(&block.id) else { continue };
+                        if pos.distance(out_port(rect)) < 16.0 && !graph.has_outgoing(block.id) {
+                            self.wire_from = Some(block.id);
+                            grabbed_port = true;
+                            break;
                         }
                     }
                 }
                 if rmb_released {
                     if let Some(from) = self.wire_from.take() {
-                        let from_idx = self.graphs[self.graph_index].blocks.iter().position(|b| b.id == from);
-                        for to_idx in 0..self.graphs[self.graph_index].blocks.len() {
-                            if self.graphs[self.graph_index].blocks[to_idx].id != from && pos.distance(self.graphs[self.graph_index].blocks[to_idx].in_port()) < 16.0 {
-                                let to_id = self.graphs[self.graph_index].blocks[to_idx].id;
-                                let dup = self.graphs[self.graph_index].wires.iter().any(|w| w.from == from && w.to == to_id);
-                                if !dup {
-                                    if self.graphs[self.graph_index].blocks[to_idx].wires.to_wires.is_empty() {
-                                        let wire = blocks_data::Wire { from, to: to_id };
-                                        self.graphs[self.graph_index].wires.push(wire.clone());
-                                        if let Some(from_idx) = from_idx {
-                                            self.graphs[self.graph_index].blocks[from_idx].wires.from_wires.push(wire.clone());
-                                        }
-                                        self.graphs[self.graph_index].blocks[to_idx].wires.to_wires.push(wire.clone());
-                                        self.dirty = true;
-                                    }
-                                }
-                                break;
+                        let graph = &mut self.graphs[self.graph_index];
+                        let to = graph.blocks().iter()
+                            .find(|b| rects.get(&b.id).is_some_and(|r| pos.distance(in_port(r)) < 16.0))
+                            .map(|b| b.id);
+                        if let Some(to) = to {
+                            if graph.connect(from, to).is_ok() {
+                                self.dirty = true;
                             }
                         }
                     }
@@ -596,10 +561,10 @@ impl VisualEditor {
 
             //MARK: - Draw wires
             let mut hovered_wire: Option<usize> = None;
-            let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires.len());
-            for (i, wire) in self.graphs[self.graph_index].wires.iter().enumerate() {
-                let path = match (self.block(wire.from), self.block(wire.to)) {
-                    (Some(from), Some(to)) => wire_points(from.out_port(), to.in_port()),
+            let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires().len());
+            for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
+                let path = match (rects.get(&wire.from), rects.get(&wire.to)) {
+                    (Some(from), Some(to)) => wire_points(out_port(from), in_port(to)),
                     _ => Vec::new(),
                 };
                 if hovered_wire.is_none() {
@@ -612,17 +577,14 @@ impl VisualEditor {
                 wire_paths.push(path);
             }
             if _response.secondary_clicked() && !grabbed_port {
-                self.context_wire = hovered_wire.map(|i| (self.graphs[self.graph_index].wires[i].from, self.graphs[self.graph_index].wires[i].to));
+                self.context_wire = hovered_wire.map(|i| (self.graphs[self.graph_index].wires()[i].from, self.graphs[self.graph_index].wires()[i].to));
             }
             if self.context_wire.is_some() {
                 _response.context_menu(|ui| {
                     if let Some((from, to)) = self.context_wire {
                         if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
-                            self.graphs[self.graph_index].wires.retain(|w| !(w.from == from && w.to == to));
-                            self.graphs[self.graph_index].blocks.iter_mut().for_each(|b| {
-                                b.wires.from_wires.retain(|w| !(w.from == from && w.to == to));
-                                b.wires.to_wires.retain(|w| !(w.from == from && w.to == to));
-                            });
+                            Graph::disconnect(&mut self.graphs[self.graph_index], from, to);
+                            self.dirty = true;
                             ui.close_menu();
                         }
                     }
@@ -652,8 +614,8 @@ impl VisualEditor {
                 ))
                 .with_clip_rect(canvas_rect);
             if let (Some(from), Some(pos)) = (self.wire_from, pointer) {
-                if let Some(block) = self.graphs[self.graph_index].blocks.iter().find(|b| b.id == from) {
-                    for seg in wire_points(block.out_port(), pos).windows(2) {
+                if let Some(rect) = rects.get(&from) {
+                    for seg in wire_points(out_port(rect), pos).windows(2) {
                         fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
                     }
                 }
@@ -666,15 +628,14 @@ impl VisualEditor {
 mod tests {
     use super::*;
     use proptest::prelude::*;
-    use crate::{blocks_data::{BasicBlockData, Block, BlockKind, Wire, Wires}, translation_manager};
+    use crate::graph::{BasicBlock, Block, BlockKind, Wire};
+    use crate::translation_manager;
 
     fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
         Block {
             id,
-            pos: Pos2::new(x, y),
-            rect: egui::Rect::NOTHING,
+            pos: Point { x, y },
             kind,
-            wires: Wires::default(),
         }
     }
 
@@ -690,10 +651,10 @@ mod tests {
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
-            graphs: vec![Graph {
-                name: "Graph 0".into(),
-                blocks: blocks.clone(),
-                wires: vec![
+            graphs: vec![Graph::from_parts(
+                "Graph 0",
+                blocks.clone(),
+                vec![
                     Wire { from: 2, to: 5 },
                     Wire { from: 5, to: 3 },
                     Wire { from: 3, to: 4 },
@@ -703,8 +664,7 @@ mod tests {
                     Wire { from: 1, to: 0 },
                     Wire { from: 0, to: 2 },
                 ],
-                next_block_id: 0,
-            }],
+            )],
         }
     }
 
@@ -714,7 +674,7 @@ mod tests {
         for lang in &langs {
             let ids: std::collections::HashSet<String> =
                 loader.with_message_iter(lang, |iter| iter.map(|m| m.id.name.to_string()).collect());
-            for kind in blocks_data::BlockKind::ALL {
+            for kind in BlockKind::ALL {
                 let m = kind.meta();
                 for key in &[m.title_key, m.field_key, m.description_key] {
                     assert!(ids.contains(*key), "Missing i18n key: {} in language {}", key, lang);
@@ -737,15 +697,14 @@ mod tests {
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
-            graphs: vec![Graph {
-                name: "Graph 0".into(),
-                blocks: vec![
-                    block(0, 10.0, 20.0, BlockKind::Basic(BasicBlockData::Start)),
-                    block(1, 30.0, 40.0, BlockKind::Basic(BasicBlockData::End)),
+            graphs: vec![Graph::from_parts(
+                "Graph 0",
+                vec![
+                    block(0, 10.0, 20.0, BlockKind::Basic(BasicBlock::Start)),
+                    block(1, 30.0, 40.0, BlockKind::Basic(BasicBlock::End)),
                 ],
-                wires: vec![Wire { from: 0, to: 1 }],
-                next_block_id: 0,
-            }],
+                vec![Wire { from: 0, to: 1 }],
+            )],
         };
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
@@ -799,7 +758,7 @@ mod tests {
     }
 
     fn arbitrary_block() -> impl Strategy<Value = BlockKind> {
-        use crate::blocks_data::{BasicBlockData::*, LogicBlockData::*, MathBlockData::*, IOBlockData::*};
+        use crate::graph::{BasicBlock::*, LogicBlock::*, MathBlock::*, IOBlock::*};
         prop_oneof![
             Just(BlockKind::Basic(Start)),
             Just(BlockKind::Basic(End)),
@@ -826,12 +785,11 @@ mod tests {
                 created: Option::<DateTime::<Utc>>::None,
                 modified: Option::<DateTime::<Utc>>::None,
             },
-            graphs: vec![Graph {
-                name: "Graph 0".into(),
-                blocks: bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
-                wires: ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
-                next_block_id: 0,
-            }],
+            graphs: vec![Graph::from_parts(
+                "Graph 0",
+                bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
+                ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+            )],
         })
     }
 

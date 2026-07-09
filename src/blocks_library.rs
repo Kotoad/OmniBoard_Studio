@@ -1,6 +1,6 @@
 use crate::visual_editor;
 use crate::state_machine;
-use crate::blocks_data;
+use crate::graph::{BlockKind};
 use crate::translation_manager::LOADER;
 
 use egui::RichText;
@@ -16,7 +16,7 @@ macro_rules! img_src_details {
     };
 }
 
-fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::Ui, block_kind: &blocks_data::BlockKind) {
+fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::Ui, block_kind: &BlockKind) {
     
     let pal = state_machine::with(|sm| sm.get_current_palette());
     let block_title = LOADER.get(block_kind.meta().title_key);
@@ -40,7 +40,7 @@ fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::U
 impl visual_editor::VisualEditor {
 
     fn show_blocks_library_tab(&mut self, ui: &mut egui::Ui, tab: state_machine::BlocksLibraryTab) {
-        let kinds: Vec<blocks_data::BlockKind> = blocks_data::BlockKind::ALL
+        let kinds: Vec<BlockKind> = BlockKind::ALL
             .iter()
             .filter(|k| k.category() == tab)
             .cloned()

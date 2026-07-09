@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::sync::{RwLock, OnceLock};
 
-use crate::{settings, state_machine};
-use crate::blocks_data::{self, BlockKind};
+use crate::settings;
+use crate::graph::{BasicBlock, LogicBlock, MathBlock, IOBlock, BlockKind};
 use crate::theme::Palette;
 
 
@@ -53,11 +53,11 @@ pub struct AppStateMachine {
     blocks_library_tab: BlocksLibraryTab,
     current_theme: Theme,
     current_language: Language,
-    block: blocks_data::BlockKind,
-    basic_block: blocks_data::BasicBlockData,
-    logic_block: blocks_data::LogicBlockData,
-    math_block: blocks_data::MathBlockData,
-    io_block: blocks_data::IOBlockData,
+    block: BlockKind,
+    basic_block: BasicBlock,
+    logic_block: LogicBlock,
+    math_block: MathBlock,
+    io_block: IOBlock,
 }
 
 fn theme_from_str(theme_str: &str) -> Theme {
@@ -100,11 +100,11 @@ impl AppStateMachine {
             blocks_library_tab: BlocksLibraryTab::Basic,
             current_theme,
             current_language,
-            block: blocks_data::BlockKind::Basic(blocks_data::BasicBlockData::Start),
-            basic_block: blocks_data::BasicBlockData::Start,
-            logic_block: blocks_data::LogicBlockData::If,
-            math_block: blocks_data::MathBlockData::Add,
-            io_block: blocks_data::IOBlockData::Input,
+            block: BlockKind::Basic(BasicBlock::Start),
+            basic_block: BasicBlock::Start,
+            logic_block: LogicBlock::If,
+            math_block: MathBlock::Add,
+            io_block: IOBlock::Input,
         }
     }
 
@@ -230,33 +230,33 @@ impl AppStateMachine {
         self.blocks_library_tab = tab;
     }
 
-    pub fn get_current_block(&self) -> blocks_data::BlockKind {
+    pub fn get_current_block(&self) -> BlockKind {
         self.block.clone()
     }
 
-    pub fn get_current_basic_block(&self) -> blocks_data::BlockKind {
-        blocks_data::BlockKind::Basic(self.basic_block.clone())
+    pub fn get_current_basic_block(&self) -> BlockKind {
+        BlockKind::Basic(self.basic_block.clone())
     }
 
-    pub fn get_current_logic_block(&self) -> blocks_data::BlockKind {
-        blocks_data::BlockKind::Logic(self.logic_block.clone())
+    pub fn get_current_logic_block(&self) -> BlockKind {
+        BlockKind::Logic(self.logic_block.clone())
     }
 
-    pub fn get_current_math_block(&self) -> blocks_data::BlockKind {
-        blocks_data::BlockKind::Math(self.math_block.clone())
+    pub fn get_current_math_block(&self) -> BlockKind {
+        BlockKind::Math(self.math_block.clone())
     }
 
-    pub fn get_current_io_block(&self) -> blocks_data::BlockKind {
-        blocks_data::BlockKind::IO(self.io_block.clone())
+    pub fn get_current_io_block(&self) -> BlockKind {
+        BlockKind::IO(self.io_block.clone())
     }
 
-    pub fn set_current_block(&mut self, block: blocks_data::BlockKind) {
+    pub fn set_current_block(&mut self, block: BlockKind) {
         self.block = block.clone();
         match &block {
-            blocks_data::BlockKind::Basic(basic_block) => self.basic_block = basic_block.clone(),
-            blocks_data::BlockKind::Logic(logic_block) => self.logic_block = logic_block.clone(),
-            blocks_data::BlockKind::Math(math_block) => self.math_block = math_block.clone(),
-            blocks_data::BlockKind::IO(io_block) => self.io_block = io_block.clone(),
+            BlockKind::Basic(basic_block) => self.basic_block = basic_block.clone(),
+            BlockKind::Logic(logic_block) => self.logic_block = logic_block.clone(),
+            BlockKind::Math(math_block) => self.math_block = math_block.clone(),
+            BlockKind::IO(io_block) => self.io_block = io_block.clone(),
         }
     }
 }

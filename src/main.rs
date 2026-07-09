@@ -10,6 +10,7 @@ mod visual_editor;
 mod blocks_library;
 mod blocks_data;
 mod omni_format;
+mod graph;
 
 use eframe::egui;
 use std::fs;
