@@ -257,6 +257,13 @@ blocks-library-tab-io = I/O blocks
 blocks-library-tab-functions = Functions
 blocks-library-tab-empty = No blocks available
 
+# blocks-library-subcategories
+blocks-library-subcategory-control-flow = Control Flow
+blocks-library-subcategory-comparison = Comparison
+blocks-library-subcategory-bool-logic = Boolean Logic
+blocks-library-subcategory-basic-math = Basic Math
+blocks-library-subcategory-led-control = LED Control
+
 # basic_blocks_tab
 blocks-library-basic-blocks-tab-tab-title = Basic blocks
 blocks-library-basic-blocks-tab-start = Start
@@ -293,13 +300,12 @@ blocks-library-logic-blocks-tab-xnor = Xnor
 # io_blocks_tab
 blocks-library-io-blocks-tab-tab-title = I/O blocks
 blocks-library-io-blocks-tab-button = Button
-blocks-library-io-blocks-tab-led = LED
-blocks-library-io-blocks-tab-blink-led = Blink LED
-blocks-library-io-blocks-tab-toggle-led = Toggle LED
+blocks-library-io-blocks-tab-led-blink = Blink LED
+blocks-library-io-blocks-tab-led-toggle = Toggle LED
 blocks-library-io-blocks-tab-led-on = LED ON
 blocks-library-io-blocks-tab-led-off = LED OFF
 blocks-library-io-blocks-tab-rgb-led = RGB LED control
-blocks-library-io-blocks-tab-pwm-led = PWM LED 
+blocks-library-io-blocks-tab-led-pwm = PWM LED 
 blocks-library-io-blocks-tab-input = Input
 blocks-library-io-blocks-tab-output = Output
 
@@ -315,6 +321,9 @@ blocks-library-math-blocks-tab-root = Root
 blocks-library-math-blocks-tab-add-one = Add 1
 blocks-library-math-blocks-tab-subtract-one = Subtract 1
 blocks-library-math-blocks-tab-random-number = Random Number
+blocks-library-math-blocks-tab-round = Round
+blocks-library-math-blocks-tab-floor = Floor
+blocks-library-math-blocks-tab-ceil = Ceil
 
 # function_blocks_tab
 blocks-library-function-blocks-tab-tab-title = Function
@@ -322,16 +331,47 @@ blocks-library-function-blocks-tab-tab-title = Function
 # blocks-library-field
 blocks-library-basic-blocks-tab-start-field = Entry point
 blocks-library-basic-blocks-tab-end-field = Exit point
-blocks-library-logic-blocks-tab-for-field = For loop
-blocks-library-logic-blocks-tab-if-field = If loop part
-blocks-library-logic-blocks-tab-else-field = Else loop part
+blocks-library-basic-blocks-tab-timer-field = Timer
+blocks-library-basic-blocks-tab-networks-field = Networks
+blocks-library-basic-blocks-tab-return-field = Return
+blocks-library-logic-blocks-tab-if-field = If loop
 blocks-library-logic-blocks-tab-while-field = While loop
+blocks-library-logic-blocks-tab-while-true-field = While true loop
+blocks-library-logic-blocks-tab-for-field = For loop
+blocks-library-logic-blocks-tab-switch-field = Switch
+blocks-library-logic-blocks-tab-lower-field = Lower
+blocks-library-logic-blocks-tab-greater-field = Greater
+blocks-library-logic-blocks-tab-equal-field = Equal
+blocks-library-logic-blocks-tab-not-equal-field = Not equal
+blocks-library-logic-blocks-tab-greater-equal-field = Greater or equal
+blocks-library-logic-blocks-tab-lower-equal-field = Lower or equal
+blocks-library-logic-blocks-tab-not-field = Not
+blocks-library-logic-blocks-tab-and-field = And
+blocks-library-logic-blocks-tab-nand-field = Nand
+blocks-library-logic-blocks-tab-or-field = Or
+blocks-library-logic-blocks-tab-nor-field = Nor
+blocks-library-logic-blocks-tab-xor-field = Xor
+blocks-library-logic-blocks-tab-xnor-field = Xnor
 blocks-library-math-blocks-tab-add-field = Add
 blocks-library-math-blocks-tab-subtract-field = Subtract
 blocks-library-math-blocks-tab-multiply-field = Multiply
 blocks-library-math-blocks-tab-divide-field = Divide
-blocks-library-io-blocks-tab-input-field = Input
-blocks-library-io-blocks-tab-output-field = Output
+blocks-library-math-blocks-tab-modulo-field = Modulo
+blocks-library-math-blocks-tab-power-field = Power
+blocks-library-math-blocks-tab-root-field = Root
+blocks-library-math-blocks-tab-random-number-field = Random Number
+blocks-library-math-blocks-tab-round-field = Round
+blocks-library-math-blocks-tab-floor-field = Floor
+blocks-library-math-blocks-tab-ceil-field = Ceil
+blocks-library-math-blocks-tab-add-one-field = Add 1
+blocks-library-math-blocks-tab-subtract-one-field = Subtract 1
+blocks-library-io-blocks-tab-button-field = Button
+blocks-library-io-blocks-tab-led-blink-field = LED Blink
+blocks-library-io-blocks-tab-led-toggle-field = LED Toggle
+blocks-library-io-blocks-tab-led-on-field = LED ON
+blocks-library-io-blocks-tab-led-off-field = LED OFF
+blocks-library-io-blocks-tab-led-pwm-field = PWM LED
+blocks-library-io-blocks-tab-rgb-led-field = RGB LED control
 
 # blocks_descriptions
 blocks-library-basic-blocks-tab-start-description = The starting point of the program execution.
@@ -340,7 +380,6 @@ blocks-library-basic-blocks-tab-timer-description = A block that triggers action
 blocks-library-basic-blocks-tab-networks-description = A block that handles network-related actions.
 blocks-library-basic-blocks-tab-return-description = A block that returns a value from a function or method.
 blocks-library-logic-blocks-tab-if-description = A conditional block that executes actions based on a true/false condition.
-blocks-library-logic-blocks-tab-else-description = The else part of a conditional block that executes actions when the if condition is false.
 blocks-library-logic-blocks-tab-while-description = A loop block that continues executing as long as a condition is true.
 blocks-library-logic-blocks-tab-while-true-description = A loop that runs indefinitely until externally stopped.
 blocks-library-logic-blocks-tab-switch-description = A block that selects one of many possible actions based on a value.
@@ -360,14 +399,12 @@ blocks-library-logic-blocks-tab-xor-description = Returns true if exactly one in
 blocks-library-logic-blocks-tab-xnor-description = Returns true if both input values are the same (both true or both false).
 blocks-library-io-blocks-tab-button-description = Represents a physical button input device.
 blocks-library-io-blocks-tab-led-description = Represents a physical LED output device.
-blocks-library-io-blocks-tab-blink-led-description = Controls an LED to blink at specified intervals.
-blocks-library-io-blocks-tab-toggle-led-description = Toggles the state of an LED on or off.
-blocks-library-io-blocks-tab-pwm-led-description = Controls the brightness of an LED using PWM (Pulse Width Modulation).
+blocks-library-io-blocks-tab-led-blink-description = Controls an LED to blink at specified intervals.
+blocks-library-io-blocks-tab-led-toggle-description = Toggles the state of an LED on or off.
+blocks-library-io-blocks-tab-led-pwm-description = Controls the brightness of an LED using PWM (Pulse Width Modulation).
 blocks-library-io-blocks-tab-led-on-description = Turns an LED on.
 blocks-library-io-blocks-tab-led-off-description = Turns an LED off.
 blocks-library-io-blocks-tab-rgb-led-description = Controls an RGB LED.
-blocks-library-io-blocks-tab-input-description = Represents an input device that can receive signals.
-blocks-library-io-blocks-tab-output-description = Represents an output device that can send signals.
 blocks-library-math-blocks-tab-add-description = Adds two values and stores the result in a target variable.
 blocks-library-math-blocks-tab-subtract-description = Subtracts the second value from the first value and stores the result in a target variable.
 blocks-library-math-blocks-tab-multiply-description = Multiplies two values and stores the result in a target variable.
@@ -378,6 +415,9 @@ blocks-library-math-blocks-tab-root-description = Calculates the square root of 
 blocks-library-math-blocks-tab-add-one-description = Adds 1 to the specified variable.
 blocks-library-math-blocks-tab-subtract-one-description = Subtracts 1 from the specified variable.
 blocks-library-math-blocks-tab-random-number-description = Generates a random number within a specified range.
+blocks-library-math-blocks-tab-round-description = Rounds the specified variable to the nearest integer.
+blocks-library-math-blocks-tab-floor-description = Rounds the specified variable down to the nearest integer.
+blocks-library-math-blocks-tab-ceil-description = Rounds the specified variable up to the nearest integer.
 blocks-library-blocks-descriptions-no-description = No description available.
 
 

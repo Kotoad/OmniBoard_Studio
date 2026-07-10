@@ -8,11 +8,10 @@ use chrono::{DateTime, Utc};
 use crate::{state_machine};
 use crate::translation_manager::LOADER;
 use crate::omni_format::{v1, v2};
-use crate::graph::{BlockKind, BasicBlock, LogicBlock, MathBlock, IOBlock, Graph,
-    Point, Wire, Block};
+use crate::graph::{BasicBlock, Block, BlockKind, RoundFloorCielData, RootData, BoolComparisonData, ButtonData, ComparisonData, ForData, Graph, IOBlock, IfData, LedBlinkData, LedControlData, LogicBlock, MathBlock, MathData, NetworksData, NotData, AddSubtractOneData, Point, PowerData, RandomNumberData, ReturnData, SwitchData, TimerData, WhileData, Wire, LedPwmData, RgbLedData, };
 
 const MAGIC: &[u8; 4] = b"OMNI";
-const FORMAT_VERSION: u16 = 2;
+const FORMAT_VERSION: u16 = 3;
 
 #[derive(Clone, Copy)]
 struct RunState {
@@ -24,7 +23,7 @@ pub(crate) struct VisualEditor {
     graphs: Vec<Graph>,
     graph_index: usize,
 
-    wire_from: Option<usize>,
+    wire_from: Option<(usize, u8)>,
     selected: Option<usize>,
     run: Option<RunState>,
 
@@ -34,7 +33,7 @@ pub(crate) struct VisualEditor {
     
     snap_to_grid: bool,
     dirty: bool,
-    context_wire: Option<(usize, usize)>,
+    context_wire: Option<(usize, u8, usize, u8)>,
 
     created: Option<DateTime<Utc>>,
 }
@@ -119,24 +118,24 @@ impl From<v1::GraphFile> for GraphFile {
                             v1::BasicBlock::End => BasicBlock::End,
                         }),
                         v1::BlockKind::Logic(b) => BlockKind::Logic(match b {
-                            v1::LogicBlock::If => LogicBlock::If,
-                            v1::LogicBlock::Else => LogicBlock::Else,
-                            v1::LogicBlock::While => LogicBlock::While,
-                            v1::LogicBlock::For => LogicBlock::For,
+                            v1::LogicBlock::If => LogicBlock::If(IfData::default()),
+                            v1::LogicBlock::Else => LogicBlock::If(IfData::default()),
+                            v1::LogicBlock::While => LogicBlock::While(WhileData::default()),
+                            v1::LogicBlock::For => LogicBlock::For(ForData::default()),
                         }),
                         v1::BlockKind::Math(b) => BlockKind::Math(match b {
-                            v1::MathBlock::Add => MathBlock::Add,
-                            v1::MathBlock::Subtract => MathBlock::Subtract,
-                            v1::MathBlock::Multiply => MathBlock::Multiply,
-                            v1::MathBlock::Divide => MathBlock::Divide,
+                            v1::MathBlock::Add => MathBlock::Add(MathData::default()),
+                            v1::MathBlock::Subtract => MathBlock::Subtract(MathData::default()),
+                            v1::MathBlock::Multiply => MathBlock::Multiply(MathData::default()),
+                            v1::MathBlock::Divide => MathBlock::Divide(MathData::default()),
                         }),
                         v1::BlockKind::IO(b) => BlockKind::IO(match b {
-                            v1::IOBlock::Input => IOBlock::Input,
-                            v1::IOBlock::Output => IOBlock::Output,
+                            v1::IOBlock::Input => IOBlock::Button(ButtonData::default()),
+                            v1::IOBlock::Output => IOBlock::LedBlink(LedBlinkData::default()),
                         }),
                     },
                 }).collect(),
-                g.wires.into_iter().map(|w| Wire { from: w.from, to: w.to }).collect(),
+                g.wires.into_iter().map(|w| Wire { from_block: w.from, from_port: 0, to_block: w.to, to_port: 0}).collect(),
             )).collect(),
         }
     }
@@ -146,7 +145,7 @@ impl From<v2::GraphFile> for GraphFile {
     fn from(v2_graph_file: v2::GraphFile) -> Self {
         Self {
             meta: Meta {
-                format_version: v2_graph_file.meta.format_version,
+                format_version: FORMAT_VERSION,
                 created: v2_graph_file.meta.created,
                 modified: v2_graph_file.meta.modified,
             },
@@ -161,24 +160,24 @@ impl From<v2::GraphFile> for GraphFile {
                             v2::BasicBlock::End => BasicBlock::End,
                         }),
                         v2::BlockKind::Logic(b) => BlockKind::Logic(match b {
-                            v2::LogicBlock::If => LogicBlock::If,
-                            v2::LogicBlock::Else => LogicBlock::Else,
-                            v2::LogicBlock::While => LogicBlock::While,
-                            v2::LogicBlock::For => LogicBlock::For,
+                            v2::LogicBlock::If => LogicBlock::If(IfData::default()),
+                            v2::LogicBlock::Else => LogicBlock::If(IfData::default()),
+                            v2::LogicBlock::While => LogicBlock::While(WhileData::default()),
+                            v2::LogicBlock::For => LogicBlock::For(ForData::default()),
                         }),
                         v2::BlockKind::Math(b) => BlockKind::Math(match b {
-                            v2::MathBlock::Add => MathBlock::Add,
-                            v2::MathBlock::Subtract => MathBlock::Subtract,
-                            v2::MathBlock::Multiply => MathBlock::Multiply,
-                            v2::MathBlock::Divide => MathBlock::Divide,
+                            v2::MathBlock::Add => MathBlock::Add(MathData::default()),
+                            v2::MathBlock::Subtract => MathBlock::Subtract(MathData::default()),
+                            v2::MathBlock::Multiply => MathBlock::Multiply(MathData::default()),
+                            v2::MathBlock::Divide => MathBlock::Divide(MathData::default()),
                         }),
                         v2::BlockKind::IO(b) => BlockKind::IO(match b {
-                            v2::IOBlock::Input => IOBlock::Input,
-                            v2::IOBlock::Output => IOBlock::Output,
+                            v2::IOBlock::Input => IOBlock::Button(ButtonData::default()),
+                            v2::IOBlock::Output => IOBlock::LedBlink(LedBlinkData::default()),
                         }),
                     },
                 }).collect(),
-                g.wires.into_iter().map(|w| Wire { from: w.from, to: w.to }).collect(),
+                g.wires.into_iter().map(|w| Wire { from_block: w.from, from_port: 0, to_block: w.to, to_port: 0 }).collect(),
             )).collect(),
         }
     }
@@ -203,6 +202,10 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
     match version {
         1 => decode_payload::<v1::GraphFile>(payload).map(GraphFile::from),
         2 => decode_payload::<v2::GraphFile>(payload).map(GraphFile::from),
+        3 => decode_payload::<GraphFile>(payload).map(|mut f| {
+            f.graphs.iter_mut().for_each(|g| Graph::normalize(g));
+            f
+        }),
         v if v > FORMAT_VERSION => Err(format!(
             "This file was saved by a newer version of OmniBoard Studio (format {v}). Please update the app."
         )),
@@ -435,7 +438,7 @@ impl VisualEditor {
                     } else if selected == Some(block.id) {
                         Stroke::new(2.5, Color32::WHITE)
                     } else {
-                        Stroke::new(2.0, block.kind.meta().color)
+                        Stroke::new(2.0, block.kind.block_type().meta().color)
                     };
 
                     let shell = egui::Frame::none()
@@ -448,13 +451,13 @@ impl VisualEditor {
                             ui.spacing_mut().item_spacing.y = 0.0;
 
                             let header = egui::Frame::none()
-                                .fill(block.kind.meta().color)
+                                .fill(block.kind.block_type().meta().color)
                                 .rounding(egui::Rounding { nw: 5.0, ne: 5.0, sw: 0.0, se: 0.0 })
                                 .inner_margin(egui::Margin::symmetric(8.0, 5.0))
                                 .show(ui, |ui| {
                                     ui.set_min_width(170.0);
                                     ui.horizontal(|ui| {
-                                        let block_kind = LOADER.get(block.kind.meta().title_key);
+                                        let block_kind = LOADER.get(block.kind.block_type().meta().title_key);
                                         ui.label(RichText::new(block_kind).color(Color32::WHITE).strong());
 
                                         ui.with_layout(
@@ -502,7 +505,7 @@ impl VisualEditor {
                                     .inner_margin(egui::Margin::same(8.0))
                                     .show(ui, |ui| {
                                         ui.spacing_mut().item_spacing.y = 4.0;
-                                        ui.label(RichText::new(LOADER.get(block.kind.meta().field_key)).color(Color32::from_white_alpha(200)));
+                                        ui.label(RichText::new(LOADER.get(block.kind.block_type().meta().field_key)).color(Color32::from_white_alpha(200)));
                                     })
                         });
                     let rect = shell.response.rect;
@@ -537,8 +540,8 @@ impl VisualEditor {
                     let graph = &self.graphs[self.graph_index];
                     for block in graph.blocks() {
                         let Some(rect) = rects.get(&block.id) else { continue };
-                        if pos.distance(out_port(rect)) < 16.0 && !graph.has_outgoing(block.id) {
-                            self.wire_from = Some(block.id);
+                        if pos.distance(out_port(rect)) < 16.0 && !graph.has_outgoing((block.id, block.kind.out_ports())) {
+                            self.wire_from = Some((block.id, block.kind.out_ports()));
                             grabbed_port = true;
                             break;
                         }
@@ -549,12 +552,13 @@ impl VisualEditor {
                         let graph = &mut self.graphs[self.graph_index];
                         let to = graph.blocks().iter()
                             .find(|b| rects.get(&b.id).is_some_and(|r| pos.distance(in_port(r)) < 16.0))
-                            .map(|b| b.id);
-                        if let Some(to) = to {
-                            if graph.connect(from, to).is_ok() {
+                            .map(|b| (b.id, b.kind.in_ports()));
+                        if let Some((to, in_ports)) = to {
+                            if graph.connect(from, (to, in_ports)).is_ok() {
                                 self.dirty = true;
                             }
                         }
+
                     }
                 }
             }
@@ -563,7 +567,7 @@ impl VisualEditor {
             let mut hovered_wire: Option<usize> = None;
             let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires().len());
             for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
-                let path = match (rects.get(&wire.from), rects.get(&wire.to)) {
+                let path = match (rects.get(&wire.from_block), rects.get(&wire.to_block)) {
                     (Some(from), Some(to)) => wire_points(out_port(from), in_port(to)),
                     _ => Vec::new(),
                 };
@@ -577,13 +581,19 @@ impl VisualEditor {
                 wire_paths.push(path);
             }
             if _response.secondary_clicked() && !grabbed_port {
-                self.context_wire = hovered_wire.map(|i| (self.graphs[self.graph_index].wires()[i].from, self.graphs[self.graph_index].wires()[i].to));
+                self.context_wire = hovered_wire.map(|i| (
+                    self.graphs[self.graph_index].wires()[i].from_block,
+                    self.graphs[self.graph_index].wires()[i].from_port,
+                    self.graphs[self.graph_index].wires()[i].to_block,
+                    self.graphs[self.graph_index].wires()[i].to_port))
+                    .map(|(from_block, from_port, to_block, to_port)|
+                        (from_block, from_port, to_block, to_port ));
             }
             if self.context_wire.is_some() {
                 _response.context_menu(|ui| {
-                    if let Some((from, to)) = self.context_wire {
+                    if let Some((from, from_port, to, to_port)) = self.context_wire {
                         if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
-                            Graph::disconnect(&mut self.graphs[self.graph_index], from, to);
+                            Graph::disconnect(&mut self.graphs[self.graph_index], (from, from_port), (to, to_port));
                             self.dirty = true;
                             ui.close_menu();
                         }
@@ -614,7 +624,7 @@ impl VisualEditor {
                 ))
                 .with_clip_rect(canvas_rect);
             if let (Some(from), Some(pos)) = (self.wire_from, pointer) {
-                if let Some(rect) = rects.get(&from) {
+                if let Some(rect) = rects.get(&from.0) {
                     for seg in wire_points(out_port(rect), pos).windows(2) {
                         fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
                     }
@@ -628,7 +638,7 @@ impl VisualEditor {
 mod tests {
     use super::*;
     use proptest::prelude::*;
-    use crate::graph::{BasicBlock, Block, BlockKind, Wire};
+    use crate::graph::{BasicBlock, Block, BlockKind, Wire, BlockType};
     use crate::translation_manager;
 
     fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
@@ -639,11 +649,47 @@ mod tests {
         }
     }
 
+    fn v1_v2_fixture_graph() -> GraphFile {
+        const IN_V1_V2: &[BlockType] = &[
+            BlockType::Start, BlockType::End, 
+            BlockType::If, BlockType::If, BlockType::While,
+            BlockType::For, BlockType::Add, BlockType::Subtract,
+            BlockType::Multiply, BlockType::Divide, BlockType::Button,
+            BlockType::LedBlink
+        ];
+
+        let blocks: Vec<Block> = IN_V1_V2.iter().enumerate()
+            .map(|(i, t)| block(i, i as f32 * 37.5 - 100.25, -(i as f32) *12.5 + 3.75, t.default_kind()))
+            .collect();
+        
+        GraphFile {
+            meta: Meta {
+                format_version: FORMAT_VERSION,
+                created: Option::<DateTime::<Utc>>::None,
+                modified: Option::<DateTime::<Utc>>::None,
+            },
+            graphs: vec![Graph::from_parts(
+                "Graph 0",
+                blocks.clone(),
+                vec![
+                    Wire { from_block: 2, from_port: 0, to_block: 5, to_port: 0 },
+                    Wire { from_block: 5, from_port: 0, to_block: 3, to_port: 0 },
+                    Wire { from_block: 3, from_port: 0, to_block: 4, to_port: 0 },
+                    Wire { from_block: 4, from_port: 0, to_block: 6, to_port: 0 },
+                    Wire { from_block: 6, from_port: 0, to_block: 7, to_port: 0 },
+                    Wire { from_block: 7, from_port: 0, to_block: 1, to_port: 0 },
+                    Wire { from_block: 1, from_port: 0, to_block: 0, to_port: 0 },
+                    Wire { from_block: 0, from_port: 0, to_block: 2, to_port: 0 },
+                ],
+            )],
+        }
+    }
+
     fn fixture_graph() -> GraphFile {
-        let blocks: Vec<Block> = BlockKind::ALL
+        let blocks: Vec<Block> = BlockType::ALL
             .iter()
             .enumerate()
-            .map(|(i, kind)| block(i, i as f32 * 37.5 - 100.25, -(i as f32) *12.5 + 3.75, kind.clone()))
+            .map(|(i, kind)| block(i, i as f32 * 37.5 - 100.25, -(i as f32) *12.5 + 3.75, kind.default_kind()))
             .collect();
         GraphFile {
             meta: Meta {
@@ -655,14 +701,14 @@ mod tests {
                 "Graph 0",
                 blocks.clone(),
                 vec![
-                    Wire { from: 2, to: 5 },
-                    Wire { from: 5, to: 3 },
-                    Wire { from: 3, to: 4 },
-                    Wire { from: 4, to: 6 },
-                    Wire { from: 6, to: 7 },
-                    Wire { from: 7, to: 1 },
-                    Wire { from: 1, to: 0 },
-                    Wire { from: 0, to: 2 },
+                    Wire { from_block: 2, from_port: 0, to_block: 5, to_port: 0 },
+                    Wire { from_block: 5, from_port: 0, to_block: 3, to_port: 0 },
+                    Wire { from_block: 3, from_port: 0, to_block: 4, to_port: 0 },
+                    Wire { from_block: 4, from_port: 0, to_block: 6, to_port: 0 },
+                    Wire { from_block: 6, from_port: 0, to_block: 7, to_port: 0 },
+                    Wire { from_block: 7, from_port: 0, to_block: 1, to_port: 0 },
+                    Wire { from_block: 1, from_port: 0, to_block: 0, to_port: 0 },
+                    Wire { from_block: 0, from_port: 0, to_block: 2, to_port: 0 },
                 ],
             )],
         }
@@ -674,7 +720,7 @@ mod tests {
         for lang in &langs {
             let ids: std::collections::HashSet<String> =
                 loader.with_message_iter(lang, |iter| iter.map(|m| m.id.name.to_string()).collect());
-            for kind in BlockKind::ALL {
+            for kind in BlockType::ALL {
                 let m = kind.meta();
                 for key in &[m.title_key, m.field_key, m.description_key] {
                     assert!(ids.contains(*key), "Missing i18n key: {} in language {}", key, lang);
@@ -703,7 +749,7 @@ mod tests {
                     block(0, 10.0, 20.0, BlockKind::Basic(BasicBlock::Start)),
                     block(1, 30.0, 40.0, BlockKind::Basic(BasicBlock::End)),
                 ],
-                vec![Wire { from: 0, to: 1 }],
+                vec![Wire { from_block: 0, from_port: 0, to_block: 1, to_port: 0 }],
             )],
         };
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
@@ -724,14 +770,14 @@ mod tests {
     fn v1_fixture_loads() {
         let bytes = include_bytes!("../tests/fixtures/v1_fixture.omni");
         let graph = decode_graph(bytes).unwrap();
-        assert_eq!(graph, fixture_graph());
+        assert_eq!(graph, v1_v2_fixture_graph());
     }
 
     #[test]
     fn v2_fixture_loads() {
         let bytes = include_bytes!("../tests/fixtures/v2_fixture.omni");
         let graph = decode_graph(bytes).unwrap();
-        assert_eq!(graph, fixture_graph());
+        assert_eq!(graph, v1_v2_fixture_graph());
     }
 
     #[test]
@@ -758,20 +804,51 @@ mod tests {
     }
 
     fn arbitrary_block() -> impl Strategy<Value = BlockKind> {
-        use crate::graph::{BasicBlock::*, LogicBlock::*, MathBlock::*, IOBlock::*};
+        use crate::graph::{BlockType};
         prop_oneof![
-            Just(BlockKind::Basic(Start)),
-            Just(BlockKind::Basic(End)),
-            Just(BlockKind::Logic(If)),
-            Just(BlockKind::Logic(Else)),
-            Just(BlockKind::Logic(While)),
-            Just(BlockKind::Logic(For)),
-            Just(BlockKind::Math(Add)),
-            Just(BlockKind::Math(Subtract)),
-            Just(BlockKind::Math(Multiply)),
-            Just(BlockKind::Math(Divide)),
-            Just(BlockKind::IO(Input)),
-            Just(BlockKind::IO(Output))
+            Just(BlockType::Start.default_kind()),
+            Just(BlockType::End.default_kind()),
+            Just(BlockType::Timer.default_kind()),
+            Just(BlockType::Networks.default_kind()),
+            Just(BlockType::Return.default_kind()),
+            Just(BlockType::If.default_kind()),
+            Just(BlockType::While.default_kind()),
+            Just(BlockType::WhileTrue.default_kind()),
+            Just(BlockType::For.default_kind()),
+            Just(BlockType::Switch.default_kind()),
+            Just(BlockType::Lower.default_kind()),
+            Just(BlockType::Greater.default_kind()),
+            Just(BlockType::Equal.default_kind()),
+            Just(BlockType::NotEqual.default_kind()),
+            Just(BlockType::GreaterEqual.default_kind()),
+            Just(BlockType::LowerEqual.default_kind()),
+            Just(BlockType::Not.default_kind()),
+            Just(BlockType::And.default_kind()),
+            Just(BlockType::Nand.default_kind()),
+            Just(BlockType::Or.default_kind()),
+            Just(BlockType::Nor.default_kind()),
+            Just(BlockType::Xor.default_kind()),
+            Just(BlockType::Xnor.default_kind()),
+            Just(BlockType::Add.default_kind()),
+            Just(BlockType::Subtract.default_kind()),
+            Just(BlockType::Multiply.default_kind()),
+            Just(BlockType::Divide.default_kind()),
+            Just(BlockType::Modulo.default_kind()),
+            Just(BlockType::Power.default_kind()),
+            Just(BlockType::Root.default_kind()),
+            Just(BlockType::RandomNumber.default_kind()),
+            Just(BlockType::Round.default_kind()),
+            Just(BlockType::Floor.default_kind()),
+            Just(BlockType::Ciel.default_kind()),
+            Just(BlockType::AddOne.default_kind()),
+            Just(BlockType::SubtractOne.default_kind()),
+            Just(BlockType::Button.default_kind()),
+            Just(BlockType::LedOn.default_kind()),
+            Just(BlockType::LedOff.default_kind()),
+            Just(BlockType::LedToggle.default_kind()),
+            Just(BlockType::LedBlink.default_kind()),
+            Just(BlockType::LedPwm.default_kind()),
+            Just(BlockType::RgbLed.default_kind()),
         ]
     }
 
@@ -788,7 +865,7 @@ mod tests {
             graphs: vec![Graph::from_parts(
                 "Graph 0",
                 bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
-                ws.into_iter().map(|(from, to)| Wire { from, to }).collect(),
+                ws.into_iter().map(|(from_block, to_block)| Wire { from_block, from_port: 0, to_block, to_port: 0 }).collect(),
             )],
         })
     }

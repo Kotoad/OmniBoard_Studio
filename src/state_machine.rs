@@ -1,8 +1,9 @@
 use std::collections::HashSet;
 use std::sync::{RwLock, OnceLock};
+use log::debug;
 
 use crate::settings;
-use crate::graph::{BasicBlock, LogicBlock, MathBlock, IOBlock, BlockKind};
+use crate::graph::{BlockType};
 use crate::theme::Palette;
 
 
@@ -35,7 +36,7 @@ pub enum AppTab { Hub, VisualEditor, CodeEditor }
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum SettingsTab { General, Themes, Rpi }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum BlocksLibraryTab { Basic, Logic, IO, Math, Functions }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -53,11 +54,11 @@ pub struct AppStateMachine {
     blocks_library_tab: BlocksLibraryTab,
     current_theme: Theme,
     current_language: Language,
-    block: BlockKind,
-    basic_block: BasicBlock,
-    logic_block: LogicBlock,
-    math_block: MathBlock,
-    io_block: IOBlock,
+    block: BlockType,
+    basic_block: BlockType,
+    logic_block: BlockType,
+    math_block: BlockType,
+    io_block: BlockType,
 }
 
 fn theme_from_str(theme_str: &str) -> Theme {
@@ -100,11 +101,11 @@ impl AppStateMachine {
             blocks_library_tab: BlocksLibraryTab::Basic,
             current_theme,
             current_language,
-            block: BlockKind::Basic(BasicBlock::Start),
-            basic_block: BasicBlock::Start,
-            logic_block: LogicBlock::If,
-            math_block: MathBlock::Add,
-            io_block: IOBlock::Input,
+            block: BlockType::Start,
+            basic_block: BlockType::Start,
+            logic_block: BlockType::If,
+            math_block: BlockType::Add,
+            io_block: BlockType::Button,
         }
     }
 
@@ -230,33 +231,34 @@ impl AppStateMachine {
         self.blocks_library_tab = tab;
     }
 
-    pub fn get_current_block(&self) -> BlockKind {
+    pub fn get_current_block(&self) -> BlockType {
         self.block.clone()
     }
 
-    pub fn get_current_basic_block(&self) -> BlockKind {
-        BlockKind::Basic(self.basic_block.clone())
+    pub fn get_current_basic_block(&self) -> BlockType {
+        self.basic_block.clone()
     }
 
-    pub fn get_current_logic_block(&self) -> BlockKind {
-        BlockKind::Logic(self.logic_block.clone())
+    pub fn get_current_logic_block(&self) -> BlockType {
+        self.logic_block.clone()
     }
 
-    pub fn get_current_math_block(&self) -> BlockKind {
-        BlockKind::Math(self.math_block.clone())
+    pub fn get_current_math_block(&self) -> BlockType {
+        self.math_block.clone()
     }
 
-    pub fn get_current_io_block(&self) -> BlockKind {
-        BlockKind::IO(self.io_block.clone())
+    pub fn get_current_io_block(&self) -> BlockType {
+        self.io_block.clone()
     }
 
-    pub fn set_current_block(&mut self, block: BlockKind) {
+    pub fn set_current_block(&mut self, block: BlockType) {
         self.block = block.clone();
-        match &block {
-            BlockKind::Basic(basic_block) => self.basic_block = basic_block.clone(),
-            BlockKind::Logic(logic_block) => self.logic_block = logic_block.clone(),
-            BlockKind::Math(math_block) => self.math_block = math_block.clone(),
-            BlockKind::IO(io_block) => self.io_block = io_block.clone(),
+        match self.get_blocks_library_tab() {
+            BlocksLibraryTab::Basic => self.basic_block = block.clone(),
+            BlocksLibraryTab::Logic => self.logic_block = block.clone(),
+            BlocksLibraryTab::Math => self.math_block = block.clone(),
+            BlocksLibraryTab::IO => self.io_block = block.clone(),
+            _ => {}
         }
     }
 }

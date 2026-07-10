@@ -1,8 +1,10 @@
+use crate::blocks_data::BlockSubCategory;
 use crate::visual_editor;
 use crate::state_machine;
-use crate::graph::{BlockKind};
+use crate::graph::{BlockType};
 use crate::translation_manager::LOADER;
 
+use bincode::de;
 use egui::RichText;
 use log::debug;
 use i18n_embed_fl::fl;
@@ -16,7 +18,7 @@ macro_rules! img_src_details {
     };
 }
 
-fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::Ui, block_kind: &BlockKind) {
+fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::Ui, block_kind: &BlockType) {
     
     let pal = state_machine::with(|sm| sm.get_current_palette());
     let block_title = LOADER.get(block_kind.meta().title_key);
@@ -31,7 +33,7 @@ fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::U
         ui.heading(RichText::new(fl!(LOADER, "blocks-library-block-details-heading")).color(pal.text).size(18.0).strong());
         ui.label(RichText::new(block_description).color(pal.text).size(16.0));
         if ui.button(fl!(LOADER, "blocks-library-add-block-button", block_name = block_title)).clicked() {
-            editor.add_block(block_kind.clone());
+            editor.add_block(block_kind.default_kind());
             debug!("Adding Block: {:?}", block_kind);
         }
     });
@@ -40,7 +42,7 @@ fn show_block_details(editor: &mut visual_editor::VisualEditor, ui: &mut egui::U
 impl visual_editor::VisualEditor {
 
     fn show_blocks_library_tab(&mut self, ui: &mut egui::Ui, tab: state_machine::BlocksLibraryTab) {
-        let kinds: Vec<BlockKind> = BlockKind::ALL
+        let kinds: Vec<BlockType> = BlockType::ALL
             .iter()
             .filter(|k| k.category() == tab)
             .cloned()
@@ -69,12 +71,23 @@ impl visual_editor::VisualEditor {
             .show_inside(ui, |ui| {
                 egui::ScrollArea::vertical().auto_shrink([false, false]).show(ui, |ui| {
                     ui.with_layout(egui::Layout::top_down_justified(egui::Align::Center), |ui| {
+                        let mut rendered: Vec<BlockSubCategory> = Vec::new();
                         for kind in kinds.iter() {
-                            let block_meta = kind.meta();
-                            let block_title = LOADER.get(block_meta.title_key);
-                            let button = ui.selectable_value(&mut current_block, kind.clone(), block_title);
-                            if button.clicked() {
-                                debug!("Selected Block: {:?}", kind);
+                            match kind.sub_category() {
+                                None => {
+                                    ui.selectable_value(&mut current_block, kind.clone(), LOADER.get(kind.meta().title_key));
+                                },
+                                Some(sub) => {
+                                    if rendered.contains(&sub) { continue; }
+                                    rendered.push(sub);
+                                    egui::CollapsingHeader::new(LOADER.get(sub.header_key()))
+                                        .default_open(false)
+                                        .show(ui, |ui| {
+                                            for kind in kinds.iter().filter(|k| k.sub_category() == Some(sub)) {
+                                                ui.selectable_value(&mut current_block, kind.clone(), LOADER.get(kind.meta().title_key));
+                                            }
+                                        });
+                                } 
                             }
                         }
                     });
