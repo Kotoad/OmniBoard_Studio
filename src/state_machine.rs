@@ -1,12 +1,8 @@
 use std::collections::HashSet;
 use std::sync::{RwLock, OnceLock};
-use log::debug;
-
 use crate::settings;
 use crate::graph::{BlockType};
 use crate::theme::Palette;
-
-
 
 static STATE_MACHINE: OnceLock<RwLock<AppStateMachine>> = OnceLock::new();
 
@@ -183,7 +179,7 @@ impl AppStateMachine {
             Theme::OneDark => Palette::one_dark(),
             Theme::Gruvbox => Palette::gruvbox(),
             Theme::Nord => Palette::nord(),
-            Theme::Custom => settings::with(|s| s.custom_theme.clone()).unwrap_or(Palette::dark()),
+            Theme::Custom => settings::with(|s| s.custom_theme).unwrap_or(Palette::dark()),
         }
     }
 

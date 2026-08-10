@@ -3,13 +3,6 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq, Default)]
 pub struct Point { pub x: f32, pub y: f32}
 
-impl Point {
-    pub fn translate(&mut self, dx: f32, dy: f32) {
-        self.x += dx;
-        self.y += dy;
-    }
-}
-
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct Block { pub id: usize, pub pos: Point, pub kind: BlockKind }
 
@@ -312,7 +305,7 @@ pub enum ConnectError {
     NoSuchPort,
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+#[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq)]
 pub enum BlockType { Start, End, Timer, Networks, Return, If,
     While, WhileTrue, For, Switch, Lower, Greater, Equal, NotEqual,
     GreaterEqual, LowerEqual, Not, And, Nand, Or, Nor, Xor, Xnor,
@@ -524,7 +517,7 @@ impl Graph {
         graph
     }
 
-    pub fn peak_next_block_id(&self) -> usize {
+    pub fn peek_next_block_id(&self) -> usize {
         self.next_block_id
     }
 

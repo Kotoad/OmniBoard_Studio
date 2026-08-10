@@ -210,7 +210,7 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
         1 => decode_payload::<v1::GraphFile>(payload).map(GraphFile::from),
         2 => decode_payload::<v2::GraphFile>(payload).map(GraphFile::from),
         3 => decode_payload::<GraphFile>(payload).map(|mut f| {
-            f.graphs.iter_mut().for_each(|g| Graph::normalize(g));
+            f.graphs.iter_mut().for_each(Graph::normalize);
             f
         }),
         v if v > FORMAT_VERSION => Err(format!(
@@ -248,7 +248,7 @@ impl VisualEditor {
     }
 
     pub fn add_block(&mut self, block_kind: BlockKind) {
-        let pos = Point { x: 100.0 + Graph::peak_next_block_id(&self.graphs[self.graph_index]) as f32 * 20.0, y: 100.0 };
+        let pos = Point { x: 100.0 + Graph::peek_next_block_id(&self.graphs[self.graph_index]) as f32 * 20.0, y: 100.0 };
         Graph::add_block(&mut self.graphs[self.graph_index], block_kind, pos);
         self.dirty = true;
     }
@@ -328,7 +328,7 @@ impl VisualEditor {
             ));
         }
         self.graph_index = 0;
-        self.graphs.iter_mut().for_each(|g| Graph::normalize(g));
+        self.graphs.iter_mut().for_each(Graph::normalize);
         self.selected = None;
         self.run = None;
         self.wire_from = None;
@@ -867,7 +867,7 @@ mod tests {
     #[test]
     fn future_version_rejected() {
         let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], variables: Vec::new(), devices: Vec::new() }).unwrap();
-        for v in [(FORMAT_VERSION + 1) as u16, (FORMAT_VERSION + 2) as u16] {
+        for v in [((FORMAT_VERSION + 1)), ((FORMAT_VERSION + 2))] {
             bytes[4..6].copy_from_slice(&v.to_le_bytes());
             let err = decode_graph(&bytes).unwrap_err();
             assert!(err.contains("newer version"), "version {v}: got: error: {err}");

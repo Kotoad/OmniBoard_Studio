@@ -1,5 +1,3 @@
-use log::debug;
-
 use crate::state_machine;
 use crate::graph::{BlockType};
 
