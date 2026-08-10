@@ -21,12 +21,52 @@ pub struct Wire {
     pub to_port: u8
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq,)]
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub enum BlockKind {
     Basic(BasicBlock),
     Logic(LogicBlock),
     Math(MathBlock),
     IO(IOBlock),
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub enum ValueRef { Literal(f32), Variable(String) }
+
+impl Default for ValueRef {
+    fn default() -> Self {
+        ValueRef::Literal(0.0)
+    }
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub enum DeviceRef { Literal(f32), Device(String) }
+
+impl Default for DeviceRef {
+    fn default() -> Self {
+        DeviceRef::Literal(0.0)
+    }
+    
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub struct VariableDef {
+    pub name: String,
+    pub value: f32,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub struct DeviceDef {
+    pub name: String,
+    pub device_type: DeviceType,
+    pub pin: u8,
+}
+
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
+pub enum DeviceType {
+    Output,
+    Input,
+    Button,
+    Pwm
 }
 
 //MARK: Basic Blocks
@@ -83,23 +123,8 @@ pub enum LogicBlock {
     Xnor(BoolComparisonData),
 }
 
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum ValueRef { Literal(f32), Variable(String) }
-
-impl Default for ValueRef {
-    fn default() -> Self {
-        ValueRef::Literal(0.0)
-    }
-}
-
-#[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum CmpOp { Lower, Greater, Equal, NotEqual, GreaterEqual, LowerEqual }
-
-impl Default for CmpOp {
-    fn default() -> Self {
-        CmpOp::Equal
-    }
-}
+#[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
+pub enum CmpOp { Lower, Greater, #[default] Equal, NotEqual, GreaterEqual, LowerEqual }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct Case {
@@ -162,12 +187,12 @@ pub struct ComparisonData {
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct NotData {
-    pub value: bool,
+    pub value: ValueRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct BoolComparisonData {
-    pub values: Vec<bool>,
+    pub values: Vec<ValueRef>,
 }
 
 //MARK: Math Blocks
@@ -238,25 +263,25 @@ pub enum IOBlock {
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct ButtonData {
     pub pressed: bool,
-    pub controlled_value: ValueRef,
+    pub controlled_value: DeviceRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct LedControlData {
     pub state: bool,
-    pub controlled_value: ValueRef,
+    pub controlled_value: DeviceRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct LedBlinkData {
     pub blink_duration: f32,
-    pub controlled_value: ValueRef,
+    pub controlled_value: DeviceRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct LedPwmData {
     pub pwm_value: ValueRef,
-    pub controlled_value: ValueRef,
+    pub controlled_value: DeviceRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
@@ -264,7 +289,7 @@ pub struct RgbLedData {
     pub red: ValueRef,
     pub green: ValueRef,
     pub blue: ValueRef,
-    pub controlled_value: ValueRef,
+    pub controlled_value: DeviceRef,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -274,6 +299,8 @@ pub struct Graph {
     wires: Vec<Wire>,
     #[serde(skip)]
     next_block_id: usize,
+    #[serde(skip)]
+    zoom: f32,
 }
 
 pub enum ConnectError {
@@ -392,7 +419,6 @@ impl BlockType {
 }
 
 impl BlockKind {
-
     pub fn out_ports(&self) -> u8 {
         match self {
             BlockKind::Basic(BasicBlock::End) => 0,
@@ -400,7 +426,7 @@ impl BlockKind {
             BlockKind::Basic(_) => 1,
             BlockKind::Logic(LogicBlock::If(d))  => d.conditions.len() as u8 + d.has_else as u8,
             BlockKind::Logic(LogicBlock::Switch(d)) => d.cases.len() as u8 + d.has_default as u8,
-            BlockKind::Logic(LogicBlock::While(_d)) => 2,
+            BlockKind::Logic(LogicBlock::While(_d)) => 3,
             BlockKind::Logic(LogicBlock::For(_d)) => 2,
             BlockKind::Logic(LogicBlock::Lower(_d)) => 2,
             BlockKind::Logic(LogicBlock::Greater(_d)) => 2,
@@ -474,6 +500,7 @@ impl BlockKind {
     }
 }
 
+//MARK: Graph Implementation
 impl Graph {
     pub fn new(name: impl Into<String>) -> Self {
         Self {
@@ -481,6 +508,7 @@ impl Graph {
             blocks: Vec::new(),
             wires: Vec::new(),
             next_block_id: 0,
+            zoom: 1.0,
         }
     }
 
@@ -490,6 +518,7 @@ impl Graph {
             blocks,
             wires,
             next_block_id: 0,
+            zoom: 1.0,
         };
         graph.normalize();
         graph
@@ -497,6 +526,14 @@ impl Graph {
 
     pub fn peak_next_block_id(&self) -> usize {
         self.next_block_id
+    }
+
+    pub fn set_zoom(&mut self, zoom: f32) {
+        self.zoom = zoom;
+    }
+
+    pub fn get_zoom(&self) -> f32 {
+        self.zoom
     }
 
     pub fn add_block(&mut self, kind: BlockKind, pos: Point) -> usize {
@@ -580,5 +617,6 @@ impl Graph {
 
     pub fn normalize(&mut self) {
         self.next_block_id = self.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1);
+        self.zoom = 1.0;
     }
 }

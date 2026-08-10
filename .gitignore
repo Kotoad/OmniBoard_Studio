@@ -40,3 +40,8 @@ demo.rs
 
 # Ignore Claude AI files
 .claude/
+src/compiler/emit.rs
+src/compiler/ir.rs
+src/compiler/lower.rs
+src/compiler/mod.rs
+src/compiler/validate.rs

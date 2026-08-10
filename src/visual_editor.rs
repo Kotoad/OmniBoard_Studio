@@ -4,11 +4,12 @@ use i18n_embed_fl::fl;
 use serde::{Deserialize, Serialize};
 use log::{debug, error};
 use chrono::{DateTime, Utc};
+use egui::emath::TSTransform;
 
 use crate::{state_machine};
 use crate::translation_manager::LOADER;
 use crate::omni_format::{v1, v2};
-use crate::graph::{BasicBlock, Block, BlockKind, RoundFloorCielData, RootData, BoolComparisonData, ButtonData, ComparisonData, ForData, Graph, IOBlock, IfData, LedBlinkData, LedControlData, LogicBlock, MathBlock, MathData, NetworksData, NotData, AddSubtractOneData, Point, PowerData, RandomNumberData, ReturnData, SwitchData, TimerData, WhileData, Wire, LedPwmData, RgbLedData, };
+use crate::graph::{BasicBlock, Block, BlockKind, VariableDef, DeviceDef, ButtonData, ForData, Graph, IOBlock, IfData, LedBlinkData, LogicBlock, MathBlock, MathData, Point, WhileData, Wire, };
 
 const MAGIC: &[u8; 4] = b"OMNI";
 const FORMAT_VERSION: u16 = 3;
@@ -42,6 +43,8 @@ pub(crate) struct VisualEditor {
 struct GraphFile {
     meta: Meta,
     graphs: Vec<Graph>,
+    variables: Vec<VariableDef>,
+    devices: Vec<DeviceDef>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Default, Clone)]
@@ -52,12 +55,12 @@ struct Meta {
 }
 
 //MARK: - Helpers
-fn out_port(rect: &egui::Rect) -> egui::Pos2 {
-    egui::Pos2::new(rect.right(), rect.center().y)
+fn out_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
+    egui::Pos2::new(rect.right(), rect.top() + 50.0 - 3.0 + (port as f32) * 25.0)
 }
 
-pub fn in_port(rect: &egui::Rect) -> egui::Pos2 {
-    egui::Pos2::new(rect.left(), rect.center().y)
+pub fn in_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
+    egui::Pos2::new(rect.left(), rect.top() + 50.0 - 3.0 + (port as f32) * 25.0)
 }
 
 fn wire_points(from: Pos2, to: Pos2) -> Vec<Pos2> {
@@ -137,6 +140,8 @@ impl From<v1::GraphFile> for GraphFile {
                 }).collect(),
                 g.wires.into_iter().map(|w| Wire { from_block: w.from, from_port: 0, to_block: w.to, to_port: 0}).collect(),
             )).collect(),
+            variables: Vec::new(),
+            devices: Vec::new(),
         }
     }
 }
@@ -179,6 +184,8 @@ impl From<v2::GraphFile> for GraphFile {
                 }).collect(),
                 g.wires.into_iter().map(|w| Wire { from_block: w.from, from_port: 0, to_block: w.to, to_port: 0 }).collect(),
             )).collect(),
+            variables: Vec::new(),
+            devices: Vec::new(),
         }
     }
 }
@@ -240,6 +247,12 @@ impl VisualEditor {
         self.dirty
     }
 
+    pub fn add_block(&mut self, block_kind: BlockKind) {
+        let pos = Point { x: 100.0 + Graph::peak_next_block_id(&self.graphs[self.graph_index]) as f32 * 20.0, y: 100.0 };
+        Graph::add_block(&mut self.graphs[self.graph_index], block_kind, pos);
+        self.dirty = true;
+    }
+
     fn delete_block(&mut self, id: usize) {
         Graph::delete_block(&mut self.graphs[self.graph_index], id);
         if self.selected == Some(id) {
@@ -272,6 +285,8 @@ impl VisualEditor {
                 modified: Some(Utc::now()),
             },
             graphs: self.graphs.clone(),
+            variables: Vec::new(),
+            devices: Vec::new(),
         };
         match encode_graph(&file)
             .and_then(|bytes| std::fs::write(&temp, bytes).map_err(|e| e.to_string()))
@@ -349,14 +364,6 @@ impl VisualEditor {
         
     }
 
-    pub fn add_block(&mut self, block_kind: BlockKind) {
-        let pos = Point { x: 100.0 + Graph::peak_next_block_id(&self.graphs[self.graph_index]) as f32 * 20.0, y: 100.0 };
-        Graph::add_block(&mut self.graphs[self.graph_index], block_kind, pos);
-        Graph::normalize(&mut self.graphs[self.graph_index]);
-        self.dirty = true;
-    }
-
-
     //MARK: - GUI
     pub(crate) fn show_visual_editor(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
@@ -385,14 +392,30 @@ impl VisualEditor {
                 self.panning = false;
             }
 
+            if _response.hovered() {
+                let scroll_y  = ui.input(|i| i.smooth_scroll_delta.y);
+                if scroll_y  != 0.0 {
+                    if let Some(p) = pointer {
+                        let old_zoom = self.graphs[self.graph_index].get_zoom();
+                        let zoom_factor = (scroll_y * 0.001).exp();
+                        let new_zoom = (old_zoom * zoom_factor).clamp(0.5, 3.0);
+                        let world = TSTransform::new(self.canvas_offset, old_zoom).inverse() * p;
+                        self.canvas_offset = p.to_vec2() - new_zoom * world.to_vec2();
+                        self.graphs[self.graph_index].set_zoom(new_zoom);
+                    }
+                }
+            }
+
+            let transform = TSTransform::new(self.canvas_offset, self.graphs[self.graph_index].get_zoom());
+
             //MARK: - Draw grid
             let painter = ui.painter_at(canvas_rect);
 
             let pal = state_machine::with(|sm| sm.get_current_palette());
 
-            let grid_size = 25.0;
-            let ox = self.canvas_offset.x.rem_euclid(grid_size);
-            let oy = self.canvas_offset.y.rem_euclid(grid_size);
+            let grid_size = 25.0 * self.graphs[self.graph_index].get_zoom();
+            let ox = (self.canvas_offset.x - canvas_rect.left()).rem_euclid(grid_size);
+            let oy = (self.canvas_offset.y - canvas_rect.top()).rem_euclid(grid_size);
             let mut x = canvas_rect.left() + ox;
 
             while x < canvas_rect.right() {
@@ -414,7 +437,6 @@ impl VisualEditor {
             }
 
             //MARK: - Draw blocks
-            let offset = self.canvas_offset;
             let selected = self.selected;
             let run_current = self.run.map(|r| r.current);
             let snap = self.snap_to_grid;
@@ -422,16 +444,34 @@ impl VisualEditor {
             let mut pending_duplicate: Option<usize> = None;
             let mut pending_select: Option<usize> = None;
 
+            let over_canvas = pointer.is_some_and(|p| canvas_rect.contains(p));
+
             for block in &mut self.graphs[self.graph_index].blocks_mut() {
                 let area = egui::Area::new(egui::Id::new(("block", block.id)))
-                    .fixed_pos(Pos2::new(block.pos.x + offset.x, block.pos.y + offset.y))
+                    .fixed_pos(Pos2::new(block.pos.x, block.pos.y))
                     .movable(false)
                     .constrain(false)
+                    .interactable(over_canvas)
                     .order(egui::Order::Middle);
 
                 let resp = area.show(ctx, |ui| {
-                    ui.set_clip_rect(canvas_rect);
-                    ui.set_max_width(190.0);
+                    let title = LOADER.get(block.kind.block_type().meta().title_key);
+                    let field = LOADER.get(block.kind.block_type().meta().field_key);
+                    let id = format!("#{}", block.id);
+
+                    let body = egui::TextStyle::Body.resolve(ui.style());
+                    let small = egui::TextStyle::Small.resolve(ui.style());
+                    let text_w = |ui: &egui::Ui, s: &str, font: egui::FontId| {
+                        ui.fonts(|f| f.layout_no_wrap(s.to_owned(), font, Color32::WHITE).rect.width())
+                    };
+
+                    let gap = ui.spacing().item_spacing.x;
+
+                    let header_w = text_w(ui, &title, body.clone()) + gap + text_w(ui, &id, small) +16.0;
+                    let content_w = text_w(ui, &field, body.clone()) + 16.0;
+
+                    let block_w = ((header_w.max(content_w) / 25.0).ceil() * 25.0).max(175.0);
+                    ui.set_clip_rect(transform.inverse() * canvas_rect);
 
                     let outline = if run_current == Some(block.id) {
                         Stroke::new(3.0, Color32::from_rgb(255, 210, 80))
@@ -447,7 +487,8 @@ impl VisualEditor {
                         .rounding(6.0)
                         .inner_margin(egui::Margin::ZERO)
                         .show(ui, |ui| {
-                            ui.set_min_width(170.0);
+                            ui.set_min_width(block_w - 6.0);
+                            ui.set_max_width(block_w - 6.0);
                             ui.spacing_mut().item_spacing.y = 0.0;
 
                             let header = egui::Frame::none()
@@ -455,7 +496,7 @@ impl VisualEditor {
                                 .rounding(egui::Rounding { nw: 5.0, ne: 5.0, sw: 0.0, se: 0.0 })
                                 .inner_margin(egui::Margin::symmetric(8.0, 5.0))
                                 .show(ui, |ui| {
-                                    ui.set_min_width(170.0);
+                                    ui.set_min_width(block_w - 16.0);
                                     ui.horizontal(|ui| {
                                         let block_kind = LOADER.get(block.kind.block_type().meta().title_key);
                                         ui.label(RichText::new(block_kind).color(Color32::WHITE).strong());
@@ -501,25 +542,46 @@ impl VisualEditor {
                                     }
                                 });
 
-                                egui::Frame::none()
-                                    .inner_margin(egui::Margin::same(8.0))
-                                    .show(ui, |ui| {
-                                        ui.spacing_mut().item_spacing.y = 4.0;
+                            //MARK: - Block content
+                            egui::Frame::none()
+                                .inner_margin(egui::Margin::same(8.0))
+                                .show(ui, |ui| {
+                                    let ports_count = block.kind.out_ports().max(block.kind.in_ports()) as f32;
+                                    ui.set_min_height((ports_count + 1.0) * 25.0 - 16.0 - 6.0);
+                                    ui.spacing_mut().item_spacing.y = 4.0;
+                                    ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                                         ui.label(RichText::new(LOADER.get(block.kind.block_type().meta().field_key)).color(Color32::from_white_alpha(200)));
-                                    })
+                                    });
+                                });
                         });
+                    
                     let rect = shell.response.rect;
                     let painter = ui.painter();
-                    let op = Pos2::new(rect.right(), rect.center().y);
-                    let ip = Pos2::new(rect.left(), rect.center().y);
-                    let out_hot = pointer.is_some_and(|p| p.distance(op) < 16.0);
-                    let in_hot = pointer.is_some_and(|p| p.distance(ip) < 16.0);
-                    painter.circle_filled(op, if out_hot { 7.0 } else { 5.0 }, Color32::WHITE);
-                    painter.circle_stroke(op, if out_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
-                    painter.circle_filled(ip, if in_hot { 7.0 } else { 5.0 }, Color32::from_rgb(180, 220, 200));
-                    painter.circle_stroke(ip, if in_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
+                    let out_ports: Vec<Pos2> = (0..block.kind.out_ports())
+                        .map(|i| {                            
+                            let y = rect.top() + 50.0 - 3.0 + (i as f32) * 25.0;
+                            Pos2::new(rect.right(), y)
+                        })
+                        .collect();
+                    let in_ports: Vec<Pos2> = (0..block.kind.in_ports())
+                        .map(|i| {
+                            let y = rect.top() + 50.0 - 3.0 + (i as f32) * 25.0;
+                            Pos2::new(rect.left(), y)
+                        })
+                        .collect();
+                    for port in out_ports.iter() {
+                        let out_hot = pointer.is_some_and(|p| p.distance(*port) < 16.0);
+                        painter.circle_filled(*port, if out_hot { 7.0 } else { 5.0 }, Color32::WHITE);
+                        painter.circle_stroke(*port, if out_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
+                    }
+                    for port in in_ports.iter() {
+                        let in_hot = pointer.is_some_and(|p| p.distance(*port) < 16.0);
+                        painter.circle_filled(*port, if in_hot { 7.0 } else { 5.0 }, Color32::from_rgb(180, 220, 200));
+                        painter.circle_stroke(*port, if in_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
+                    }
                 });
-
+                ctx.set_transform_layer(resp.response.layer_id, transform);
+                
                 rects.insert(block.id, resp.response.rect);
             }
 
@@ -536,14 +598,17 @@ impl VisualEditor {
             //MARK: - Wire events
             let mut grabbed_port = false;
             if let Some(pos) = pointer {
+                let world_ptr = transform.inverse() * pos;
                 if rmb_pressed {
                     let graph = &self.graphs[self.graph_index];
                     for block in graph.blocks() {
                         let Some(rect) = rects.get(&block.id) else { continue };
-                        if pos.distance(out_port(rect)) < 16.0 && !graph.has_outgoing((block.id, block.kind.out_ports())) {
-                            self.wire_from = Some((block.id, block.kind.out_ports()));
-                            grabbed_port = true;
-                            break;
+                        for port in 0..block.kind.out_ports() {
+                            if world_ptr.distance(out_port(rect, port)) < 16.0 && !graph.has_outgoing((block.id, port)) {
+                                self.wire_from = Some((block.id, port));
+                                grabbed_port = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -551,11 +616,17 @@ impl VisualEditor {
                     if let Some(from) = self.wire_from.take() {
                         let graph = &mut self.graphs[self.graph_index];
                         let to = graph.blocks().iter()
-                            .find(|b| rects.get(&b.id).is_some_and(|r| pos.distance(in_port(r)) < 16.0))
-                            .map(|b| (b.id, b.kind.in_ports()));
+                            .find_map(|b| {
+                                let r = rects.get(&b.id)?;
+                                (0..b.kind.in_ports())
+                                    .find(|&port| world_ptr.distance(in_port(r, port)) < 16.0)
+                                    .map(|port| (b.id, port))
+                            });
+                        debug!("Wire released from block {} port {} to {:?}", from.0, from.1, to);
                         if let Some((to, in_ports)) = to {
                             if graph.connect(from, (to, in_ports)).is_ok() {
                                 self.dirty = true;
+                                debug!("Connected wire from block {} port {} to block {} port {}", from.0, from.1, to, in_ports);
                             }
                         }
 
@@ -568,7 +639,7 @@ impl VisualEditor {
             let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires().len());
             for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
                 let path = match (rects.get(&wire.from_block), rects.get(&wire.to_block)) {
-                    (Some(from), Some(to)) => wire_points(out_port(from), in_port(to)),
+                    (Some(from), Some(to)) => wire_points(transform * out_port(from, wire.from_port), transform * in_port(to, wire.to_port)),
                     _ => Vec::new(),
                 };
                 if hovered_wire.is_none() {
@@ -580,6 +651,7 @@ impl VisualEditor {
                 }
                 wire_paths.push(path);
             }
+            
             if _response.secondary_clicked() && !grabbed_port {
                 self.context_wire = hovered_wire.map(|i| (
                     self.graphs[self.graph_index].wires()[i].from_block,
@@ -625,7 +697,7 @@ impl VisualEditor {
                 .with_clip_rect(canvas_rect);
             if let (Some(from), Some(pos)) = (self.wire_from, pointer) {
                 if let Some(rect) = rects.get(&from.0) {
-                    for seg in wire_points(out_port(rect), pos).windows(2) {
+                    for seg in wire_points(out_port(rect, from.1), pos).windows(2) {
                         fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
                     }
                 }
@@ -682,6 +754,8 @@ mod tests {
                     Wire { from_block: 0, from_port: 0, to_block: 2, to_port: 0 },
                 ],
             )],
+            variables: Vec::new(),
+            devices: Vec::new(),
         }
     }
 
@@ -711,6 +785,8 @@ mod tests {
                     Wire { from_block: 0, from_port: 0, to_block: 2, to_port: 0 },
                 ],
             )],
+            variables: Vec::new(),
+            devices: Vec::new(),
         }
     }
 
@@ -731,7 +807,7 @@ mod tests {
 
     #[test]
     fn empty_graph_round_trips() {
-        let graph = GraphFile {meta: Meta::default(), graphs: vec![]};
+        let graph = GraphFile {meta: Meta::default(), graphs: vec![], variables: Vec::new(), devices: Vec::new()};
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
 
@@ -751,6 +827,8 @@ mod tests {
                 ],
                 vec![Wire { from_block: 0, from_port: 0, to_block: 1, to_port: 0 }],
             )],
+            variables: Vec::new(),
+            devices: Vec::new(),
         };
         assert_eq!(decode_graph(&encode_graph(&graph).unwrap()).unwrap(), graph);
     }
@@ -788,7 +866,7 @@ mod tests {
 
     #[test]
     fn future_version_rejected() {
-        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![]}).unwrap();
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], variables: Vec::new(), devices: Vec::new() }).unwrap();
         for v in [(FORMAT_VERSION + 1) as u16, (FORMAT_VERSION + 2) as u16] {
             bytes[4..6].copy_from_slice(&v.to_le_bytes());
             let err = decode_graph(&bytes).unwrap_err();
@@ -798,7 +876,7 @@ mod tests {
 
     #[test]
     fn version_zero_rejected() {
-        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![]}).unwrap();
+        let mut bytes = encode_graph(&GraphFile { meta: Meta::default(), graphs: vec![], variables: Vec::new(), devices: Vec::new() }).unwrap();
         bytes[4..6].copy_from_slice(&0u16.to_le_bytes());
         assert!(decode_graph(&bytes).unwrap_err().contains("Unknown file version"));
     }
@@ -867,6 +945,8 @@ mod tests {
                 bs.into_iter().map(|(id, x, y, kind)| block(id, x, y, kind)).collect(),
                 ws.into_iter().map(|(from_block, to_block)| Wire { from_block, from_port: 0, to_block, to_port: 0 }).collect(),
             )],
+            variables: Vec::new(),
+            devices: Vec::new(),
         })
     }
 

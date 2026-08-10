@@ -312,6 +312,7 @@ impl BlockType {
                 field_key: "blocks-library-math-blocks-tab-subtract-one-field",
                 description_key: "blocks-library-math-blocks-tab-subtract-one-description",
             },
+            //MARK: IO Blocks
             BlockType::Button => BlockMeta {
                 color: egui::Color32::from_rgb(255, 206, 84),
                 title_key: "blocks-library-io-blocks-tab-button",
