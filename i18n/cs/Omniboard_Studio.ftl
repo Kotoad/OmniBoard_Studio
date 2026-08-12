@@ -300,7 +300,6 @@ blocks-library-logic-blocks-tab-xnor = Xnor
 # io_blocks_tab
 blocks-library-io-blocks-tab-tab-title = Bloky V/V
 blocks-library-io-blocks-tab-button = Tlačítko
-blocks-library-io-blocks-tab-led = LED
 blocks-library-io-blocks-tab-led-blink = Blikající LED
 blocks-library-io-blocks-tab-led-toggle = Přepnutí LED
 blocks-library-io-blocks-tab-led-on = LED zapnuto
@@ -464,7 +463,7 @@ settings-window-theme-tab-catppuccin-theme = Catppuccin téma
 settings-window-theme-tab-custom-theme = Vlastní téma
 settings-window-theme-tab-main-darker = Hlavní tmavší barva
 settings-window-theme-tab-main = Hlavní barva
-settings-window-theme-tab-main-lighter = Hlavní světlší barva
+settings-window-theme-tab-main-lighter = Hlavní světlejší barva
 settings-window-theme-tab-text = Barva textu
 settings-window-theme-tab-highlight = Barva zvýraznění
 settings-window-theme-tab-highlight-text = Barva textu zvýraznění

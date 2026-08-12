@@ -228,32 +228,32 @@ impl AppStateMachine {
     }
 
     pub fn get_current_block(&self) -> BlockType {
-        self.block.clone()
+        self.block
     }
 
     pub fn get_current_basic_block(&self) -> BlockType {
-        self.basic_block.clone()
+        self.basic_block
     }
 
     pub fn get_current_logic_block(&self) -> BlockType {
-        self.logic_block.clone()
+        self.logic_block
     }
 
     pub fn get_current_math_block(&self) -> BlockType {
-        self.math_block.clone()
+        self.math_block
     }
 
     pub fn get_current_io_block(&self) -> BlockType {
-        self.io_block.clone()
+        self.io_block
     }
 
     pub fn set_current_block(&mut self, block: BlockType) {
-        self.block = block.clone();
+        self.block = block;
         match self.get_blocks_library_tab() {
-            BlocksLibraryTab::Basic => self.basic_block = block.clone(),
-            BlocksLibraryTab::Logic => self.logic_block = block.clone(),
-            BlocksLibraryTab::Math => self.math_block = block.clone(),
-            BlocksLibraryTab::IO => self.io_block = block.clone(),
+            BlocksLibraryTab::Basic => self.basic_block = block,
+            BlocksLibraryTab::Logic => self.logic_block = block,
+            BlocksLibraryTab::Math => self.math_block = block,
+            BlocksLibraryTab::IO => self.io_block = block,
             _ => {}
         }
     }

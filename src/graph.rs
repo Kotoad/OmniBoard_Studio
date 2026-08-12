@@ -292,8 +292,6 @@ pub struct Graph {
     wires: Vec<Wire>,
     #[serde(skip)]
     next_block_id: usize,
-    #[serde(skip)]
-    zoom: f32,
 }
 
 pub enum ConnectError {
@@ -501,7 +499,6 @@ impl Graph {
             blocks: Vec::new(),
             wires: Vec::new(),
             next_block_id: 0,
-            zoom: 1.0,
         }
     }
 
@@ -511,7 +508,6 @@ impl Graph {
             blocks,
             wires,
             next_block_id: 0,
-            zoom: 1.0,
         };
         graph.normalize();
         graph
@@ -519,14 +515,6 @@ impl Graph {
 
     pub fn peek_next_block_id(&self) -> usize {
         self.next_block_id
-    }
-
-    pub fn set_zoom(&mut self, zoom: f32) {
-        self.zoom = zoom;
-    }
-
-    pub fn get_zoom(&self) -> f32 {
-        self.zoom
     }
 
     pub fn add_block(&mut self, kind: BlockKind, pos: Point) -> usize {
@@ -609,7 +597,6 @@ impl Graph {
     }
 
     pub fn normalize(&mut self) {
-        self.next_block_id = self.blocks.iter().map(|b| b.id).max().map_or(0, |id| id + 1);
-        self.zoom = 1.0;
+        self.next_block_id = self.blocks.iter().map(|b| b.id).max().map_or(0, |id| id.saturating_add(1));
     }
 }

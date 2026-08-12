@@ -74,7 +74,7 @@ impl visual_editor::VisualEditor {
                         for kind in kinds.iter() {
                             match kind.sub_category() {
                                 None => {
-                                    ui.selectable_value(&mut current_block, kind.clone(), LOADER.get(kind.meta().title_key));
+                                    ui.selectable_value(&mut current_block, *kind, LOADER.get(kind.meta().title_key));
                                 },
                                 Some(sub) => {
                                     if rendered.contains(&sub) { continue; }
@@ -83,14 +83,14 @@ impl visual_editor::VisualEditor {
                                         .default_open(false)
                                         .show(ui, |ui| {
                                             for kind in kinds.iter().filter(|k| k.sub_category() == Some(sub)) {
-                                                ui.selectable_value(&mut current_block, kind.clone(), LOADER.get(kind.meta().title_key));
+                                                ui.selectable_value(&mut current_block, *kind, LOADER.get(kind.meta().title_key));
                                             }
                                         });
                                 } 
                             }
                         }
                     });
-                    state_machine::with_mut(|sm| sm.set_current_block(current_block.clone()));
+                    state_machine::with_mut(|sm| sm.set_current_block(current_block));
                 });
             });
         egui::CentralPanel::default().show_inside(ui, |ui| {

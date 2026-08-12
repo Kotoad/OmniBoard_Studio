@@ -13,6 +13,27 @@ use crate::graph::{BasicBlock, Block, BlockKind, VariableDef, DeviceDef, ButtonD
 
 const MAGIC: &[u8; 4] = b"OMNI";
 const FORMAT_VERSION: u16 = 3;
+const VERSION_LEN: usize = std::mem::size_of::<u16>();
+const HEADER_LEN: usize = MAGIC.len() + VERSION_LEN;
+
+const GRID_SIZE: f32 = 25.0;
+const BLOCK_BORDER_BASE: f32 = 2.0;
+const BLOCK_BORDER_SELECTED: f32 = 2.5;
+const BLOCK_BORDER_RUNNING: f32 = 3.0;
+const BLOCK_MARGIN_X: f32 = 8.0;
+const BLOCK_MARGIN_Y: f32 = 5.0;
+
+const PORT_RADIUS: f32 = 5.0;
+const PORT_RADIUS_HOVER: f32 = 7.0;
+const PORT_BORDER: f32 = 1.5;
+const PORT_HITBOX_RADIUS: f32 = 16.0;
+
+const ZOOM_SENSITIVITY: f32 = 0.001;
+const ZOOM_MIN: f32 = 0.5;
+const ZOOM_MAX: f32 = 3.0;
+
+const GRID_WIDTH: f32 = 1.0;
+const WIRE_SEGMENTS: u32 = 24;
 
 #[derive(Clone, Copy)]
 struct RunState {
@@ -20,22 +41,25 @@ struct RunState {
     deadline: f64,
 }
 
+#[derive(Default)]
+struct BlockInteraction {
+    select: Option<usize>,
+    delete: Option<usize>,
+    duplicate: Option<usize>,
+    drag: Option<(usize, Vec2)>,
+    drag_stop: Option<usize>,
+}
+
 pub(crate) struct VisualEditor {
     graphs: Vec<Graph>,
     graph_index: usize,
 
-    wire_from: Option<(usize, u8)>,
-    selected: Option<usize>,
     run: Option<RunState>,
+    cameras: Vec<Camera>,
+    interaction: Interaction,
 
-    canvas_offset: Vec2,
-    pan_start: Pos2,
-    panning: bool,
-    
     snap_to_grid: bool,
     dirty: bool,
-    context_wire: Option<(usize, u8, usize, u8)>,
-
     created: Option<DateTime<Utc>>,
 }
 
@@ -54,22 +78,75 @@ struct Meta {
     modified: Option<DateTime<Utc>>,
 }
 
+#[derive(Clone, Copy)]
+struct Camera {
+    offset: Vec2,
+    pan_start: Pos2,
+    zoom: f32,
+    panning: bool,
+}
+
+impl Default for Camera {
+    fn default() -> Self {
+        Self {
+            offset: Vec2::ZERO,
+            pan_start: Pos2::ZERO,
+            zoom: 1.0,
+            panning: false,
+        }
+    }
+}
+
+impl Camera {
+    fn transform(&self) -> TSTransform {
+        TSTransform::new(self.offset, self.zoom)
+    }
+
+    fn pan(&mut self, pointer: Option<Pos2>, active: bool) {
+        if !active {
+            self.panning = false;
+            return;
+        }
+
+        let Some(p) = pointer else { return; };
+        if self.panning {
+            self.offset += p - self.pan_start;
+        } else {
+            self.panning = true;
+        }
+        self.pan_start = p;
+    }
+
+    fn zoom_at(&mut self, pointer: Pos2, scroll_y: f32) {
+        let new_zoom = (self.zoom * (scroll_y * ZOOM_SENSITIVITY).exp()).clamp(ZOOM_MIN, ZOOM_MAX);
+        let world = self.transform().inverse() * pointer;
+        self.offset = pointer.to_vec2() - new_zoom * world.to_vec2();
+        self.zoom = new_zoom;
+    }
+}
+
+#[derive(Default)]
+struct Interaction {
+    selected: Option<usize>,
+    wire_from: Option<(usize, u8)>,
+    context_wire: Option<(usize, u8, usize, u8)>,
+}
 //MARK: - Helpers
 fn out_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
-    egui::Pos2::new(rect.right(), rect.top() + 50.0 - 3.0 + (port as f32) * 25.0)
+    egui::Pos2::new(rect.right() + (BLOCK_BORDER_BASE/2.0), rect.top() + 50.0 - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE)
 }
 
 pub fn in_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
-    egui::Pos2::new(rect.left(), rect.top() + 50.0 - 3.0 + (port as f32) * 25.0)
+    egui::Pos2::new(rect.left() - (BLOCK_BORDER_BASE/2.0), rect.top() + 50.0 - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE)
 }
 
 fn wire_points(from: Pos2, to: Pos2) -> Vec<Pos2> {
     let ctrl = ((to.x - from.x) * 0.5).max(40.0);
     let c0 = Pos2::new(from.x + ctrl, from.y);
     let c1 = Pos2::new(to.x - ctrl, to.y);
-    (0..=24)
+    (0..=WIRE_SEGMENTS)
         .map(|i| {
-            let t = i as f32 / 24.0;
+            let t = i as f32 / WIRE_SEGMENTS as f32;
             let ab = from.lerp(c0, t).lerp(c0.lerp(c1, t), t);
             let bc = c0.lerp(c1, t).lerp(c1.lerp(to, t), t);
             ab.lerp(bc, t)
@@ -93,9 +170,35 @@ fn dist_to_polyline(p: Pos2, pts: &[Pos2]) -> f32 {
         .fold(f32::INFINITY, f32::min)
 }
 
+fn draw_grid(painter: &egui::Painter, rect: egui::Rect, offset: Vec2, zoom: f32, grid_color: Color32) {
+    let zoom_grid_size = GRID_SIZE * zoom;
+    let ox = (offset.x - rect.left()).rem_euclid(zoom_grid_size);
+    let oy = (offset.y - rect.top()).rem_euclid(zoom_grid_size);
+    let mut x = rect.left() + ox;
+
+    while x < rect.right() {
+        painter.line_segment(
+            [Pos2::new(x, rect.top()), Pos2::new(x, rect.bottom())],
+            Stroke::new(GRID_WIDTH, grid_color),
+        );
+        x += zoom_grid_size;
+    }
+
+    let mut y = rect.top() + oy;
+
+    while y < rect.bottom() {
+        painter.line_segment(
+            [Pos2::new(rect.left(), y), Pos2::new(rect.right(), y)],
+            Stroke::new(GRID_WIDTH, grid_color),
+        );
+        y += zoom_grid_size;
+    }
+}
+
+//MARK: - File encoding/decoding
 fn encode_graph(file: &GraphFile) -> Result<Vec<u8>, String> {
     let payload = bincode::serde::encode_to_vec(file, bincode::config::standard()).map_err(|e| e.to_string())?;
-    let mut out = Vec::with_capacity(6 + payload.len());
+    let mut out = Vec::with_capacity(HEADER_LEN + payload.len());
     out.extend_from_slice(MAGIC);
     out.extend_from_slice(&FORMAT_VERSION.to_le_bytes());
     out.extend_from_slice(&payload);
@@ -191,11 +294,11 @@ impl From<v2::GraphFile> for GraphFile {
 }
 
 fn parse_header(bytes: &[u8]) -> Result<(u16, &[u8]), String> {
-    if bytes.len() < 6 || &bytes[..4] != MAGIC {
+    if bytes.len() < HEADER_LEN || &bytes[..MAGIC.len()] != MAGIC {
         return Err("Invalid file format".to_string());
     }
     let version = u16::from_le_bytes([bytes[4], bytes[5]]);
-    Ok((version, &bytes[6..]))
+    Ok((version, &bytes[HEADER_LEN..]))
 }
 
 fn decode_payload<T: for<'de> Deserialize<'de>>(payload: &[u8]) -> Result<T, String> {
@@ -220,24 +323,20 @@ fn decode_graph(bytes: &[u8]) -> Result<GraphFile, String> {
     }
 }
 
+//MARK: - VisualEditor implementation
 impl VisualEditor {
     pub(crate) fn new() -> Self {
         Self {
             graphs: vec![Graph::new("Graph 0")],
             graph_index: 0,
 
-            wire_from: None,
-            selected: None,
-            run: None,
 
-            canvas_offset: Vec2::ZERO,
-            pan_start: Pos2::ZERO,
-            panning: false,
+            run: None,
+            cameras: vec![Camera::default()],
+            interaction: Interaction::default(),
 
             snap_to_grid: false,
             dirty: false,
-            context_wire: None,
-
             created: Option::<DateTime::<Utc>>::None,
         }
     }
@@ -255,8 +354,8 @@ impl VisualEditor {
 
     fn delete_block(&mut self, id: usize) {
         Graph::delete_block(&mut self.graphs[self.graph_index], id);
-        if self.selected == Some(id) {
-            self.selected = None;
+        if self.interaction.selected == Some(id) {
+            self.interaction.selected = None;
         }
         if self.run.map(|r| r.current) == Some(id) {
             self.run = None;
@@ -270,6 +369,34 @@ impl VisualEditor {
             Graph::duplicate_block(&mut self.graphs[self.graph_index], id, pos);
             self.dirty = true;
         }
+    }
+
+    fn move_block(&mut self, id: usize, delta: Vec2) {
+        if let Some(block) = self.graphs[self.graph_index].blocks_mut().find(|b| b.id == id) {
+            block.pos.x += delta.x;
+            block.pos.y += delta.y;
+            self.dirty = true;
+        }
+    }
+
+    fn snap_block_to_grid(&mut self, id: usize) {
+        if !self.snap_to_grid {
+            return;
+        }
+        if let Some(block) = self.graphs[self.graph_index].blocks_mut().find(|b| b.id == id) {
+            block.pos.x = (block.pos.x / GRID_SIZE).round() * GRID_SIZE;
+            block.pos.y = (block.pos.y / GRID_SIZE).round() * GRID_SIZE;
+            self.dirty = true;
+        }
+    }
+
+    fn handle_zoom(&mut self, ui: &egui::Ui, response: &egui::Response, pointer: Option<Pos2>) {
+        if !response.hovered() { return; };
+        let scroll_y = ui.input(|i| i.smooth_scroll_delta.y);
+        if scroll_y == 0.0 { return; };
+        let Some(p) = pointer else { return; };
+
+        self.cameras[self.graph_index].zoom_at(p, scroll_y);
     }
 
     //MARK: - File management
@@ -327,13 +454,12 @@ impl VisualEditor {
                 Vec::new(),
             ));
         }
+        self.cameras = vec![Camera::default(); self.graphs.len()];
         self.graph_index = 0;
         self.graphs.iter_mut().for_each(Graph::normalize);
-        self.selected = None;
+        self.interaction = Interaction::default();
         self.run = None;
-        self.wire_from = None;
         self.dirty = false;
-        self.context_wire = None;
         self.created = file.meta.created;
     }
 
@@ -363,349 +489,364 @@ impl VisualEditor {
         }
         
     }
+ 
+    //MARK: - Draw blocks
+    fn draw_blocks(
+        &self,
+        pointer: Option<egui::Pos2>,
+        canvas_rect: egui::Rect,
+        transform: TSTransform,
+        ctx: &egui::Context,
+        rects: &mut HashMap<usize, egui::Rect>
+    ) -> BlockInteraction {
+        let selected = self.interaction.selected;
+        let run_current = self.run.map(|r| r.current);
+        let over_canvas = pointer.is_some_and(|p| canvas_rect.contains(p));
+        let mut interaction = BlockInteraction::default();
+
+        for block in self.graphs[self.graph_index].blocks() {
+            let area = egui::Area::new(egui::Id::new(("block", block.id)))
+                .fixed_pos(Pos2::new(block.pos.x, block.pos.y))
+                .movable(false)
+                .constrain(false)
+                .interactable(over_canvas)
+                .order(egui::Order::Middle);
+
+            let resp = area.show(ctx, |ui| {
+                let title = LOADER.get(block.kind.block_type().meta().title_key);
+                let field = LOADER.get(block.kind.block_type().meta().field_key);
+                let id = format!("#{}", block.id);
+
+                let body = egui::TextStyle::Body.resolve(ui.style());
+                let small = egui::TextStyle::Small.resolve(ui.style());
+                let text_w = |ui: &egui::Ui, s: &str, font: egui::FontId| {
+                    ui.fonts(|f| f.layout_no_wrap(s.to_owned(), font, Color32::WHITE).rect.width())
+                };
+
+                let gap = ui.spacing().item_spacing.x;
+
+                let header_w = text_w(ui, &title, body.clone()) + gap + text_w(ui, &id, small) + (BLOCK_MARGIN_X*2.0);
+                let content_w = text_w(ui, &field, body.clone()) + (BLOCK_MARGIN_X*2.0);
+
+                let block_w = ((header_w.max(content_w) / GRID_SIZE).ceil() * GRID_SIZE).max(175.0);
+                ui.set_clip_rect(transform.inverse() * canvas_rect);
+
+                let outline = if run_current == Some(block.id) {
+                    Stroke::new(BLOCK_BORDER_RUNNING, Color32::from_rgb(255, 210, 80))
+                } else if selected == Some(block.id) {
+                    Stroke::new(BLOCK_BORDER_SELECTED, Color32::WHITE)
+                } else {
+                    Stroke::new(BLOCK_BORDER_BASE, block.kind.block_type().meta().color)
+                };
+
+                let shell = egui::Frame::none()
+                    .fill(Color32::from_rgb(18, 18, 22))
+                    .stroke(outline)
+                    .rounding(6.0)
+                    .inner_margin(egui::Margin::ZERO)
+                    .show(ui, |ui| {
+                        ui.set_min_width(block_w - (BLOCK_BORDER_BASE*2.0));
+                        ui.set_max_width(block_w - (BLOCK_BORDER_BASE*2.0));
+                        ui.spacing_mut().item_spacing.y = 0.0;
+
+                        let header = egui::Frame::none()
+                            .fill(block.kind.block_type().meta().color)
+                            .rounding(egui::Rounding { nw: 5.0, ne: 5.0, sw: 0.0, se: 0.0 })
+                            .inner_margin(egui::Margin::symmetric(BLOCK_MARGIN_X, BLOCK_MARGIN_Y))
+                            .show(ui, |ui| {
+                                ui.set_min_width(block_w - (BLOCK_MARGIN_X*2.0) - (BLOCK_BORDER_BASE*2.0));
+                                ui.horizontal(|ui| {
+                                    let block_kind = LOADER.get(block.kind.block_type().meta().title_key);
+                                    ui.label(RichText::new(block_kind).color(Color32::WHITE).strong());
+
+                                    ui.with_layout(
+                                        egui::Layout::right_to_left(egui::Align::Center),
+                                        |ui| {
+                                            ui.label(
+                                            RichText::new(format!("#{}", block.id))
+                                                    .small()
+                                                    .color(Color32::from_white_alpha(140)),
+                                            );
+                                        }
+                                    );
+                                });
+                            });
+
+                            let header_drag = header.response.interact(Sense::click_and_drag());
+                            if header_drag.dragged_by(egui::PointerButton::Primary) {
+                                interaction.drag = Some((block.id, header_drag.drag_delta()));
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
+                            } else if header_drag.hovered() {
+                                ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
+                            }
+                            if header_drag.drag_stopped_by(egui::PointerButton::Primary) {
+                                interaction.drag_stop = Some(block.id);
+                            }
+                            if header_drag.clicked() {
+                                interaction.select = Some(block.id);
+                            }
+                            header_drag.context_menu(|ui| {
+                                if ui.button(fl!(LOADER, "main-gui-block-context-menu-duplicate")).clicked() {
+                                    interaction.duplicate = Some(block.id);
+                                    ui.close_menu();
+                                }
+                                if ui.button(fl!(LOADER, "main-gui-block-context-menu-delete")).clicked() {
+                                    interaction.delete = Some(block.id);
+                                    ui.close_menu();
+                                }
+                            });
+
+                        //MARK: - Block content
+                        egui::Frame::none()
+                            .inner_margin(egui::Margin::same(BLOCK_MARGIN_X))
+                            .show(ui, |ui| {
+                                let ports_count = block.kind.out_ports().max(block.kind.in_ports()) as f32;
+                                ui.set_min_height((ports_count + 1.0) * GRID_SIZE - (BLOCK_MARGIN_Y*2.0) - (BLOCK_BORDER_BASE*2.0));
+                                ui.spacing_mut().item_spacing.y = 4.0;
+                                ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
+                                    ui.label(RichText::new(LOADER.get(block.kind.block_type().meta().field_key)).color(Color32::from_white_alpha(200)));
+                                });
+                            });
+                    });
+                
+                let rect = shell.response.rect;
+                let painter = ui.painter();
+                let world_ptr = pointer.map(|p| transform.inverse() * p);
+                let out_ports: Vec<Pos2> = (0..block.kind.out_ports())
+                    .map(|i| {                            
+                        out_port(&rect, i)
+                    })
+                    .collect();
+                let in_ports: Vec<Pos2> = (0..block.kind.in_ports())
+                    .map(|i| {
+                        in_port(&rect, i)
+                    })
+                    .collect();
+                for port in out_ports.iter() {
+                    let out_hot = world_ptr.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS);
+                    painter.circle_filled(*port, if out_hot { PORT_RADIUS_HOVER } else { PORT_RADIUS }, Color32::WHITE);
+                    painter.circle_stroke(*port, if out_hot { PORT_RADIUS_HOVER } else { PORT_RADIUS }, Stroke::new(PORT_BORDER, Color32::BLACK));
+                }
+                for port in in_ports.iter() {
+                    let in_hot = world_ptr.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS);
+                    painter.circle_filled(*port, if in_hot { PORT_RADIUS_HOVER } else { PORT_RADIUS }, Color32::from_rgb(180, 220, 200));
+                    painter.circle_stroke(*port, if in_hot { PORT_RADIUS_HOVER } else { PORT_RADIUS }, Stroke::new(PORT_BORDER, Color32::BLACK));
+                }
+            });
+            ctx.set_transform_layer(resp.response.layer_id, transform);
+            
+            rects.insert(block.id, resp.response.rect);
+        }
+
+        interaction
+
+    }
+
+    fn handle_wire_interaction(
+        &mut self,
+        pointer: Option<egui::Pos2>,
+        transform: TSTransform,
+        rmb_pressed: bool,
+        rmb_released: bool,
+        rects: &HashMap<usize, egui::Rect>
+    ) -> bool {
+        let mut grabbed_port = false;
+
+        if let Some(pos) = pointer {
+            let world_ptr = transform.inverse() * pos;
+            if rmb_pressed {
+                let graph = &self.graphs[self.graph_index];
+                for block in graph.blocks() {
+                    let Some(rect) = rects.get(&block.id) else { continue };
+                    for port in 0..block.kind.out_ports() {
+                        if world_ptr.distance(out_port(rect, port)) < PORT_HITBOX_RADIUS && !graph.has_outgoing((block.id, port)) {
+                            self.interaction.wire_from = Some((block.id, port));
+                            grabbed_port = true;
+                            break;
+                        }
+                    }
+                }
+            }
+            if rmb_released {
+                if let Some(from) = self.interaction.wire_from.take() {
+                    let graph = &mut self.graphs[self.graph_index];
+                    let to = graph.blocks().iter()
+                        .find_map(|b| {
+                            let r = rects.get(&b.id)?;
+                            (0..b.kind.in_ports())
+                                .find(|&port| world_ptr.distance(in_port(r, port)) < PORT_HITBOX_RADIUS)
+                                .map(|port| (b.id, port))
+                        });
+                    debug!("Wire released from block {} port {} to {:?}", from.0, from.1, to);
+                    if let Some((to, in_ports)) = to {
+                        if graph.connect(from, (to, in_ports)).is_ok() {
+                            self.dirty = true;
+                            debug!("Connected wire from block {} port {} to block {} port {}", from.0, from.1, to, in_ports);
+                        }
+                    }
+
+                }
+            }
+        }
+        grabbed_port
+    }
+
+    //MARK: - Draw wires
+    fn draw_wires(
+        &mut self,
+        ctx: &egui::Context,
+        transform: TSTransform,
+        pointer: Option<egui::Pos2>,
+        canvas_rect: egui::Rect,
+        rects: &HashMap<usize, egui::Rect>,
+        response: &egui::Response,
+        grabbed_port: bool,) {
+        let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires().len());
+        let mut hovered_wire: Option<usize> = None;
+        for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
+            let path = match (rects.get(&wire.from_block), rects.get(&wire.to_block)) {
+                (Some(from), Some(to)) => wire_points(transform * out_port(from, wire.from_port), transform * in_port(to, wire.to_port)),
+                _ => Vec::new(),
+            };
+            if hovered_wire.is_none() {
+                if let Some(p) = pointer {
+                    if !path.is_empty() && canvas_rect.contains(p) && dist_to_polyline(p, &path) < 6.0 {
+                        hovered_wire = Some(i);
+                    }
+                }
+            }
+            wire_paths.push(path);
+        }
+        
+        if response.secondary_clicked() && !grabbed_port {
+            self.interaction.context_wire = hovered_wire.map(|i| (
+                self.graphs[self.graph_index].wires()[i].from_block,
+                self.graphs[self.graph_index].wires()[i].from_port,
+                self.graphs[self.graph_index].wires()[i].to_block,
+                self.graphs[self.graph_index].wires()[i].to_port))
+                .map(|(from_block, from_port, to_block, to_port)|
+                    (from_block, from_port, to_block, to_port ));
+        }
+        if self.interaction.context_wire.is_some() {
+            response.context_menu(|ui| {
+                if let Some((from, from_port, to, to_port)) = self.interaction.context_wire {
+                    if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
+                        Graph::disconnect(&mut self.graphs[self.graph_index], (from, from_port), (to, to_port));
+                        self.dirty = true;
+                        ui.close_menu();
+                    }
+                }
+            });
+        }
+        let wire_painter = ctx
+            .layer_painter(egui::LayerId::new(
+                egui::Order::Background,
+                egui::Id::new("wires"),
+            ))
+            .with_clip_rect(canvas_rect);
+        for (i, path) in wire_paths.iter().enumerate() {
+            let (width, color) = if hovered_wire == Some(i) {
+                (4.0, Color32::from_rgb(255, 100, 100))
+            } else {
+                (2.5, Color32::from_rgb(80, 200, 160))
+            };
+            for seg in path.windows(2) {
+                wire_painter.line_segment([seg[0], seg[1]], Stroke::new(width, color));
+            }
+        }
+
+        let fg = ctx
+            .layer_painter(egui::LayerId::new(
+                egui::Order::Foreground,
+                egui::Id::new("overlay"),
+            ))
+            .with_clip_rect(canvas_rect);
+        if let (Some(from), Some(pos)) = (self.interaction.wire_from, pointer) {
+            if let Some(rect) = rects.get(&from.0) {
+                for seg in wire_points(transform * out_port(rect, from.1), pos).windows(2) {
+                    fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
+                }
+            }
+        }
+    }
 
     //MARK: - GUI
     pub(crate) fn show_visual_editor(&mut self, ctx: &egui::Context) {
         egui::CentralPanel::default().show(ctx, |ui| {
             let canvas_rect = ui.max_rect();
-            let _response = ui.allocate_rect(canvas_rect, egui::Sense::click_and_drag());
+            let response = ui.allocate_rect(canvas_rect, egui::Sense::click_and_drag());
 
             let pointer = ui.input(|i| i.pointer.hover_pos());
             let rmb_pressed = ui.input(|i| i.pointer.secondary_pressed());
             let rmb_released = ui.input(|i| i.pointer.secondary_released());
             let mmb_pressed = ui.input(|i| i.pointer.middle_down());
 
-            let mut rects: HashMap<usize, egui::Rect> = HashMap::new();
-
-            //MARK: - Handle events
-            if mmb_pressed {
-                if let Some(p) = pointer {
-                    if !self.panning {
-                        self.panning = true;
-                        self.pan_start = p;
-                    } else {
-                        self.canvas_offset += p - self.pan_start;
-                        self.pan_start = p;
-                    }
-                }
-            } else {
-                self.panning = false;
-            }
-
-            if _response.hovered() {
-                let scroll_y  = ui.input(|i| i.smooth_scroll_delta.y);
-                if scroll_y  != 0.0 {
-                    if let Some(p) = pointer {
-                        let old_zoom = self.graphs[self.graph_index].get_zoom();
-                        let zoom_factor = (scroll_y * 0.001).exp();
-                        let new_zoom = (old_zoom * zoom_factor).clamp(0.5, 3.0);
-                        let world = TSTransform::new(self.canvas_offset, old_zoom).inverse() * p;
-                        self.canvas_offset = p.to_vec2() - new_zoom * world.to_vec2();
-                        self.graphs[self.graph_index].set_zoom(new_zoom);
-                    }
-                }
-            }
-
-            let transform = TSTransform::new(self.canvas_offset, self.graphs[self.graph_index].get_zoom());
-
-            //MARK: - Draw grid
-            let painter = ui.painter_at(canvas_rect);
-
+            let painter = ui.painter();
             let pal = state_machine::with(|sm| sm.get_current_palette());
 
-            let grid_size = 25.0 * self.graphs[self.graph_index].get_zoom();
-            let ox = (self.canvas_offset.x - canvas_rect.left()).rem_euclid(grid_size);
-            let oy = (self.canvas_offset.y - canvas_rect.top()).rem_euclid(grid_size);
-            let mut x = canvas_rect.left() + ox;
+            let mut rects: HashMap<usize, egui::Rect> = HashMap::new();
 
-            while x < canvas_rect.right() {
-                painter.line_segment(
-                    [Pos2::new(x, canvas_rect.top()), Pos2::new(x, canvas_rect.bottom())],
-                    Stroke::new(1.0, pal.mid),
-                );
-                x += grid_size;
+            self.cameras[self.graph_index].pan(
+                pointer,
+                mmb_pressed
+            );
+
+            self.handle_zoom(
+                ui,
+                &response,
+                pointer
+            );
+
+            let transform = self.cameras[self.graph_index].transform();
+
+            draw_grid(
+                painter,
+                canvas_rect,
+                self.cameras[self.graph_index].offset,
+                self.cameras[self.graph_index].zoom,
+                pal.mid
+            );
+
+            let interaction = self.draw_blocks(pointer, canvas_rect, transform, ctx, &mut rects);
+
+            if let Some(id) = interaction.select {
+                self.interaction.selected = Some(id);
             }
-
-            let mut y = canvas_rect.top() + oy;
-
-            while y < canvas_rect.bottom() {
-                painter.line_segment(
-                    [Pos2::new(canvas_rect.left(), y), Pos2::new(canvas_rect.right(), y)],
-                    Stroke::new(1.0, pal.mid),
-                );
-                y += grid_size;
+            if let Some((id, delta)) = interaction.drag {
+                self.move_block(id, delta);
             }
-
-            //MARK: - Draw blocks
-            let selected = self.selected;
-            let run_current = self.run.map(|r| r.current);
-            let snap = self.snap_to_grid;
-            let mut pending_delete: Option<usize> = None;
-            let mut pending_duplicate: Option<usize> = None;
-            let mut pending_select: Option<usize> = None;
-
-            let over_canvas = pointer.is_some_and(|p| canvas_rect.contains(p));
-
-            for block in &mut self.graphs[self.graph_index].blocks_mut() {
-                let area = egui::Area::new(egui::Id::new(("block", block.id)))
-                    .fixed_pos(Pos2::new(block.pos.x, block.pos.y))
-                    .movable(false)
-                    .constrain(false)
-                    .interactable(over_canvas)
-                    .order(egui::Order::Middle);
-
-                let resp = area.show(ctx, |ui| {
-                    let title = LOADER.get(block.kind.block_type().meta().title_key);
-                    let field = LOADER.get(block.kind.block_type().meta().field_key);
-                    let id = format!("#{}", block.id);
-
-                    let body = egui::TextStyle::Body.resolve(ui.style());
-                    let small = egui::TextStyle::Small.resolve(ui.style());
-                    let text_w = |ui: &egui::Ui, s: &str, font: egui::FontId| {
-                        ui.fonts(|f| f.layout_no_wrap(s.to_owned(), font, Color32::WHITE).rect.width())
-                    };
-
-                    let gap = ui.spacing().item_spacing.x;
-
-                    let header_w = text_w(ui, &title, body.clone()) + gap + text_w(ui, &id, small) +16.0;
-                    let content_w = text_w(ui, &field, body.clone()) + 16.0;
-
-                    let block_w = ((header_w.max(content_w) / 25.0).ceil() * 25.0).max(175.0);
-                    ui.set_clip_rect(transform.inverse() * canvas_rect);
-
-                    let outline = if run_current == Some(block.id) {
-                        Stroke::new(3.0, Color32::from_rgb(255, 210, 80))
-                    } else if selected == Some(block.id) {
-                        Stroke::new(2.5, Color32::WHITE)
-                    } else {
-                        Stroke::new(2.0, block.kind.block_type().meta().color)
-                    };
-
-                    let shell = egui::Frame::none()
-                        .fill(Color32::from_rgb(18, 18, 22))
-                        .stroke(outline)
-                        .rounding(6.0)
-                        .inner_margin(egui::Margin::ZERO)
-                        .show(ui, |ui| {
-                            ui.set_min_width(block_w - 6.0);
-                            ui.set_max_width(block_w - 6.0);
-                            ui.spacing_mut().item_spacing.y = 0.0;
-
-                            let header = egui::Frame::none()
-                                .fill(block.kind.block_type().meta().color)
-                                .rounding(egui::Rounding { nw: 5.0, ne: 5.0, sw: 0.0, se: 0.0 })
-                                .inner_margin(egui::Margin::symmetric(8.0, 5.0))
-                                .show(ui, |ui| {
-                                    ui.set_min_width(block_w - 16.0);
-                                    ui.horizontal(|ui| {
-                                        let block_kind = LOADER.get(block.kind.block_type().meta().title_key);
-                                        ui.label(RichText::new(block_kind).color(Color32::WHITE).strong());
-
-                                        ui.with_layout(
-                                            egui::Layout::right_to_left(egui::Align::Center),
-                                            |ui| {
-                                                ui.label(
-                                                RichText::new(format!("#{}", block.id))
-                                                        .small()
-                                                        .color(Color32::from_white_alpha(140)),
-                                                );
-                                            }
-                                        );
-                                    });
-                                });
-
-                                let header_drag = header.response.interact(Sense::click_and_drag());
-                                if header_drag.dragged_by(egui::PointerButton::Primary) {
-                                    let delta = header_drag.drag_delta();
-                                    block.pos.x += delta.x;
-                                    block.pos.y += delta.y;
-                                    ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
-                                    self.dirty = true;
-                                } else if header_drag.hovered() {
-                                    ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
-                                }
-                                if header_drag.drag_stopped_by(egui::PointerButton::Primary) && snap {
-                                    block.pos.x = (block.pos.x /  grid_size).round() * grid_size;
-                                    block.pos.y = (block.pos.y /  grid_size).round() * grid_size
-                                }
-                                if header_drag.clicked() {
-                                    pending_select = Some(block.id);
-                                }
-                                header_drag.context_menu(|ui| {
-                                    if ui.button(fl!(LOADER, "main-gui-block-context-menu-duplicate")).clicked() {
-                                        pending_duplicate = Some(block.id);
-                                        ui.close_menu();
-                                    }
-                                    if ui.button(fl!(LOADER, "main-gui-block-context-menu-delete")).clicked() {
-                                        pending_delete = Some(block.id);
-                                        ui.close_menu();
-                                    }
-                                });
-
-                            //MARK: - Block content
-                            egui::Frame::none()
-                                .inner_margin(egui::Margin::same(8.0))
-                                .show(ui, |ui| {
-                                    let ports_count = block.kind.out_ports().max(block.kind.in_ports()) as f32;
-                                    ui.set_min_height((ports_count + 1.0) * 25.0 - 16.0 - 6.0);
-                                    ui.spacing_mut().item_spacing.y = 4.0;
-                                    ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
-                                        ui.label(RichText::new(LOADER.get(block.kind.block_type().meta().field_key)).color(Color32::from_white_alpha(200)));
-                                    });
-                                });
-                        });
-                    
-                    let rect = shell.response.rect;
-                    let painter = ui.painter();
-                    let out_ports: Vec<Pos2> = (0..block.kind.out_ports())
-                        .map(|i| {                            
-                            let y = rect.top() + 50.0 - 3.0 + (i as f32) * 25.0;
-                            Pos2::new(rect.right(), y)
-                        })
-                        .collect();
-                    let in_ports: Vec<Pos2> = (0..block.kind.in_ports())
-                        .map(|i| {
-                            let y = rect.top() + 50.0 - 3.0 + (i as f32) * 25.0;
-                            Pos2::new(rect.left(), y)
-                        })
-                        .collect();
-                    for port in out_ports.iter() {
-                        let out_hot = pointer.is_some_and(|p| p.distance(*port) < 16.0);
-                        painter.circle_filled(*port, if out_hot { 7.0 } else { 5.0 }, Color32::WHITE);
-                        painter.circle_stroke(*port, if out_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
-                    }
-                    for port in in_ports.iter() {
-                        let in_hot = pointer.is_some_and(|p| p.distance(*port) < 16.0);
-                        painter.circle_filled(*port, if in_hot { 7.0 } else { 5.0 }, Color32::from_rgb(180, 220, 200));
-                        painter.circle_stroke(*port, if in_hot { 7.0 } else { 5.0 }, Stroke::new(1.5, Color32::BLACK));
-                    }
-                });
-                ctx.set_transform_layer(resp.response.layer_id, transform);
-                
-                rects.insert(block.id, resp.response.rect);
-            }
-
-            if let Some(id) = pending_select {
-                self.selected = Some(id);
-            }
-            if let Some(id) = pending_delete {
-                self.delete_block(id);
-            }
-            if let Some(id) = pending_duplicate {
+            if let Some(id) = interaction.drag_stop {
+                self.snap_block_to_grid(id);
+            } 
+            if let Some(id) = interaction.duplicate {
                 self.duplicate_block(id);
             }
-
-            //MARK: - Wire events
-            let mut grabbed_port = false;
-            if let Some(pos) = pointer {
-                let world_ptr = transform.inverse() * pos;
-                if rmb_pressed {
-                    let graph = &self.graphs[self.graph_index];
-                    for block in graph.blocks() {
-                        let Some(rect) = rects.get(&block.id) else { continue };
-                        for port in 0..block.kind.out_ports() {
-                            if world_ptr.distance(out_port(rect, port)) < 16.0 && !graph.has_outgoing((block.id, port)) {
-                                self.wire_from = Some((block.id, port));
-                                grabbed_port = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if rmb_released {
-                    if let Some(from) = self.wire_from.take() {
-                        let graph = &mut self.graphs[self.graph_index];
-                        let to = graph.blocks().iter()
-                            .find_map(|b| {
-                                let r = rects.get(&b.id)?;
-                                (0..b.kind.in_ports())
-                                    .find(|&port| world_ptr.distance(in_port(r, port)) < 16.0)
-                                    .map(|port| (b.id, port))
-                            });
-                        debug!("Wire released from block {} port {} to {:?}", from.0, from.1, to);
-                        if let Some((to, in_ports)) = to {
-                            if graph.connect(from, (to, in_ports)).is_ok() {
-                                self.dirty = true;
-                                debug!("Connected wire from block {} port {} to block {} port {}", from.0, from.1, to, in_ports);
-                            }
-                        }
-
-                    }
-                }
-            }
-
-            //MARK: - Draw wires
-            let mut hovered_wire: Option<usize> = None;
-            let mut wire_paths: Vec<Vec<Pos2>> = Vec::with_capacity(self.graphs[self.graph_index].wires().len());
-            for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
-                let path = match (rects.get(&wire.from_block), rects.get(&wire.to_block)) {
-                    (Some(from), Some(to)) => wire_points(transform * out_port(from, wire.from_port), transform * in_port(to, wire.to_port)),
-                    _ => Vec::new(),
-                };
-                if hovered_wire.is_none() {
-                    if let Some(p) = pointer {
-                        if !path.is_empty() && canvas_rect.contains(p) && dist_to_polyline(p, &path) < 6.0 {
-                            hovered_wire = Some(i);
-                        }
-                    }
-                }
-                wire_paths.push(path);
+            if let Some(id) = interaction.delete {
+                self.delete_block(id);
             }
             
-            if _response.secondary_clicked() && !grabbed_port {
-                self.context_wire = hovered_wire.map(|i| (
-                    self.graphs[self.graph_index].wires()[i].from_block,
-                    self.graphs[self.graph_index].wires()[i].from_port,
-                    self.graphs[self.graph_index].wires()[i].to_block,
-                    self.graphs[self.graph_index].wires()[i].to_port))
-                    .map(|(from_block, from_port, to_block, to_port)|
-                        (from_block, from_port, to_block, to_port ));
-            }
-            if self.context_wire.is_some() {
-                _response.context_menu(|ui| {
-                    if let Some((from, from_port, to, to_port)) = self.context_wire {
-                        if ui.button(fl!(LOADER, "main-gui-wire-context-menu-delete")).clicked() {
-                            Graph::disconnect(&mut self.graphs[self.graph_index], (from, from_port), (to, to_port));
-                            self.dirty = true;
-                            ui.close_menu();
-                        }
-                    }
-                });
-            }
-            let wire_painter = ctx
-                .layer_painter(egui::LayerId::new(
-                    egui::Order::Background,
-                    egui::Id::new("wires"),
-                ))
-                .with_clip_rect(canvas_rect);
-            for (i, path) in wire_paths.iter().enumerate() {
-                let (width, color) = if hovered_wire == Some(i) {
-                    (4.0, Color32::from_rgb(255, 100, 100))
-                } else {
-                    (2.5, Color32::from_rgb(80, 200, 160))
-                };
-                for seg in path.windows(2) {
-                    wire_painter.line_segment([seg[0], seg[1]], Stroke::new(width, color));
-                }
-            }
+            let grabbed_port = self.handle_wire_interaction(
+                pointer,
+                transform,
+                rmb_pressed,
+                rmb_released,
+                &rects,
+            );
 
-            let fg = ctx
-                .layer_painter(egui::LayerId::new(
-                    egui::Order::Foreground,
-                    egui::Id::new("overlay"),
-                ))
-                .with_clip_rect(canvas_rect);
-            if let (Some(from), Some(pos)) = (self.wire_from, pointer) {
-                if let Some(rect) = rects.get(&from.0) {
-                    for seg in wire_points(out_port(rect, from.1), pos).windows(2) {
-                        fg.line_segment([seg[0], seg[1]], Stroke::new(2.5, Color32::from_rgb(255, 100, 60)));
-                    }
-                }
-            }
+            self.draw_wires(
+                ctx,
+                transform,
+                pointer,
+                canvas_rect,
+                &rects,
+                &response,
+                grabbed_port
+            );
         });
     }
 }
 
+//MARK: - Tests
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -713,6 +854,133 @@ mod tests {
     use crate::graph::{BasicBlock, Block, BlockKind, Wire, BlockType};
     use crate::translation_manager;
 
+    //MARK: - Geometry helpers
+    const EPS: f32 = 1e-4;
+
+    fn approx_eq(a: f32, b: f32) {
+        assert!((a - b).abs() < EPS, "Expected {} to be approximately equal to {}", a, b);
+    }
+
+    fn rect(x: f32, y: f32, w: f32, h: f32) -> egui::Rect {
+        egui::Rect::from_min_size(egui::Pos2::new(x, y), egui::Vec2::new(w, h))
+    }
+
+    //MARK: - Geometry tests
+    #[test]
+    fn dist_to_segment_is_zero() {
+        approx_eq(dist_to_segment(Pos2::new(5.0, 5.0), Pos2::new(0.0, 0.0), Pos2::new(10.0, 10.0)), 0.0);
+    }
+
+    #[test]
+    fn dist_to_segment_is_perpendicular() {
+        approx_eq(dist_to_segment(Pos2::new(0.0, 3.0), Pos2::new(-1.0, 0.0), Pos2::new(1.0, 0.0)), 3.0);
+    }
+
+    #[test]
+    fn dist_to_segment_clamps_past_enpoints() {
+        approx_eq(dist_to_segment(Pos2::new(5.0, 0.0), Pos2::new(0.0, 0.0), Pos2::new(1.0, 0.0)), 4.0);
+    }
+
+    #[test]
+    fn dist_to_segment_handles_degenerate_segment() {
+        approx_eq(dist_to_segment(Pos2::new(3.0, 4.0), Pos2::ZERO, Pos2::ZERO), 5.0);
+    }
+
+    #[test]
+    fn dist_to_polyline_takes_minimum() {
+        let pts = [Pos2::new(0.0, 0.0), Pos2::new(10.0, 0.0), Pos2::new(10.0, 10.0)];
+        approx_eq(dist_to_polyline(Pos2::new(11.0, 5.0), &pts), 1.0);
+    }
+
+    #[test]
+    fn dist_to_polyline_of_degenerate_inputs() {
+        assert!(dist_to_polyline(Pos2::ZERO, &[]).is_infinite());
+        assert!(dist_to_polyline(Pos2::ZERO, &[Pos2::new(1.0, 1.0)]).is_infinite());
+    }
+
+    #[test]
+    fn wire_points_has_more_segments_than_points() {
+        assert_eq!(wire_points(Pos2::ZERO, Pos2::new(100.0, 50.0)).len(), WIRE_SEGMENTS as usize + 1);
+    }
+
+    #[test]
+    fn wire_points_starts_and_ends_at_correct_points() {
+        let (from, to) = (Pos2::new(10.0, 20.0), Pos2::new(30.0, 40.0));
+        let pts = wire_points(from, to);
+        approx_eq(pts[0].x, from.x);
+        approx_eq(pts[0].y, from.y);
+        approx_eq(pts[pts.len() - 1].x, to.x);
+        approx_eq(pts[pts.len() - 1].y, to.y);
+    }
+
+    #[test]
+    fn wire_points_flat_horizontal() {
+        for p in wire_points(Pos2::new(0.0, 7.0), Pos2::new(100.0, 7.0)) {
+            approx_eq(p.y, 7.0);
+        }
+    }
+
+    #[test]
+    fn ports_are_on_opposite_edges() {
+        let r = rect(100.0, 200.0, 175.0, 100.0);
+        let out_port = out_port(&r, 0).x;
+        let in_port = in_port(&r, 0).x;
+
+        assert!(out_port > r.right(), "Out port {out_port} is not on the right edge of the block {r:?}");
+        assert!(in_port < r.left(), "In port {in_port} is not on the left edge of the block {r:?}");
+
+        approx_eq(out_port - r.right(), r.left() - in_port);
+    }
+
+    #[test]
+    fn ports_are_spaced_one_grid_apart() {
+        let r = rect(100.0, 200.0, 175.0, 100.0);
+        approx_eq(out_port(&r, 1).y - out_port(&r, 0).y, GRID_SIZE);
+        approx_eq(out_port(&r, 3).y - out_port(&r, 2).y, GRID_SIZE);
+    }
+
+    #[test]
+    fn matching_ports_have_same_row() {
+        let r = rect(100.0, 200.0, 175.0, 100.0);
+        for i in 0..4 {
+            approx_eq(out_port(&r, i).y, in_port(&r, i).y);
+        }
+    }
+
+    //MARK: - i18n tests
+    #[test]
+    fn all_block_meta_keys_exist() {
+        let (loader, langs) = translation_manager::all_languages_loader();
+        for lang in &langs {
+            let ids: std::collections::HashSet<String> =
+                loader.with_message_iter(lang, |iter| iter.map(|m| m.id.name.to_string()).collect());
+            for kind in BlockType::ALL {
+                let m = kind.meta();
+                for key in &[m.title_key, m.field_key, m.description_key] {
+                    assert!(ids.contains(*key), "Missing i18n key: {} in language {}", key, lang);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn zoom_keeps_the_point_under_the_cursor_fixed() {
+        let mut cam = Camera::default();
+        let pointer = Pos2::new(400.0, 300.0);
+        let before = cam.transform().inverse() * pointer;
+        cam.zoom_at(pointer, 120.0);
+        let after = cam.transform().inverse() * pointer;
+        approx_eq(before.x, after.x);
+        approx_eq(before.y, after.y);
+    }
+
+    #[test]
+    fn cameras_stay_paired_with_graphs() {
+        let editor = VisualEditor::new();
+        assert_eq!(editor.cameras.len(), editor.graphs.len());
+    }
+
+    //MARK: - Graph load/save tests
     fn block(id: usize, x: f32, y: f32, kind: BlockKind) -> Block {
         Block {
             id,
@@ -787,21 +1055,6 @@ mod tests {
             )],
             variables: Vec::new(),
             devices: Vec::new(),
-        }
-    }
-
-    #[test]
-    fn all_block_meta_keys_exist() {
-        let (loader, langs) = translation_manager::all_languages_loader();
-        for lang in &langs {
-            let ids: std::collections::HashSet<String> =
-                loader.with_message_iter(lang, |iter| iter.map(|m| m.id.name.to_string()).collect());
-            for kind in BlockType::ALL {
-                let m = kind.meta();
-                for key in &[m.title_key, m.field_key, m.description_key] {
-                    assert!(ids.contains(*key), "Missing i18n key: {} in language {}", key, lang);
-                }
-            }
         }
     }
 
@@ -950,6 +1203,7 @@ mod tests {
         })
     }
 
+    //MARK: - Property-based tests
     proptest! {
         #[test]
         fn any_graph_round_trips(graph in arbitrary_graph()) {
@@ -959,6 +1213,38 @@ mod tests {
         #[test]
         fn garbage_never_panics(bytes in prop::collection::vec(any::<u8>(), 0..512)) {
             let _ = decode_graph(&bytes);
+        }
+
+         #[test]
+        fn dist_to_segment_never_exceeds_endpoint_distance(
+            px in -1e4f32..1e4, py in -1e4f32..1e4,
+            ax in -1e4f32..1e4, ay in -1e4f32..1e4,
+            bx in -1e4f32..1e4, by in -1e4f32..1e4,
+        ) {
+            let (p, a, b) = (Pos2::new(px, py), Pos2::new(ax, ay), Pos2::new(bx, by));
+            let d = dist_to_segment(p, a, b);
+            prop_assert!(d >= 0.0);
+            prop_assert!(d <= p.distance(a).min(p.distance(b)) + 1e-2);
+        }
+
+        #[test]
+        fn dist_to_segment_is_symmetric(
+            px in -1e4f32..1e4, py in -1e4f32..1e4,
+            ax in -1e4f32..1e4, ay in -1e4f32..1e4,
+            bx in -1e4f32..1e4, by in -1e4f32..1e4,
+        ) {
+            let (p, a, b) = (Pos2::new(px, py), Pos2::new(ax, ay), Pos2::new(bx, by));
+            prop_assert!((dist_to_segment(p, a, b) - dist_to_segment(p, b, a)).abs() < 1e-2);
+        }
+
+        #[test]
+        fn wire_points_never_produces_nan(
+            fx in -1e4f32..1e4, fy in -1e4f32..1e4,
+            tx in -1e4f32..1e4, ty in -1e4f32..1e4,
+        ) {
+            for p in wire_points(Pos2::new(fx, fy), Pos2::new(tx, ty)) {
+                prop_assert!(p.x.is_finite() && p.y.is_finite());
+            }
         }
     }
 }  
