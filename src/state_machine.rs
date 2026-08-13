@@ -33,15 +33,20 @@ pub enum AppState {
     MainWindow,
     SettingsWindow,
     BlocksWindow,
+    #[allow(dead_code)]
     Compiling,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum CanvasState {
     Idle,
+    #[allow(dead_code)]
     AddingBlock,
+    #[allow(dead_code)]
     AddingPath,
+    #[allow(dead_code)]
     MovingItem,
+    #[allow(dead_code)]
     DeletingItem,
 }
 

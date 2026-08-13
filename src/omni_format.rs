@@ -69,6 +69,7 @@ pub mod v1 {
     pub struct GraphFile {
         pub meta: Meta,
         pub graphs: Vec<Graph>,
+        #[expect(dead_code)]
         pub next_block_id: usize,
     }
 }
@@ -78,6 +79,7 @@ pub mod v2 {
 
     #[derive(Deserialize)]
     pub struct Meta {
+        #[expect(dead_code)]
         pub format_version: u16,
         pub created: Option<chrono::DateTime<chrono::Utc>>,
         pub modified: Option<chrono::DateTime<chrono::Utc>>,

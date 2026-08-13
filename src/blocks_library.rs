@@ -8,6 +8,7 @@ use egui::RichText;
 use i18n_embed_fl::fl;
 use log::debug;
 
+#[allow(unused_macros)]
 macro_rules! img_src_details {
     ($file:literal) => {
         egui::ImageSource::Bytes {

@@ -41,6 +41,7 @@ const WIRE_SEGMENTS: u32 = 24;
 #[derive(Clone, Copy)]
 struct RunState {
     current: usize,
+    #[allow(dead_code)]
     deadline: f64,
 }
 
@@ -910,9 +911,6 @@ impl VisualEditor {
                         self.graphs[self.graph_index].wires()[i].to_block,
                         self.graphs[self.graph_index].wires()[i].to_port,
                     )
-                })
-                .map(|(from_block, from_port, to_block, to_port)| {
-                    (from_block, from_port, to_block, to_port)
                 });
         }
         if self.interaction.context_wire.is_some() {
