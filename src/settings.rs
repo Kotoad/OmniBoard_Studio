@@ -1,10 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{RwLock, OnceLock};
+use std::sync::{OnceLock, RwLock};
 
 use crate::theme::Palette;
-use log::{warn, error};
+use log::{error, warn};
 
 const VERSION: u32 = 1;
 
@@ -44,16 +44,16 @@ fn config_path() -> Option<PathBuf> {
 //MARK: - Settings Implementation
 impl Settings {
     pub fn load() -> Self {
-        let Some(path) = config_path() else { return Self::default(); };
+        let Some(path) = config_path() else {
+            return Self::default();
+        };
 
         match fs::read_to_string(&path) {
             Ok(text) => toml::from_str(&text).unwrap_or_else(|e| {
                 warn!("Error parsing settings: {}", e);
                 Self::default()
             }),
-            Err(_) => {
-                Self::default()
-            }
+            Err(_) => Self::default(),
         }
     }
 
@@ -73,7 +73,7 @@ impl Settings {
         };
 
         let tmp = path.with_extension("toml.tmp");
-        if fs::write(&tmp,toml).is_ok() {
+        if fs::write(&tmp, toml).is_ok() {
             let _ = fs::rename(&tmp, &path);
         }
     }
@@ -85,12 +85,20 @@ pub fn init() {
     let _ = SETTINGS.set(RwLock::new(Settings::load()));
 }
 
-pub fn with<R> (f: impl FnOnce(&Settings) -> R) ->R {
-    f(&SETTINGS.get().expect("Settings not initialized").read().unwrap())
+pub fn with<R>(f: impl FnOnce(&Settings) -> R) -> R {
+    f(&SETTINGS
+        .get()
+        .expect("Settings not initialized")
+        .read()
+        .unwrap())
 }
 
-pub fn update(f: impl FnOnce(&mut Settings)){
-    let mut guard = SETTINGS.get().expect("Settings not initialized").write().unwrap();
+pub fn update(f: impl FnOnce(&mut Settings)) {
+    let mut guard = SETTINGS
+        .get()
+        .expect("Settings not initialized")
+        .write()
+        .unwrap();
     f(&mut guard);
     guard.save();
 }

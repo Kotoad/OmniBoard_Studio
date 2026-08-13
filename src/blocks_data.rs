@@ -1,5 +1,5 @@
+use crate::graph::BlockType;
 use crate::state_machine;
-use crate::graph::{BlockType};
 
 pub struct BlockMeta {
     pub color: egui::Color32,
@@ -80,11 +80,37 @@ impl BlockType {
 
     pub fn sub_category(&self) -> Option<BlockSubCategory> {
         match self {
-            BlockType::If | BlockType::While | BlockType::WhileTrue | BlockType::For | BlockType::Switch => Some(BlockSubCategory::ControlFlow),
-            BlockType::Lower | BlockType::Greater | BlockType::Equal | BlockType::NotEqual | BlockType::GreaterEqual | BlockType::LowerEqual => Some(BlockSubCategory::Comparison),
-            BlockType::Not | BlockType::And | BlockType::Nand | BlockType::Or | BlockType::Nor | BlockType::Xor | BlockType::Xnor => Some(BlockSubCategory::BoolLogic),
-            BlockType::Add | BlockType::Subtract | BlockType::Multiply | BlockType::Divide | BlockType::Modulo | BlockType::Power | BlockType::Root => Some(BlockSubCategory::BasicMath),
-            BlockType::LedOn | BlockType::LedOff | BlockType::LedToggle | BlockType::LedBlink | BlockType::LedPwm | BlockType::RgbLed => Some(BlockSubCategory::LEDControl),
+            BlockType::If
+            | BlockType::While
+            | BlockType::WhileTrue
+            | BlockType::For
+            | BlockType::Switch => Some(BlockSubCategory::ControlFlow),
+            BlockType::Lower
+            | BlockType::Greater
+            | BlockType::Equal
+            | BlockType::NotEqual
+            | BlockType::GreaterEqual
+            | BlockType::LowerEqual => Some(BlockSubCategory::Comparison),
+            BlockType::Not
+            | BlockType::And
+            | BlockType::Nand
+            | BlockType::Or
+            | BlockType::Nor
+            | BlockType::Xor
+            | BlockType::Xnor => Some(BlockSubCategory::BoolLogic),
+            BlockType::Add
+            | BlockType::Subtract
+            | BlockType::Multiply
+            | BlockType::Divide
+            | BlockType::Modulo
+            | BlockType::Power
+            | BlockType::Root => Some(BlockSubCategory::BasicMath),
+            BlockType::LedOn
+            | BlockType::LedOff
+            | BlockType::LedToggle
+            | BlockType::LedBlink
+            | BlockType::LedPwm
+            | BlockType::RgbLed => Some(BlockSubCategory::LEDControl),
             _ => None,
         }
     }

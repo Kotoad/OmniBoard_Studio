@@ -1,8 +1,12 @@
-use egui::{self, FontId, Rounding, Ui, TextFormat};
 use egui::text::LayoutJob;
+use egui::{self, FontId, Rounding, TextFormat, Ui};
 
-pub fn file_button_simple(ui: &mut Ui, filename: &str, created: &str, last_modified: &str) -> egui::Response {
-
+pub fn file_button_simple(
+    ui: &mut Ui,
+    filename: &str,
+    created: &str,
+    last_modified: &str,
+) -> egui::Response {
     let mut job = LayoutJob::default();
 
     job.append(
@@ -24,7 +28,7 @@ pub fn file_button_simple(ui: &mut Ui, filename: &str, created: &str, last_modif
             ..Default::default()
         },
     );
-    
+
     // min_size makes the button fill the panel width and have a fixed height.
     ui.add_sized(
         [ui.available_width(), 28.0],

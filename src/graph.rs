@@ -1,17 +1,24 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq, Default)]
-pub struct Point { pub x: f32, pub y: f32}
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub struct Block { pub id: usize, pub pos: Point, pub kind: BlockKind }
+pub struct Block {
+    pub id: usize,
+    pub pos: Point,
+    pub kind: BlockKind,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct Wire {
     pub from_block: usize,
     pub from_port: u8,
     pub to_block: usize,
-    pub to_port: u8
+    pub to_port: u8,
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -23,7 +30,10 @@ pub enum BlockKind {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum ValueRef { Literal(f32), Variable(String) }
+pub enum ValueRef {
+    Literal(f32),
+    Variable(String),
+}
 
 impl Default for ValueRef {
     fn default() -> Self {
@@ -32,13 +42,15 @@ impl Default for ValueRef {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub enum DeviceRef { Literal(f32), Device(String) }
+pub enum DeviceRef {
+    Literal(f32),
+    Device(String),
+}
 
 impl Default for DeviceRef {
     fn default() -> Self {
         DeviceRef::Literal(0.0)
     }
-    
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
@@ -59,7 +71,7 @@ pub enum DeviceType {
     Output,
     Input,
     Button,
-    Pwm
+    Pwm,
 }
 
 //MARK: Basic Blocks
@@ -117,7 +129,15 @@ pub enum LogicBlock {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
-pub enum CmpOp { Lower, Greater, #[default] Equal, NotEqual, GreaterEqual, LowerEqual }
+pub enum CmpOp {
+    Lower,
+    Greater,
+    #[default]
+    Equal,
+    NotEqual,
+    GreaterEqual,
+    LowerEqual,
+}
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
 pub struct Case {
@@ -141,13 +161,11 @@ pub struct IfData {
 impl Default for IfData {
     fn default() -> Self {
         Self {
-            conditions: vec![
-                Condition {
-                    left_value: ValueRef::Literal(0.0),
-                    operator: CmpOp::Equal,
-                    right_value: ValueRef::Literal(0.0),
-                }
-            ],
+            conditions: vec![Condition {
+                left_value: ValueRef::Literal(0.0),
+                operator: CmpOp::Equal,
+                right_value: ValueRef::Literal(0.0),
+            }],
             has_else: true,
         }
     }
@@ -232,7 +250,7 @@ pub struct RandomNumberData {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq, Default)]
-pub struct RoundFloorCielData {  
+pub struct RoundFloorCielData {
     pub value: ValueRef,
 }
 
@@ -286,7 +304,7 @@ pub struct RgbLedData {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, PartialEq)]
-pub struct Graph { 
+pub struct Graph {
     pub name: String,
     blocks: Vec<Block>,
     wires: Vec<Wire>,
@@ -304,12 +322,50 @@ pub enum ConnectError {
 }
 
 #[derive(Deserialize, Serialize, Debug, Clone, Copy, PartialEq)]
-pub enum BlockType { Start, End, Timer, Networks, Return, If,
-    While, WhileTrue, For, Switch, Lower, Greater, Equal, NotEqual,
-    GreaterEqual, LowerEqual, Not, And, Nand, Or, Nor, Xor, Xnor,
-    Add, Subtract, Multiply, Divide, Modulo, Power, Root, RandomNumber,
-    Round, Floor, Ciel, AddOne, SubtractOne,
-    Button, LedOn, LedOff, LedToggle, LedBlink, LedPwm, RgbLed,
+pub enum BlockType {
+    Start,
+    End,
+    Timer,
+    Networks,
+    Return,
+    If,
+    While,
+    WhileTrue,
+    For,
+    Switch,
+    Lower,
+    Greater,
+    Equal,
+    NotEqual,
+    GreaterEqual,
+    LowerEqual,
+    Not,
+    And,
+    Nand,
+    Or,
+    Nor,
+    Xor,
+    Xnor,
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
+    Modulo,
+    Power,
+    Root,
+    RandomNumber,
+    Round,
+    Floor,
+    Ciel,
+    AddOne,
+    SubtractOne,
+    Button,
+    LedOn,
+    LedOff,
+    LedToggle,
+    LedBlink,
+    LedPwm,
+    RgbLed,
 }
 
 //MARK: Implementations
@@ -375,9 +431,15 @@ impl BlockType {
             BlockType::Lower => BlockKind::Logic(LogicBlock::Lower(ComparisonData::default())),
             BlockType::Greater => BlockKind::Logic(LogicBlock::Greater(ComparisonData::default())),
             BlockType::Equal => BlockKind::Logic(LogicBlock::Equal(ComparisonData::default())),
-            BlockType::NotEqual => BlockKind::Logic(LogicBlock::NotEqual(ComparisonData::default())),
-            BlockType::GreaterEqual => BlockKind::Logic(LogicBlock::GreaterEqual(ComparisonData::default())),
-            BlockType::LowerEqual => BlockKind::Logic(LogicBlock::LowerEqual(ComparisonData::default())),
+            BlockType::NotEqual => {
+                BlockKind::Logic(LogicBlock::NotEqual(ComparisonData::default()))
+            }
+            BlockType::GreaterEqual => {
+                BlockKind::Logic(LogicBlock::GreaterEqual(ComparisonData::default()))
+            }
+            BlockType::LowerEqual => {
+                BlockKind::Logic(LogicBlock::LowerEqual(ComparisonData::default()))
+            }
             BlockType::Not => BlockKind::Logic(LogicBlock::Not(NotData::default())),
             BlockType::And => BlockKind::Logic(LogicBlock::And(BoolComparisonData::default())),
             BlockType::Nand => BlockKind::Logic(LogicBlock::Nand(BoolComparisonData::default())),
@@ -392,12 +454,16 @@ impl BlockType {
             BlockType::Modulo => BlockKind::Math(MathBlock::Modulo(MathData::default())),
             BlockType::Power => BlockKind::Math(MathBlock::Power(PowerData::default())),
             BlockType::Root => BlockKind::Math(MathBlock::Root(RootData::default())),
-            BlockType::RandomNumber => BlockKind::Math(MathBlock::RandomNumber(RandomNumberData::default())),
+            BlockType::RandomNumber => {
+                BlockKind::Math(MathBlock::RandomNumber(RandomNumberData::default()))
+            }
             BlockType::Round => BlockKind::Math(MathBlock::Round(RoundFloorCielData::default())),
             BlockType::Floor => BlockKind::Math(MathBlock::Floor(RoundFloorCielData::default())),
             BlockType::Ciel => BlockKind::Math(MathBlock::Ciel(RoundFloorCielData::default())),
             BlockType::AddOne => BlockKind::Math(MathBlock::AddOne(AddSubtractOneData::default())),
-            BlockType::SubtractOne => BlockKind::Math(MathBlock::SubtractOne(AddSubtractOneData::default())),
+            BlockType::SubtractOne => {
+                BlockKind::Math(MathBlock::SubtractOne(AddSubtractOneData::default()))
+            }
             BlockType::Button => BlockKind::IO(IOBlock::Button(ButtonData::default())),
             BlockType::LedOn => BlockKind::IO(IOBlock::LedOn(LedControlData::default())),
             BlockType::LedOff => BlockKind::IO(IOBlock::LedOff(LedControlData::default())),
@@ -415,7 +481,7 @@ impl BlockKind {
             BlockKind::Basic(BasicBlock::End) => 0,
             BlockKind::Basic(BasicBlock::Networks(NetworksData { branches })) => *branches,
             BlockKind::Basic(_) => 1,
-            BlockKind::Logic(LogicBlock::If(d))  => d.conditions.len() as u8 + d.has_else as u8,
+            BlockKind::Logic(LogicBlock::If(d)) => d.conditions.len() as u8 + d.has_else as u8,
             BlockKind::Logic(LogicBlock::Switch(d)) => d.cases.len() as u8 + d.has_default as u8,
             BlockKind::Logic(LogicBlock::While(_d)) => 3,
             BlockKind::Logic(LogicBlock::For(_d)) => 2,
@@ -527,7 +593,8 @@ impl Graph {
 
     pub fn delete_block(&mut self, block_id: usize) {
         self.blocks.retain(|b| b.id != block_id);
-        self.wires.retain(|w| w.from_block != block_id && w.to_block != block_id);
+        self.wires
+            .retain(|w| w.from_block != block_id && w.to_block != block_id);
     }
 
     pub fn duplicate_block(&mut self, block_id: usize, pos: Point) -> Option<usize> {
@@ -545,7 +612,9 @@ impl Graph {
 
         if from_block == to_block {
             return Err(ConnectError::SelfWire);
-        } else if from_port >= self.block(from_block).map_or(0, |b| b.kind.out_ports()) || to_port >= self.block(to_block).map_or(0, |b| b.kind.in_ports()) {
+        } else if from_port >= self.block(from_block).map_or(0, |b| b.kind.out_ports())
+            || to_port >= self.block(to_block).map_or(0, |b| b.kind.in_ports())
+        {
             return Err(ConnectError::NoSuchPort);
         } else if self.has_outgoing(from) {
             return Err(ConnectError::FromOccupied);
@@ -556,12 +625,22 @@ impl Graph {
         } else if self.wire_exists(from, to) {
             return Err(ConnectError::DuplicateWire);
         }
-        self.wires.push(Wire { from_block, to_block, from_port, to_port });
+        self.wires.push(Wire {
+            from_block,
+            to_block,
+            from_port,
+            to_port,
+        });
         Ok(())
     }
 
     pub fn disconnect(&mut self, from: (usize, u8), to: (usize, u8)) {
-        self.wires.retain(|w| !(w.from_block == from.0 && w.from_port == from.1 && w.to_block == to.0 && w.to_port == to.1));
+        self.wires.retain(|w| {
+            !(w.from_block == from.0
+                && w.from_port == from.1
+                && w.to_block == to.0
+                && w.to_port == to.1)
+        });
     }
 
     pub fn block(&self, id: usize) -> Option<&Block> {
@@ -585,18 +664,32 @@ impl Graph {
     }
 
     pub fn wire_exists(&self, from: (usize, u8), to: (usize, u8)) -> bool {
-        self.wires.iter().any(|w| w.from_block == from.0 && w.from_port == from.1 && w.to_block == to.0 && w.to_port == to.1)
+        self.wires.iter().any(|w| {
+            w.from_block == from.0
+                && w.from_port == from.1
+                && w.to_block == to.0
+                && w.to_port == to.1
+        })
     }
 
     pub fn has_outgoing(&self, (block_id, port): (usize, u8)) -> bool {
-        self.wires.iter().any(|w| w.from_block == block_id && w.from_port == port)
+        self.wires
+            .iter()
+            .any(|w| w.from_block == block_id && w.from_port == port)
     }
 
     pub fn has_incoming(&self, (block_id, port): (usize, u8)) -> bool {
-        self.wires.iter().any(|w| w.to_block == block_id && w.to_port == port)
+        self.wires
+            .iter()
+            .any(|w| w.to_block == block_id && w.to_port == port)
     }
 
     pub fn normalize(&mut self) {
-        self.next_block_id = self.blocks.iter().map(|b| b.id).max().map_or(0, |id| id.saturating_add(1));
+        self.next_block_id = self
+            .blocks
+            .iter()
+            .map(|b| b.id)
+            .max()
+            .map_or(0, |id| id.saturating_add(1));
     }
 }

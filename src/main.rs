@@ -1,35 +1,37 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-mod translation_manager;
-mod theme;
-mod widgets;
+mod blocks_data;
+mod blocks_library;
+mod graph;
+mod omni_format;
+mod settings;
 mod settings_window;
 mod state_machine;
-mod settings;
+mod theme;
+mod translation_manager;
 mod visual_editor;
-mod blocks_library;
-mod blocks_data;
-mod omni_format;
-mod graph;
+mod widgets;
 
 use eframe::egui;
-use std::fs;
-use std::path::{PathBuf, Path};
-use std::sync::mpsc::{Receiver, channel};
-use notify::{RecommendedWatcher, RecursiveMode, Watcher, Event};
 use i18n_embed_fl::fl;
-use log::{debug, info, warn, error};
+use log::{debug, error, info, warn};
+use notify::{Event, RecommendedWatcher, RecursiveMode, Watcher};
+use std::fs;
 use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::sync::mpsc::{channel, Receiver};
 
 use crate::translation_manager::LOADER;
-use crate::widgets::{file_button_simple};
-
+use crate::widgets::file_button_simple;
 
 macro_rules! tool_img {
     ($file:literal) => {
         egui::ImageSource::Bytes {
             uri: std::borrow::Cow::Borrowed(concat!("../resources/images/tool_bar/", $file)),
-            bytes: egui::load::Bytes::Static(include_bytes!(concat!("../resources/images/tool_bar/", $file)))
+            bytes: egui::load::Bytes::Static(include_bytes!(concat!(
+                "../resources/images/tool_bar/",
+                $file
+            ))),
         }
     };
 }
@@ -82,7 +84,6 @@ fn project_path(path: PathBuf) -> PathBuf {
 
 //MARK: - Main
 fn main() -> eframe::Result<()> {
-    
     env_logger::Builder::new()
         .filter_level(log::LevelFilter::Warn)
         .filter_module("Omniboard_Studio", log::LevelFilter::Debug)
@@ -98,7 +99,7 @@ fn main() -> eframe::Result<()> {
             )
         })
         .init();
-    
+
     create_projects_directory();
 
     settings::init();
@@ -116,7 +117,7 @@ fn main() -> eframe::Result<()> {
         renderer: eframe::Renderer::Glow,
         ..Default::default()
     };
-    
+
     eframe::run_native(
         "OmniBoard Studio",
         options,
@@ -162,21 +163,22 @@ impl OmniBoardStudio {
         let watcher = notify::recommended_watcher(move |res| {
             let _ = tx.send(res);
             ctx.request_repaint();
-        }).and_then(|mut w| {
+        })
+        .and_then(|mut w| {
             w.watch(Path::new("./Projects"), RecursiveMode::Recursive)?;
             Ok(w)
         })
-            .map_err(|e| warn!("File watching disabled: {e}"))
-            .ok();
+        .map_err(|e| warn!("File watching disabled: {e}"))
+        .ok();
 
-        let mut app = Self { 
+        let mut app = Self {
             files: Vec::new(),
             fs_rx: rx,
             _watcher: watcher,
             visual_editor: visual_editor::VisualEditor::new(),
             current_file: None,
             window_title: String::new(),
-            };
+        };
         app.refresh_files();
         app
     }
@@ -233,12 +235,23 @@ impl OmniBoardStudio {
                     .file_stem()
                     .map(|s| s.to_string_lossy().into_owned())
                     .unwrap_or_default();
-                let meta = path.metadata().ok();                 // ONE stat call
-                let created = meta.as_ref().and_then(|m| m.created().ok())
-                    .map(format_time).unwrap_or_else(|| "Unknown".into());
-                let last_modified = meta.as_ref().and_then(|m| m.modified().ok())
-                    .map(format_time).unwrap_or_else(|| "Unknown".into());
-                ProjectFile { path, name, created, last_modified }
+                let meta = path.metadata().ok(); // ONE stat call
+                let created = meta
+                    .as_ref()
+                    .and_then(|m| m.created().ok())
+                    .map(format_time)
+                    .unwrap_or_else(|| "Unknown".into());
+                let last_modified = meta
+                    .as_ref()
+                    .and_then(|m| m.modified().ok())
+                    .map(format_time)
+                    .unwrap_or_else(|| "Unknown".into());
+                ProjectFile {
+                    path,
+                    name,
+                    created,
+                    last_modified,
+                }
             })
             .collect();
     }
@@ -257,11 +270,10 @@ impl OmniBoardStudio {
             match window {
                 "settings" => self.open_settings_window(ctx),
                 "blocks_library" => self.visual_editor.blocks_library(ctx),
-                _ => {},
+                _ => {}
             }
         }
     }
-
 
     fn open_settings_window(&mut self, ctx: &egui::Context) {
         self.settings_window(ctx);
@@ -269,13 +281,12 @@ impl OmniBoardStudio {
 
     //MARK: - GUI
     fn hub_tab_ui(&mut self, ctx: &egui::Context) {
-
         let _window_width: f32 = ctx.screen_rect().width();
 
         egui::SidePanel::left("File Sidebar")
             .resizable(true)
             .default_width(300.0)
-            .width_range(150.0..=(_window_width*0.5).max(150.0))
+            .width_range(150.0..=(_window_width * 0.5).max(150.0))
             .show(ctx, |ui| {
                 egui::ScrollArea::horizontal()
                     .auto_shrink(false)
@@ -285,36 +296,47 @@ impl OmniBoardStudio {
                         ui.separator();
 
                         for file in &self.files {
-                            if file_button_simple(ui, &file.name, &file.created, &file.last_modified).clicked() {
+                            if file_button_simple(
+                                ui,
+                                &file.name,
+                                &file.created,
+                                &file.last_modified,
+                            )
+                            .clicked()
+                            {
                                 self.visual_editor.load(&file.path);
                                 self.current_file = Some(project_path(file.path.clone()));
-                                state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
+                                state_machine::with_mut(|sm| {
+                                    sm.set_app_tab(state_machine::AppTab::VisualEditor)
+                                });
                             }
                         }
                     });
             });
 
         egui::CentralPanel::default().show(ctx, |ui| {
-            egui::ScrollArea::both()
-                .auto_shrink(false)
-                .show(ui, |ui| {
-                    ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
-                    ui.label("Main Hub")
-                });
+            egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
+                ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
+                ui.label("Main Hub")
+            });
         });
     }
 }
 
 //MARK: - eframe::App Implementation
 impl eframe::App for OmniBoardStudio {
-
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-
-        let project = self.current_file.as_ref()
+        let project = self
+            .current_file
+            .as_ref()
             .and_then(|p| p.file_stem())
             .map(|s| s.to_string_lossy().into_owned())
             .unwrap_or_else(|| "Untitled".into());
-        let dirty_mark = if self.visual_editor.is_dirty() { "*" } else { "" };
+        let dirty_mark = if self.visual_editor.is_dirty() {
+            "*"
+        } else {
+            ""
+        };
         let title = format!("OmniBoard Studio - {project}{dirty_mark}");
         if title != self.window_title {
             self.window_title = title.clone();
@@ -322,108 +344,142 @@ impl eframe::App for OmniBoardStudio {
         }
 
         let mut changed = false;
-        while self.fs_rx.try_recv().is_ok() { changed = true; }
-        if changed { self.refresh_files(); }
-
+        while self.fs_rx.try_recv().is_ok() {
+            changed = true;
+        }
+        if changed {
+            self.refresh_files();
+        }
 
         let current_tab = state_machine::with(|sm| sm.get_app_tab());
 
         let pal = state_machine::with(|sm| sm.get_current_palette());
         egui::TopBottomPanel::top("Menu bar")
-            .frame(egui::Frame::none().fill(pal.base).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
+            .frame(
+                egui::Frame::none()
+                    .fill(pal.base)
+                    .inner_margin(egui::Margin::symmetric(8.0, 4.0)),
+            )
             .show(ctx, |ui| {
-            egui::menu::bar(ui, |ui| {
+                egui::menu::bar(ui, |ui| {
                     let v = ui.visuals_mut();
-  
-                    v.widgets.noninteractive.bg_stroke.color = pal.window; 
 
-                ui.menu_button(fl!(LOADER, "main-gui-menu-file"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-new")).clicked() {
-                        self.new_file();
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-open")).clicked() {
-                        self.open_via_file_dialog();
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-save")).clicked() {
-                        self.save();
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-save-as")).clicked() {
-                        self.save_as();
-                        ui.close_menu();
-                    }
-                    ui.separator();
-                    if ui.button(fl!(LOADER, "main-gui-menu-exit")).clicked() {
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
-                    }
+                    v.widgets.noninteractive.bg_stroke.color = pal.window;
+
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-file"), |ui| {
+                        if ui.button(fl!(LOADER, "main-gui-menu-new")).clicked() {
+                            self.new_file();
+                            ui.close_menu();
+                        }
+                        if ui.button(fl!(LOADER, "main-gui-menu-open")).clicked() {
+                            self.open_via_file_dialog();
+                            ui.close_menu();
+                        }
+                        if ui.button(fl!(LOADER, "main-gui-menu-save")).clicked() {
+                            self.save();
+                            ui.close_menu();
+                        }
+                        if ui.button(fl!(LOADER, "main-gui-menu-save-as")).clicked() {
+                            self.save_as();
+                            ui.close_menu();
+                        }
+                        ui.separator();
+                        if ui.button(fl!(LOADER, "main-gui-menu-exit")).clicked() {
+                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                        }
+                    });
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-blocks"), |ui| {
+                        if ui
+                            .button(fl!(LOADER, "main-gui-menu-block-library"))
+                            .clicked()
+                        {
+                            state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
+                            ui.close_menu();
+                        }
+                    });
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-view"), |ui| {
+                        if ui.button(fl!(LOADER, "main-gui-menu-hub")).clicked() {
+                            state_machine::with_mut(|sm| {
+                                sm.set_app_tab(state_machine::AppTab::Hub);
+                            });
+                            ui.close_menu();
+                        }
+                        if ui
+                            .button(fl!(LOADER, "main-gui-menu-visual-editor"))
+                            .clicked()
+                        {
+                            state_machine::with_mut(|sm| {
+                                sm.set_app_tab(state_machine::AppTab::VisualEditor);
+                            });
+                            ui.close_menu();
+                        }
+                        if ui
+                            .button(fl!(LOADER, "main-gui-menu-code-editor"))
+                            .clicked()
+                        {
+                            state_machine::with_mut(|sm| {
+                                sm.set_app_tab(state_machine::AppTab::CodeEditor);
+                            });
+                            ui.close_menu();
+                        }
+                    });
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-compile"), |ui| {
+                        if ui
+                            .button(fl!(LOADER, "main-gui-menu-compile-code"))
+                            .clicked()
+                        {
+                            debug!("Compile code");
+                            ui.close_menu();
+                        }
+                    });
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-settings"), |ui| {
+                        if ui.button(fl!(LOADER, "main-gui-menu-settings")).clicked() {
+                            state_machine::with_mut(|sm| {
+                                sm.on_open_settings_window();
+                            });
+                            ui.close_menu();
+                        }
+                    });
+                    ui.menu_button(fl!(LOADER, "main-gui-menu-help"), |ui| {
+                        if ui
+                            .button(fl!(LOADER, "main-gui-menu-get-started"))
+                            .clicked()
+                        {
+                            debug!("Get Started");
+                            ui.close_menu();
+                        }
+                        if ui.button(fl!(LOADER, "main-gui-menu-tutorials")).clicked() {
+                            debug!("View Tutorials");
+                            ui.close_menu();
+                        }
+                        if ui.button(fl!(LOADER, "main-gui-menu-faq")).clicked() {
+                            debug!("View FAQ");
+                            ui.close_menu();
+                        }
+                    });
                 });
-                ui.menu_button(fl!(LOADER, "main-gui-menu-blocks"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-block-library")).clicked() {
-                        state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
-                        ui.close_menu();
-                    }
-                });
-                ui.menu_button(fl!(LOADER, "main-gui-menu-view"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-hub")).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::Hub); });
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-visual-editor")).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::VisualEditor); });
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-code-editor")).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::CodeEditor); });
-                        ui.close_menu();
-                    }
-                });
-                ui.menu_button(fl!(LOADER, "main-gui-menu-compile"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-compile-code")).clicked() {
-                        debug!("Compile code");
-                        ui.close_menu();
-                    }
-                });
-                ui.menu_button(fl!(LOADER, "main-gui-menu-settings"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-settings")).clicked() {
-                        state_machine::with_mut(|sm| { sm.on_open_settings_window(); });
-                        ui.close_menu();
-                    }
-                });
-                ui.menu_button(fl!(LOADER, "main-gui-menu-help"), |ui| {
-                    if ui.button(fl!(LOADER, "main-gui-menu-get-started")).clicked() {
-                        debug!("Get Started");
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-tutorials")).clicked() {
-                        debug!("View Tutorials");
-                        ui.close_menu();
-                    }
-                    if ui.button(fl!(LOADER, "main-gui-menu-faq")).clicked() {
-                        debug!("View FAQ");
-                        ui.close_menu();
-                    }
-                });
+                ui.visuals_mut().widgets.noninteractive.bg_stroke =
+                    egui::Stroke::new(1.0, pal.window);
+                ui.separator();
             });
-            ui.visuals_mut().widgets.noninteractive.bg_stroke = egui::Stroke::new(1.0, pal.window);
-            ui.separator();
-        });
         egui::TopBottomPanel::top("Toolbar")
-            .frame(egui::Frame::none().fill(pal.base).inner_margin(egui::Margin::symmetric(8.0, 4.0)))
+            .frame(
+                egui::Frame::none()
+                    .fill(pal.base)
+                    .inner_margin(egui::Margin::symmetric(8.0, 4.0)),
+            )
             .show(ctx, |ui| {
                 ui.spacing_mut().button_padding = egui::vec2(2.0, 2.0);
 
                 ui.horizontal(|ui| {
-
                     ui.spacing_mut().item_spacing.x = 8.0;
 
                     let v = ui.visuals_mut();
 
-                    v.widgets.noninteractive.bg_stroke.color = pal.window; 
+                    v.widgets.noninteractive.bg_stroke.color = pal.window;
 
                     let h = 16.0;
-                    
+
                     if tool_button(ui, tool_img!("New_file.png"), h).clicked() {
                         self.new_file();
                     }
@@ -435,25 +491,33 @@ impl eframe::App for OmniBoardStudio {
                     if tool_button(ui, tool_img!("Save_file.png"), h).clicked() {
                         self.save();
                     }
-                    
+
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("Block_library.png"), h).clicked() {
-                        state_machine::with_mut(|sm| { sm.on_open_blocks_library_window(); });
+                        state_machine::with_mut(|sm| {
+                            sm.on_open_blocks_library_window();
+                        });
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("View_hub.png"), h).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::Hub); });
+                        state_machine::with_mut(|sm| {
+                            sm.set_app_tab(state_machine::AppTab::Hub);
+                        });
                     }
 
                     if tool_button(ui, tool_img!("View_visual_editor.png"), h).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::VisualEditor); });
+                        state_machine::with_mut(|sm| {
+                            sm.set_app_tab(state_machine::AppTab::VisualEditor);
+                        });
                     }
 
                     if tool_button(ui, tool_img!("View_code_editor.png"), h).clicked() {
-                        state_machine::with_mut(|sm| { sm.set_app_tab(state_machine::AppTab::CodeEditor); });
+                        state_machine::with_mut(|sm| {
+                            sm.set_app_tab(state_machine::AppTab::CodeEditor);
+                        });
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
@@ -465,7 +529,9 @@ impl eframe::App for OmniBoardStudio {
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("Settings.png"), h).clicked() {
-                        state_machine::with_mut(|sm| { sm.on_open_settings_window(); });
+                        state_machine::with_mut(|sm| {
+                            sm.on_open_settings_window();
+                        });
                     }
                 });
             });
@@ -474,12 +540,12 @@ impl eframe::App for OmniBoardStudio {
             state_machine::AppTab::Hub => self.hub_tab_ui(ctx),
             state_machine::AppTab::VisualEditor => {
                 self.visual_editor.show_visual_editor(ctx);
-            },
+            }
             state_machine::AppTab::CodeEditor => {
                 egui::CentralPanel::default().show(ctx, |ui| {
                     ui.label("Code Editor");
                 });
-            },
+            }
         }
 
         self.check_open_windows(ctx);

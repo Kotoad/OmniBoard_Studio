@@ -1,8 +1,8 @@
-use std::collections::HashSet;
-use std::sync::{RwLock, OnceLock};
+use crate::graph::BlockType;
 use crate::settings;
-use crate::graph::{BlockType};
 use crate::theme::Palette;
+use std::collections::HashSet;
+use std::sync::{OnceLock, RwLock};
 
 static STATE_MACHINE: OnceLock<RwLock<AppStateMachine>> = OnceLock::new();
 
@@ -12,34 +12,82 @@ pub fn init() {
 
 // read access
 pub fn with<R>(f: impl FnOnce(&AppStateMachine) -> R) -> R {
-    f(&STATE_MACHINE.get().expect("state machine not initialized").read().unwrap())
+    f(&STATE_MACHINE
+        .get()
+        .expect("state machine not initialized")
+        .read()
+        .unwrap())
 }
 
 // write access (transitions)
 pub fn with_mut<R>(f: impl FnOnce(&mut AppStateMachine) -> R) -> R {
-    f(&mut STATE_MACHINE.get().expect("state machine not initialized").write().unwrap())
+    f(&mut STATE_MACHINE
+        .get()
+        .expect("state machine not initialized")
+        .write()
+        .unwrap())
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum AppState { MainWindow, SettingsWindow, BlocksWindow, Compiling }
+pub enum AppState {
+    MainWindow,
+    SettingsWindow,
+    BlocksWindow,
+    Compiling,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum CanvasState { Idle, AddingBlock, AddingPath, MovingItem, DeletingItem }
+pub enum CanvasState {
+    Idle,
+    AddingBlock,
+    AddingPath,
+    MovingItem,
+    DeletingItem,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum AppTab { Hub, VisualEditor, CodeEditor }
+pub enum AppTab {
+    Hub,
+    VisualEditor,
+    CodeEditor,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub enum SettingsTab { General, Themes, Rpi }
+pub enum SettingsTab {
+    General,
+    Themes,
+    Rpi,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum BlocksLibraryTab { Basic, Logic, IO, Math, Functions }
+pub enum BlocksLibraryTab {
+    Basic,
+    Logic,
+    IO,
+    Math,
+    Functions,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Theme { Dark, Light, SolarizedLight, SolarizedDark, Monokai, Dracula, Catppuccin, OneDark, Gruvbox, Nord, Custom }
+pub enum Theme {
+    Dark,
+    Light,
+    SolarizedLight,
+    SolarizedDark,
+    Monokai,
+    Dracula,
+    Catppuccin,
+    OneDark,
+    Gruvbox,
+    Nord,
+    Custom,
+}
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Language { English, Czech }
+pub enum Language {
+    English,
+    Czech,
+}
 pub struct AppStateMachine {
     scale: f32,
     state: AppState,
@@ -69,13 +117,13 @@ fn theme_from_str(theme_str: &str) -> Theme {
         "OneDark" => Theme::OneDark,
         "Gruvbox" => Theme::Gruvbox,
         "Nord" => Theme::Nord,
-        _ => Theme::Custom
+        _ => Theme::Custom,
     }
 }
 
 //MARK: - AppStateMachine Implementation
 impl AppStateMachine {
-     pub fn new() -> Self {
+    pub fn new() -> Self {
         let current_theme_str = settings::with(|s| s.theme.clone());
         let current_language_str = settings::with(|s| s.language.clone());
 
@@ -105,29 +153,33 @@ impl AppStateMachine {
         }
     }
 
-    pub fn can_open_window(&self) -> bool { self.canvas == CanvasState::Idle }
+    pub fn can_open_window(&self) -> bool {
+        self.canvas == CanvasState::Idle
+    }
 
     pub fn on_open_settings_window(&mut self) -> bool {
         if self.can_open_window() {
             self.state = AppState::SettingsWindow;
             self.open_windows.insert("settings".to_string());
             true
+        } else {
+            false
         }
-        else { false }
     }
 
     pub fn on_close_settings_window(&mut self) {
         self.state = AppState::MainWindow;
         self.open_windows.remove("settings");
     }
-    
+
     pub fn on_open_blocks_library_window(&mut self) -> bool {
         if self.can_open_window() && self.app_tab == AppTab::VisualEditor {
             self.state = AppState::BlocksWindow;
             self.open_windows.insert("blocks_library".to_string());
             true
+        } else {
+            false
         }
-        else { false }
     }
 
     pub fn on_close_blocks_library_window(&mut self) {
@@ -135,7 +187,9 @@ impl AppStateMachine {
         self.open_windows.remove("blocks_library");
     }
 
-    pub fn is_open(&self, window: &str) -> bool { self.open_windows.contains(window) }
+    pub fn is_open(&self, window: &str) -> bool {
+        self.open_windows.contains(window)
+    }
 
     pub fn set_current_theme(&mut self, theme: Theme) {
         self.current_theme = theme;
@@ -165,7 +219,9 @@ impl AppStateMachine {
         }
     }
 
-    pub fn get_theme_from_str(&self, theme_str: &str) -> Theme { theme_from_str(theme_str) }
+    pub fn get_theme_from_str(&self, theme_str: &str) -> Theme {
+        theme_from_str(theme_str)
+    }
 
     pub fn get_current_palette(&self) -> Palette {
         match self.current_theme {
