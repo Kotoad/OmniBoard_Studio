@@ -903,15 +903,14 @@ impl VisualEditor {
         }
 
         if response.secondary_clicked() && !grabbed_port {
-            self.interaction.context_wire = hovered_wire
-                .map(|i| {
-                    (
-                        self.graphs[self.graph_index].wires()[i].from_block,
-                        self.graphs[self.graph_index].wires()[i].from_port,
-                        self.graphs[self.graph_index].wires()[i].to_block,
-                        self.graphs[self.graph_index].wires()[i].to_port,
-                    )
-                });
+            self.interaction.context_wire = hovered_wire.map(|i| {
+                (
+                    self.graphs[self.graph_index].wires()[i].from_block,
+                    self.graphs[self.graph_index].wires()[i].from_port,
+                    self.graphs[self.graph_index].wires()[i].to_block,
+                    self.graphs[self.graph_index].wires()[i].to_port,
+                )
+            });
         }
         if self.interaction.context_wire.is_some() {
             response.context_menu(|ui| {
