@@ -938,9 +938,9 @@ impl VisualEditor {
             .with_clip_rect(canvas_rect);
         for (i, path) in wire_paths.iter().enumerate() {
             let (width, color) = if hovered_wire == Some(i) {
-                (4.0, Color32::from_rgb(255, 100, 100))
+                (4.0_f32, Color32::from_rgb(255, 100, 100))
             } else {
-                (2.5, Color32::from_rgb(80, 200, 160))
+                (2.5_f32, Color32::from_rgb(80, 200, 160))
             };
             for seg in path.windows(2) {
                 wire_painter.line_segment([seg[0], seg[1]], Stroke::new(width, color));
@@ -963,7 +963,7 @@ impl VisualEditor {
                 {
                     fg.line_segment(
                         [seg[0], seg[1]],
-                        Stroke::new(2.5, Color32::from_rgb(255, 100, 60)),
+                        Stroke::new(2.5_f32, Color32::from_rgb(255, 100, 60)),
                     );
                 }
             }

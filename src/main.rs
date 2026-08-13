@@ -459,7 +459,7 @@ impl eframe::App for OmniBoardStudio {
                     });
                 });
                 ui.visuals_mut().widgets.noninteractive.bg_stroke =
-                    egui::Stroke::new(1.0, pal.window);
+                    egui::Stroke::new(1.0_f32, pal.window);
                 ui.separator();
             });
         egui::TopBottomPanel::top("Toolbar")
