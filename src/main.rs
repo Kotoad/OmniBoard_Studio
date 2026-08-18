@@ -262,7 +262,8 @@ impl OmniBoardStudio {
             self.open_settings_window(ctx);
         }
         if self.state_machine.is_open("blocks_library") {
-            self.visual_editor.blocks_library(ctx, &mut self.state_machine);
+            self.visual_editor
+                .blocks_library(ctx, &mut self.state_machine);
         }
     }
 
