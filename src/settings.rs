@@ -1,7 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;
-use std::sync::{OnceLock, RwLock};
 
 use crate::theme::Palette;
 use log::{error, warn};
@@ -77,28 +76,4 @@ impl Settings {
             let _ = fs::rename(&tmp, &path);
         }
     }
-}
-
-static SETTINGS: OnceLock<RwLock<Settings>> = OnceLock::new();
-
-pub fn init() {
-    let _ = SETTINGS.set(RwLock::new(Settings::load()));
-}
-
-pub fn with<R>(f: impl FnOnce(&Settings) -> R) -> R {
-    f(&SETTINGS
-        .get()
-        .expect("Settings not initialized")
-        .read()
-        .unwrap())
-}
-
-pub fn update(f: impl FnOnce(&mut Settings)) {
-    let mut guard = SETTINGS
-        .get()
-        .expect("Settings not initialized")
-        .write()
-        .unwrap();
-    f(&mut guard);
-    guard.save();
 }

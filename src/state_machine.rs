@@ -1,32 +1,6 @@
 use crate::graph::BlockType;
-use crate::settings;
-use crate::theme::Palette;
+
 use std::collections::HashSet;
-use std::sync::{OnceLock, RwLock};
-
-static STATE_MACHINE: OnceLock<RwLock<AppStateMachine>> = OnceLock::new();
-
-pub fn init() {
-    let _ = STATE_MACHINE.set(RwLock::new(AppStateMachine::new()));
-}
-
-// read access
-pub fn with<R>(f: impl FnOnce(&AppStateMachine) -> R) -> R {
-    f(&STATE_MACHINE
-        .get()
-        .expect("state machine not initialized")
-        .read()
-        .unwrap())
-}
-
-// write access (transitions)
-pub fn with_mut<R>(f: impl FnOnce(&mut AppStateMachine) -> R) -> R {
-    f(&mut STATE_MACHINE
-        .get()
-        .expect("state machine not initialized")
-        .write()
-        .unwrap())
-}
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub enum AppState {
@@ -94,15 +68,12 @@ pub enum Language {
     Czech,
 }
 pub struct AppStateMachine {
-    scale: f32,
     state: AppState,
     canvas: CanvasState,
     open_windows: HashSet<String>,
     app_tab: AppTab,
     settings_tab: SettingsTab,
     blocks_library_tab: BlocksLibraryTab,
-    current_theme: Theme,
-    current_language: Language,
     block: BlockType,
     basic_block: BlockType,
     logic_block: BlockType,
@@ -110,7 +81,7 @@ pub struct AppStateMachine {
     io_block: BlockType,
 }
 
-fn theme_from_str(theme_str: &str) -> Theme {
+pub fn theme_from_str(theme_str: &str) -> Theme {
     match theme_str {
         "Light" => Theme::Light,
         "Dark" => Theme::Dark,
@@ -126,30 +97,47 @@ fn theme_from_str(theme_str: &str) -> Theme {
     }
 }
 
+pub fn str_from_theme(theme: Theme) -> &'static str {
+    match theme {
+        Theme::Dark => "Dark",
+        Theme::Light => "Light",
+        Theme::SolarizedLight => "SolarizedLight",
+        Theme::SolarizedDark => "SolarizedDark",
+        Theme::Monokai => "Monokai",
+        Theme::Dracula => "Dracula",
+        Theme::Catppuccin => "Catppuccin",
+        Theme::OneDark => "OneDark",
+        Theme::Gruvbox => "Gruvbox",
+        Theme::Nord => "Nord",
+        Theme::Custom => "Custom",
+    }
+}
+
+pub fn language_from_str(language_str: &str) -> Language {
+    match language_str {
+        "en" => Language::English,
+        "cs" => Language::Czech,
+        _ => Language::English,
+    }
+}
+
+pub fn str_from_language(language: Language) -> &'static str {
+    match language {
+        Language::English => "en",
+        Language::Czech => "cs",
+    }
+}
+
 //MARK: - AppStateMachine Implementation
 impl AppStateMachine {
     pub fn new() -> Self {
-        let current_theme_str = settings::with(|s| s.theme.clone());
-        let current_language_str = settings::with(|s| s.language.clone());
-
-        let current_theme = theme_from_str(&current_theme_str);
-
-        let current_language = match current_language_str.as_str() {
-            "en" => Language::English,
-            "cs" => Language::Czech,
-            _ => Language::English,
-        };
-
         Self {
-            scale: settings::with(|s| s.ui_scale),
             state: AppState::MainWindow,
             canvas: CanvasState::Idle,
             open_windows: HashSet::new(),
             app_tab: AppTab::Hub,
             settings_tab: SettingsTab::General,
             blocks_library_tab: BlocksLibraryTab::Basic,
-            current_theme,
-            current_language,
             block: BlockType::Start,
             basic_block: BlockType::Start,
             logic_block: BlockType::If,
@@ -194,74 +182,6 @@ impl AppStateMachine {
 
     pub fn is_open(&self, window: &str) -> bool {
         self.open_windows.contains(window)
-    }
-
-    pub fn set_current_theme(&mut self, theme: Theme) {
-        self.current_theme = theme;
-    }
-
-    pub fn get_current_theme(&self) -> Theme {
-        self.current_theme
-    }
-
-    pub fn theme_changed(&self, wanted_theme: Theme) -> bool {
-        self.current_theme != wanted_theme
-    }
-
-    pub fn get_theme_str(&self) -> String {
-        match self.current_theme {
-            Theme::Light => "Light".to_string(),
-            Theme::Dark => "Dark".to_string(),
-            Theme::SolarizedLight => "SolarizedLight".to_string(),
-            Theme::SolarizedDark => "SolarizedDark".to_string(),
-            Theme::Monokai => "Monokai".to_string(),
-            Theme::Dracula => "Dracula".to_string(),
-            Theme::Catppuccin => "Catppuccin".to_string(),
-            Theme::OneDark => "OneDark".to_string(),
-            Theme::Gruvbox => "Gruvbox".to_string(),
-            Theme::Nord => "Nord".to_string(),
-            Theme::Custom => "Custom".to_string(),
-        }
-    }
-
-    pub fn get_theme_from_str(&self, theme_str: &str) -> Theme {
-        theme_from_str(theme_str)
-    }
-
-    pub fn get_current_palette(&self) -> Palette {
-        match self.current_theme {
-            Theme::Light => Palette::light(),
-            Theme::Dark => Palette::dark(),
-            Theme::SolarizedLight => Palette::solarized_light(),
-            Theme::SolarizedDark => Palette::solarized_dark(),
-            Theme::Monokai => Palette::monokai(),
-            Theme::Dracula => Palette::dracula(),
-            Theme::Catppuccin => Palette::catppuccin(),
-            Theme::OneDark => Palette::one_dark(),
-            Theme::Gruvbox => Palette::gruvbox(),
-            Theme::Nord => Palette::nord(),
-            Theme::Custom => settings::with(|s| s.custom_theme).unwrap_or(Palette::dark()),
-        }
-    }
-
-    pub fn set_current_language(&mut self, language: Language) {
-        self.current_language = language;
-    }
-
-    pub fn get_current_language(&self) -> Language {
-        self.current_language
-    }
-
-    pub fn language_changed(&self, wanted_language: Language) -> bool {
-        self.current_language != wanted_language
-    }
-
-    pub fn set_ui_scale(&mut self, scale: f32) {
-        self.scale = scale;
-    }
-
-    pub fn get_ui_scale(&self) -> f32 {
-        self.scale
     }
 
     pub fn set_app_tab(&mut self, tab: AppTab) {

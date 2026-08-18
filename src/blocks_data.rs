@@ -32,49 +32,49 @@ impl BlockSubCategory {
 impl BlockType {
     pub fn category(&self) -> state_machine::BlocksLibraryTab {
         match self {
-            BlockType::Start => state_machine::BlocksLibraryTab::Basic,
-            BlockType::End => state_machine::BlocksLibraryTab::Basic,
-            BlockType::Timer => state_machine::BlocksLibraryTab::Basic,
-            BlockType::Networks => state_machine::BlocksLibraryTab::Basic,
-            BlockType::Return => state_machine::BlocksLibraryTab::Basic,
-            BlockType::If => state_machine::BlocksLibraryTab::Logic,
-            BlockType::While => state_machine::BlocksLibraryTab::Logic,
-            BlockType::WhileTrue => state_machine::BlocksLibraryTab::Logic,
-            BlockType::For => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Switch => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Lower => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Greater => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Equal => state_machine::BlocksLibraryTab::Logic,
-            BlockType::NotEqual => state_machine::BlocksLibraryTab::Logic,
-            BlockType::GreaterEqual => state_machine::BlocksLibraryTab::Logic,
-            BlockType::LowerEqual => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Not => state_machine::BlocksLibraryTab::Logic,
-            BlockType::And => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Nand => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Or => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Nor => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Xor => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Xnor => state_machine::BlocksLibraryTab::Logic,
-            BlockType::Add => state_machine::BlocksLibraryTab::Math,
-            BlockType::Subtract => state_machine::BlocksLibraryTab::Math,
-            BlockType::Multiply => state_machine::BlocksLibraryTab::Math,
-            BlockType::Divide => state_machine::BlocksLibraryTab::Math,
-            BlockType::Modulo => state_machine::BlocksLibraryTab::Math,
-            BlockType::Power => state_machine::BlocksLibraryTab::Math,
-            BlockType::Root => state_machine::BlocksLibraryTab::Math,
-            BlockType::RandomNumber => state_machine::BlocksLibraryTab::Math,
-            BlockType::Round => state_machine::BlocksLibraryTab::Math,
-            BlockType::Floor => state_machine::BlocksLibraryTab::Math,
-            BlockType::Ciel => state_machine::BlocksLibraryTab::Math,
-            BlockType::AddOne => state_machine::BlocksLibraryTab::Math,
-            BlockType::SubtractOne => state_machine::BlocksLibraryTab::Math,
-            BlockType::Button => state_machine::BlocksLibraryTab::IO,
-            BlockType::LedOn => state_machine::BlocksLibraryTab::IO,
-            BlockType::LedOff => state_machine::BlocksLibraryTab::IO,
-            BlockType::LedToggle => state_machine::BlocksLibraryTab::IO,
-            BlockType::LedBlink => state_machine::BlocksLibraryTab::IO,
-            BlockType::LedPwm => state_machine::BlocksLibraryTab::IO,
-            BlockType::RgbLed => state_machine::BlocksLibraryTab::IO,
+            BlockType::Start
+            | BlockType::End
+            | BlockType::Timer
+            | BlockType::Networks
+            | BlockType::Return => state_machine::BlocksLibraryTab::Basic,
+            BlockType::If
+            | BlockType::While
+            | BlockType::WhileTrue
+            | BlockType::For
+            | BlockType::Switch
+            | BlockType::Lower
+            | BlockType::Greater
+            | BlockType::Equal
+            | BlockType::NotEqual
+            | BlockType::GreaterEqual
+            | BlockType::LowerEqual
+            | BlockType::Not
+            | BlockType::And
+            | BlockType::Nand
+            | BlockType::Or
+            | BlockType::Nor
+            | BlockType::Xor
+            | BlockType::Xnor => state_machine::BlocksLibraryTab::Logic,
+            BlockType::Add
+            | BlockType::Subtract
+            | BlockType::Multiply
+            | BlockType::Divide
+            | BlockType::Modulo
+            | BlockType::Power
+            | BlockType::Root
+            | BlockType::RandomNumber
+            | BlockType::Round
+            | BlockType::Floor
+            | BlockType::Ciel
+            | BlockType::AddOne
+            | BlockType::SubtractOne => state_machine::BlocksLibraryTab::Math,
+            BlockType::Button
+            | BlockType::LedOn
+            | BlockType::LedOff
+            | BlockType::LedToggle
+            | BlockType::LedBlink
+            | BlockType::LedPwm
+            | BlockType::RgbLed => state_machine::BlocksLibraryTab::IO,
         }
     }
 

@@ -102,13 +102,7 @@ fn main() -> eframe::Result<()> {
 
     create_projects_directory();
 
-    settings::init();
-    let lang = settings::with(|s| s.language.clone());
-    let theme = settings::with(|s| s.theme.clone()).to_string();
-    let scale = settings::with(|s| s.ui_scale);
-
     translation_manager::init();
-    state_machine::init();
 
     let options = eframe::NativeOptions {
         viewport: egui::ViewportBuilder::default()
@@ -122,9 +116,11 @@ fn main() -> eframe::Result<()> {
         "OmniBoard Studio",
         options,
         Box::new(move |cc| {
-            theme::install_theme_from_str(&cc.egui_ctx, &theme);
-            let theme = state_machine::with_mut(|sm| sm.get_theme_from_str(&theme));
-            state_machine::with_mut(|sm| sm.set_current_theme(theme));
+            let settings = settings::Settings::load();
+            let lang = settings.language.clone();
+            let theme = settings.theme.clone();
+            let scale = settings.ui_scale;
+            theme::install_theme_from_str(&cc.egui_ctx, &theme, &settings);
             translation_manager::switch_language(&lang);
             cc.egui_ctx.set_pixels_per_point(scale);
             egui_extras::install_image_loaders(&cc.egui_ctx);
@@ -133,7 +129,7 @@ fn main() -> eframe::Result<()> {
                 let renderer = unsafe { gl.get_parameter_string(eframe::glow::RENDERER) };
                 info!("Renderer: {renderer}");
             }
-            Ok(Box::new(OmniBoardStudio::new(&cc.egui_ctx)))
+            Ok(Box::new(OmniBoardStudio::new(&cc.egui_ctx, settings)))
         }),
     )
 }
@@ -150,13 +146,15 @@ struct OmniBoardStudio {
     fs_rx: Receiver<notify::Result<Event>>,
     _watcher: Option<RecommendedWatcher>,
     visual_editor: visual_editor::VisualEditor,
+    state_machine: state_machine::AppStateMachine,
+    settings: settings::Settings,
     current_file: Option<PathBuf>,
     window_title: String,
 }
 
 //MARK: - OmniBoardStudio Implementation
 impl OmniBoardStudio {
-    fn new(ctx: &egui::Context) -> Self {
+    fn new(ctx: &egui::Context, settings: settings::Settings) -> Self {
         let (tx, rx) = channel();
 
         let ctx = ctx.clone();
@@ -176,6 +174,8 @@ impl OmniBoardStudio {
             fs_rx: rx,
             _watcher: watcher,
             visual_editor: visual_editor::VisualEditor::new(),
+            state_machine: state_machine::AppStateMachine::new(),
+            settings,
             current_file: None,
             window_title: String::new(),
         };
@@ -201,7 +201,8 @@ impl OmniBoardStudio {
         if let Some(path) = dialog.pick_file() {
             self.visual_editor.load(&path);
             self.current_file = Some(project_path(path));
-            state_machine::with_mut(|sm| sm.set_app_tab(state_machine::AppTab::VisualEditor));
+            self.state_machine
+                .set_app_tab(state_machine::AppTab::VisualEditor);
         }
     }
 
@@ -257,21 +258,11 @@ impl OmniBoardStudio {
     }
 
     fn check_open_windows(&mut self, ctx: &egui::Context) {
-        let mut open_windows = Vec::new();
-        state_machine::with(|sm| {
-            if sm.is_open("settings") {
-                open_windows.push("settings");
-            }
-            if sm.is_open("blocks_library") {
-                open_windows.push("blocks_library");
-            }
-        });
-        for window in open_windows {
-            match window {
-                "settings" => self.open_settings_window(ctx),
-                "blocks_library" => self.visual_editor.blocks_library(ctx),
-                _ => {}
-            }
+        if self.state_machine.is_open("settings") {
+            self.open_settings_window(ctx);
+        }
+        if self.state_machine.is_open("blocks_library") {
+            self.visual_editor.blocks_library(ctx, &mut self.state_machine);
         }
     }
 
@@ -306,9 +297,8 @@ impl OmniBoardStudio {
                             {
                                 self.visual_editor.load(&file.path);
                                 self.current_file = Some(project_path(file.path.clone()));
-                                state_machine::with_mut(|sm| {
-                                    sm.set_app_tab(state_machine::AppTab::VisualEditor)
-                                });
+                                self.state_machine
+                                    .set_app_tab(state_machine::AppTab::VisualEditor);
                             }
                         }
                     });
@@ -351,9 +341,9 @@ impl eframe::App for OmniBoardStudio {
             self.refresh_files();
         }
 
-        let current_tab = state_machine::with(|sm| sm.get_app_tab());
+        let current_tab = self.state_machine.get_app_tab();
 
-        let pal = state_machine::with(|sm| sm.get_current_palette());
+        let pal = theme::palette(ctx);
         egui::TopBottomPanel::top("Menu bar")
             .frame(
                 egui::Frame::none()
@@ -393,33 +383,29 @@ impl eframe::App for OmniBoardStudio {
                             .button(fl!(LOADER, "main-gui-menu-block-library"))
                             .clicked()
                         {
-                            state_machine::with_mut(|sm| sm.on_open_blocks_library_window());
+                            self.state_machine.on_open_blocks_library_window();
                             ui.close_menu();
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-view"), |ui| {
                         if ui.button(fl!(LOADER, "main-gui-menu-hub")).clicked() {
-                            state_machine::with_mut(|sm| {
-                                sm.set_app_tab(state_machine::AppTab::Hub);
-                            });
+                            self.state_machine.set_app_tab(state_machine::AppTab::Hub);
                             ui.close_menu();
                         }
                         if ui
                             .button(fl!(LOADER, "main-gui-menu-visual-editor"))
                             .clicked()
                         {
-                            state_machine::with_mut(|sm| {
-                                sm.set_app_tab(state_machine::AppTab::VisualEditor);
-                            });
+                            self.state_machine
+                                .set_app_tab(state_machine::AppTab::VisualEditor);
                             ui.close_menu();
                         }
                         if ui
                             .button(fl!(LOADER, "main-gui-menu-code-editor"))
                             .clicked()
                         {
-                            state_machine::with_mut(|sm| {
-                                sm.set_app_tab(state_machine::AppTab::CodeEditor);
-                            });
+                            self.state_machine
+                                .set_app_tab(state_machine::AppTab::CodeEditor);
                             ui.close_menu();
                         }
                     });
@@ -434,9 +420,7 @@ impl eframe::App for OmniBoardStudio {
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-settings"), |ui| {
                         if ui.button(fl!(LOADER, "main-gui-menu-settings")).clicked() {
-                            state_machine::with_mut(|sm| {
-                                sm.on_open_settings_window();
-                            });
+                            self.state_machine.on_open_settings_window();
                             ui.close_menu();
                         }
                     });
@@ -495,29 +479,23 @@ impl eframe::App for OmniBoardStudio {
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("Block_library.png"), h).clicked() {
-                        state_machine::with_mut(|sm| {
-                            sm.on_open_blocks_library_window();
-                        });
+                        self.state_machine.on_open_blocks_library_window();
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("View_hub.png"), h).clicked() {
-                        state_machine::with_mut(|sm| {
-                            sm.set_app_tab(state_machine::AppTab::Hub);
-                        });
+                        self.state_machine.set_app_tab(state_machine::AppTab::Hub);
                     }
 
                     if tool_button(ui, tool_img!("View_visual_editor.png"), h).clicked() {
-                        state_machine::with_mut(|sm| {
-                            sm.set_app_tab(state_machine::AppTab::VisualEditor);
-                        });
+                        self.state_machine
+                            .set_app_tab(state_machine::AppTab::VisualEditor);
                     }
 
                     if tool_button(ui, tool_img!("View_code_editor.png"), h).clicked() {
-                        state_machine::with_mut(|sm| {
-                            sm.set_app_tab(state_machine::AppTab::CodeEditor);
-                        });
+                        self.state_machine
+                            .set_app_tab(state_machine::AppTab::CodeEditor);
                     }
 
                     ui.add(egui::Separator::default().spacing(0.0));
@@ -529,9 +507,7 @@ impl eframe::App for OmniBoardStudio {
                     ui.add(egui::Separator::default().spacing(0.0));
 
                     if tool_button(ui, tool_img!("Settings.png"), h).clicked() {
-                        state_machine::with_mut(|sm| {
-                            sm.on_open_settings_window();
-                        });
+                        self.state_machine.on_open_settings_window();
                     }
                 });
             });
@@ -549,5 +525,9 @@ impl eframe::App for OmniBoardStudio {
         }
 
         self.check_open_windows(ctx);
+    }
+
+    fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
+        self.settings.save();
     }
 }

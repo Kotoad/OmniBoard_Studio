@@ -5,10 +5,10 @@ use log::debug;
 use crate::translation_manager::LOADER;
 use crate::{settings, state_machine, theme, OmniBoardStudio};
 
-//MARK: - Color ruw
-fn color_row(ui: &mut Ui, color_category: &str) -> bool {
+//MARK: - Color row
+fn color_row(ui: &mut Ui, color_category: &str, settings: &mut settings::Settings) -> bool {
     ui.horizontal(|ui| {
-        let mut pal = state_machine::with(|sm| sm.get_current_palette());
+        let mut pal = theme::palette(ui.ctx());
 
         let mut c = match color_category {
             "main_darker" => pal.window,
@@ -128,7 +128,7 @@ fn color_row(ui: &mut Ui, color_category: &str) -> bool {
             }
 
             theme::install(ui.ctx(), pal);
-            settings::update(|s| s.custom_theme = Some(pal));
+            settings.custom_theme = Some(pal);
         }
         changed
     })
@@ -139,7 +139,7 @@ fn color_row(ui: &mut Ui, color_category: &str) -> bool {
 impl OmniBoardStudio {
     //MARK: - General Tab UI
     fn general_tab_ui(&mut self, ui: &mut Ui) {
-        let mut current_language = state_machine::with(|sm| sm.get_current_language());
+        let mut current_language = state_machine::language_from_str(&self.settings.language);
 
         ui.heading(fl!(LOADER, "settings-window-general-tab-heading"));
 
@@ -167,8 +167,7 @@ impl OmniBoardStudio {
                 );
             });
 
-        if state_machine::with(|sm| sm.language_changed(current_language)) {
-            state_machine::with_mut(|sm| sm.set_current_language(current_language));
+        if current_language != state_machine::language_from_str(&self.settings.language) {
             match current_language {
                 state_machine::Language::English => {
                     crate::translation_manager::switch_language("en");
@@ -177,17 +176,13 @@ impl OmniBoardStudio {
                     crate::translation_manager::switch_language("cs");
                 }
             }
-            settings::update(|s| {
-                s.language = match current_language {
-                    state_machine::Language::English => "en".to_string(),
-                    state_machine::Language::Czech => "cs".to_string(),
-                }
-            });
+            self.settings.language = state_machine::str_from_language(current_language).to_string();
+            self.settings.save();
         }
 
         ui.separator();
 
-        let mut current_ui_scale = state_machine::with(|sm| sm.get_ui_scale());
+        let mut current_ui_scale = self.settings.ui_scale;
 
         ui.label(fl!(LOADER, "settings-window-general-tab-ui-scale"));
 
@@ -204,18 +199,18 @@ impl OmniBoardStudio {
                 .clicked()
             {
                 current_ui_scale = 1.0;
-                state_machine::with_mut(|sm| sm.set_ui_scale(current_ui_scale));
-                settings::update(|s| s.ui_scale = current_ui_scale);
+                self.settings.ui_scale = current_ui_scale;
+                self.settings.save();
                 ui.ctx().set_pixels_per_point(current_ui_scale);
             }
 
             if scale_slider.changed() {
-                state_machine::with_mut(|sm| sm.set_ui_scale(current_ui_scale));
+                self.settings.ui_scale = current_ui_scale;
+                ui.ctx().set_pixels_per_point(current_ui_scale);
             }
 
             if scale_slider.drag_stopped() || (scale_slider.changed() && !scale_slider.dragged()) {
-                settings::update(|s| s.ui_scale = current_ui_scale);
-                ui.ctx().set_pixels_per_point(current_ui_scale);
+                self.settings.save();
             }
         });
     }
@@ -223,8 +218,7 @@ impl OmniBoardStudio {
     //MARK: - Theme Tab UI
     fn theme_tab_ui(&mut self, ui: &mut Ui) {
         let mut changed: bool = false;
-        let mut current_theme = state_machine::with(|sm| sm.get_current_theme());
-        let current_theme_str;
+        let mut current_theme = state_machine::theme_from_str(&self.settings.theme);
 
         ui.heading(fl!(LOADER, "settings-window-theme-tab-heading"));
         egui::ComboBox::from_label(fl!(LOADER, "settings-window-theme-tab-combo"))
@@ -315,36 +309,36 @@ impl OmniBoardStudio {
                 );
             });
 
-        if state_machine::with(|sm| sm.theme_changed(current_theme)) {
-            state_machine::with_mut(|sm| sm.set_current_theme(current_theme));
-            current_theme_str = state_machine::with(|sm| sm.get_theme_str());
-            theme::install_theme_from_str(ui.ctx(), &current_theme_str);
-            settings::update(|s| s.theme = current_theme_str.clone());
+        if current_theme != state_machine::theme_from_str(&self.settings.theme) {
+            let current_theme_str = state_machine::str_from_theme(current_theme);
+            theme::install_theme_from_str(ui.ctx(), current_theme_str, &self.settings);
+            self.settings.theme = current_theme_str.to_string();
+            self.settings.save();
         }
 
         egui::ScrollArea::vertical()
             .auto_shrink(false)
             .show(ui, |ui| {
                 ui.heading(fl!(LOADER, "settings-window-theme-tab-heading"));
-                changed |= color_row(ui, "main_darker");
-                changed |= color_row(ui, "main");
-                changed |= color_row(ui, "main_lighter");
-                changed |= color_row(ui, "text");
-                changed |= color_row(ui, "highlight");
-                changed |= color_row(ui, "highlight_text");
-                changed |= color_row(ui, "warning");
-                changed |= color_row(ui, "dark");
-                changed |= color_row(ui, "shadow");
+                changed |= color_row(ui, "main_darker", &mut self.settings);
+                changed |= color_row(ui, "main", &mut self.settings);
+                changed |= color_row(ui, "main_lighter", &mut self.settings);
+                changed |= color_row(ui, "text", &mut self.settings);
+                changed |= color_row(ui, "highlight", &mut self.settings);
+                changed |= color_row(ui, "highlight_text", &mut self.settings);
+                changed |= color_row(ui, "warning", &mut self.settings);
+                changed |= color_row(ui, "dark", &mut self.settings);
+                changed |= color_row(ui, "shadow", &mut self.settings);
             });
 
-        if changed {
-            state_machine::with_mut(|sm| sm.set_current_theme(state_machine::Theme::Custom));
-            settings::update(|s| s.theme = "Custom".to_string());
+        if changed && self.settings.theme != "Custom" {
+            self.settings.theme = "Custom".to_string();
+            self.settings.save();
         }
     }
     //MARK: - Settings Window
     pub(crate) fn settings_window(&mut self, ctx: &egui::Context) {
-        if !state_machine::with(|sm| sm.is_open("settings")) {
+        if !self.state_machine.is_open("settings") {
             return;
         }
 
@@ -355,7 +349,7 @@ impl OmniBoardStudio {
                 .with_inner_size([600.0, 400.0]),
             |ctx, _class| {
                 egui::CentralPanel::default().show(ctx, |ui| {
-                    let mut settings_tab = state_machine::with(|sm| sm.get_settings_tab());
+                    let mut settings_tab = self.state_machine.get_settings_tab();
 
                     ui.horizontal(|ui| {
                         ui.selectable_value(
@@ -374,7 +368,7 @@ impl OmniBoardStudio {
                             fl!(LOADER, "settings-window-rpi-tab"),
                         );
                     });
-                    state_machine::with_mut(|sm| sm.set_settings_tab(settings_tab));
+                    self.state_machine.set_settings_tab(settings_tab);
 
                     ui.separator();
 
@@ -390,7 +384,8 @@ impl OmniBoardStudio {
                 });
                 if ctx.input(|i| i.viewport().close_requested()) {
                     debug!("Settings window closed");
-                    state_machine::with_mut(|sm| sm.on_close_settings_window());
+                    self.settings.save();
+                    self.state_machine.on_close_settings_window();
                 }
             },
         );

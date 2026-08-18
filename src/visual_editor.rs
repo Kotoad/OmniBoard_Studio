@@ -11,7 +11,7 @@ use crate::graph::{
     LedBlinkData, LogicBlock, MathBlock, MathData, Point, VariableDef, WhileData, Wire,
 };
 use crate::omni_format::{v1, v2};
-use crate::state_machine;
+use crate::theme;
 use crate::translation_manager::LOADER;
 
 const MAGIC: &[u8; 4] = b"OMNI";
@@ -20,11 +20,14 @@ const VERSION_LEN: usize = std::mem::size_of::<u16>();
 const HEADER_LEN: usize = MAGIC.len() + VERSION_LEN;
 
 const GRID_SIZE: f32 = 25.0;
+const GRID_WIDTH: f32 = 1.0;
+
 const BLOCK_BORDER_BASE: f32 = 2.0;
 const BLOCK_BORDER_SELECTED: f32 = 2.5;
 const BLOCK_BORDER_RUNNING: f32 = 3.0;
 const BLOCK_MARGIN_X: f32 = 8.0;
 const BLOCK_MARGIN_Y: f32 = 5.0;
+const MINIMUM_BLOCK_WIDTH: f32 = 175.0;
 
 const PORT_RADIUS: f32 = 5.0;
 const PORT_RADIUS_HOVER: f32 = 7.0;
@@ -35,7 +38,7 @@ const ZOOM_SENSITIVITY: f32 = 0.001;
 const ZOOM_MIN: f32 = 0.5;
 const ZOOM_MAX: f32 = 3.0;
 
-const GRID_WIDTH: f32 = 1.0;
+const WIRE_HOVER_THRESHOLD: f32 = 6.0;
 const WIRE_SEGMENTS: u32 = 24;
 
 #[derive(Clone, Copy)]
@@ -141,14 +144,14 @@ struct Interaction {
 fn out_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
     egui::Pos2::new(
         rect.right() + (BLOCK_BORDER_BASE / 2.0),
-        rect.top() + 50.0 - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE,
+        rect.top() + (GRID_SIZE * 2.0) - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE,
     )
 }
 
 pub fn in_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
     egui::Pos2::new(
         rect.left() - (BLOCK_BORDER_BASE / 2.0),
-        rect.top() + 50.0 - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE,
+        rect.top() + (GRID_SIZE * 2.0) - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE,
     )
 }
 
@@ -639,7 +642,8 @@ impl VisualEditor {
                     + (BLOCK_MARGIN_X * 2.0);
                 let content_w = text_w(ui, &field, body.clone()) + (BLOCK_MARGIN_X * 2.0);
 
-                let block_w = ((header_w.max(content_w) / GRID_SIZE).ceil() * GRID_SIZE).max(175.0);
+                let block_w = ((header_w.max(content_w) / GRID_SIZE).ceil() * GRID_SIZE)
+                    .max(MINIMUM_BLOCK_WIDTH);
                 ui.set_clip_rect(
                     self.cameras[self.graph_index].transform().inverse() * canvas_rect,
                 );
@@ -893,7 +897,7 @@ impl VisualEditor {
                 if let Some(p) = pointer {
                     if !path.is_empty()
                         && canvas_rect.contains(p)
-                        && dist_to_polyline(p, &path) < 6.0
+                        && dist_to_polyline(p, &path) < WIRE_HOVER_THRESHOLD
                     {
                         hovered_wire = Some(i);
                     }
@@ -982,7 +986,7 @@ impl VisualEditor {
             let mmb_pressed = ui.input(|i| i.pointer.middle_down());
 
             let painter = ui.painter();
-            let pal = state_machine::with(|sm| sm.get_current_palette());
+            let pal = theme::palette(ctx);
 
             let mut rects: HashMap<usize, egui::Rect> = HashMap::new();
 

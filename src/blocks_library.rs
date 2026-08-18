@@ -1,6 +1,8 @@
 use crate::blocks_data::BlockSubCategory;
 use crate::graph::BlockType;
 use crate::state_machine;
+use crate::state_machine::AppStateMachine;
+use crate::theme;
 use crate::translation_manager::LOADER;
 use crate::visual_editor;
 
@@ -26,7 +28,7 @@ fn show_block_details(
     ui: &mut egui::Ui,
     block_kind: &BlockType,
 ) {
-    let pal = state_machine::with(|sm| sm.get_current_palette());
+    let pal = theme::palette(ui.ctx());
     let block_title = LOADER.get(block_kind.meta().title_key);
     //let block_image = block_kind.meta().image;
     let block_description = LOADER.get(block_kind.meta().description_key);
@@ -68,7 +70,12 @@ fn show_block_details(
 }
 
 impl visual_editor::VisualEditor {
-    fn show_blocks_library_tab(&mut self, ui: &mut egui::Ui, tab: state_machine::BlocksLibraryTab) {
+    fn show_blocks_library_tab(
+        &mut self,
+        ui: &mut egui::Ui,
+        tab: state_machine::BlocksLibraryTab,
+        state_machine: &mut AppStateMachine,
+    ) {
         let kinds: Vec<BlockType> = BlockType::ALL
             .iter()
             .filter(|k| k.category() == tab)
@@ -80,21 +87,21 @@ impl visual_editor::VisualEditor {
             return;
         }
 
-        let mut current_block = state_machine::with(|sm| sm.get_current_block());
+        let mut current_block = state_machine.get_current_block();
 
         if current_block.category() != tab {
             match tab {
                 state_machine::BlocksLibraryTab::Basic => {
-                    current_block = state_machine::with(|sm| sm.get_current_basic_block())
+                    current_block = state_machine.get_current_basic_block();
                 }
                 state_machine::BlocksLibraryTab::Logic => {
-                    current_block = state_machine::with(|sm| sm.get_current_logic_block())
+                    current_block = state_machine.get_current_logic_block();
                 }
                 state_machine::BlocksLibraryTab::Math => {
-                    current_block = state_machine::with(|sm| sm.get_current_math_block())
+                    current_block = state_machine.get_current_math_block();
                 }
                 state_machine::BlocksLibraryTab::IO => {
-                    current_block = state_machine::with(|sm| sm.get_current_io_block())
+                    current_block = state_machine.get_current_io_block();
                 }
                 _ => {}
             }
@@ -149,7 +156,7 @@ impl visual_editor::VisualEditor {
                                 }
                             },
                         );
-                        state_machine::with_mut(|sm| sm.set_current_block(current_block));
+                        state_machine.set_current_block(current_block);
                     });
             });
         egui::CentralPanel::default().show_inside(ui, |ui| {
@@ -157,7 +164,11 @@ impl visual_editor::VisualEditor {
         });
     }
 
-    pub(crate) fn blocks_library(&mut self, ctx: &egui::Context) {
+    pub(crate) fn blocks_library(
+        &mut self,
+        ctx: &egui::Context,
+        state_machine: &mut AppStateMachine,
+    ) {
         ctx.show_viewport_immediate(
             egui::ViewportId::from_hash_of("blocks_library"),
             egui::ViewportBuilder::default()
@@ -165,8 +176,7 @@ impl visual_editor::VisualEditor {
                 .with_inner_size([600.0, 400.0]),
             |ctx, _class| {
                 egui::CentralPanel::default().show(ctx, |ui| {
-                    let mut blocks_library_tab =
-                        state_machine::with(|sm| sm.get_blocks_library_tab());
+                    let mut blocks_library_tab = state_machine.get_blocks_library_tab();
 
                     egui::ScrollArea::horizontal().show(ui, |ui| {
                         ui.horizontal(|ui| {
@@ -197,15 +207,15 @@ impl visual_editor::VisualEditor {
                             );
                         });
                     });
-                    state_machine::with_mut(|sm| sm.set_blocks_library_tab(blocks_library_tab));
+                    state_machine.set_blocks_library_tab(blocks_library_tab);
 
                     ui.separator();
 
-                    self.show_blocks_library_tab(ui, blocks_library_tab);
+                    self.show_blocks_library_tab(ui, blocks_library_tab, state_machine);
                 });
 
                 if ctx.input(|i| i.viewport().close_requested()) {
-                    state_machine::with_mut(|sm| sm.on_close_blocks_library_window());
+                    state_machine.on_close_blocks_library_window();
                 }
             },
         );

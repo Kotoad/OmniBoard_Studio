@@ -5,13 +5,12 @@ use eframe::egui::{
 use serde::{Deserialize, Serialize};
 
 use crate::settings;
-use crate::state_machine;
 
 const fn rgb(r: u8, g: u8, b: u8) -> Color32 {
     Color32::from_rgb(r, g, b)
 }
 
-#[derive(Clone, Copy, Deserialize, Serialize, Debug)]
+#[derive(Clone, Copy, Deserialize, Serialize, Debug, PartialEq, Eq)]
 pub struct Palette {
     pub window: Color32,
     pub window_text: Color32,
@@ -310,7 +309,14 @@ pub fn install(ctx: &egui::Context, p: Palette) {
     ctx.data_mut(|d| d.insert_temp(palette_id(), p));
 }
 
-pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {
+pub fn palette(ctx: &egui::Context) -> Palette {
+    ctx.data(|d| {
+        d.get_temp::<Palette>(palette_id())
+            .unwrap_or_else(Palette::dark)
+    })
+}
+
+pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str, settings: &settings::Settings) {
     let palette = match theme_str {
         "Dark" => Palette::dark(),
         "Light" => Palette::light(),
@@ -322,28 +328,17 @@ pub fn install_theme_from_str(ctx: &egui::Context, theme_str: &str) {
         "Monokai" => Palette::monokai(),
         "OneDark" => Palette::one_dark(),
         "Catppuccin" => Palette::catppuccin(),
-        "Custom" => settings::Settings::load()
-            .custom_theme
-            .unwrap_or_else(Palette::dark),
+        "Custom" => settings.custom_theme.unwrap_or_else(Palette::dark),
         _ => Palette::dark(),
     };
     install(ctx, palette);
 }
 
 fn visuals(p: &Palette) -> Visuals {
-    let theme = state_machine::with(|sm| sm.get_current_theme());
-    let mut v = match theme {
-        state_machine::Theme::Dark => Visuals::dark(),
-        state_machine::Theme::Light => Visuals::light(),
-        state_machine::Theme::Nord => Visuals::dark(),
-        state_machine::Theme::Dracula => Visuals::dark(),
-        state_machine::Theme::Gruvbox => Visuals::dark(),
-        state_machine::Theme::SolarizedDark => Visuals::dark(),
-        state_machine::Theme::SolarizedLight => Visuals::light(),
-        state_machine::Theme::Monokai => Visuals::dark(),
-        state_machine::Theme::OneDark => Visuals::dark(),
-        state_machine::Theme::Catppuccin => Visuals::dark(),
-        state_machine::Theme::Custom => Visuals::dark(),
+    let mut v = if *p == Palette::light() || *p == Palette::solarized_light() {
+        Visuals::light()
+    } else {
+        Visuals::dark()
     };
 
     v.panel_fill = p.window;
