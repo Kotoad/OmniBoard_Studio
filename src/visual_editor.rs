@@ -19,6 +19,10 @@ const FORMAT_VERSION: u16 = 3;
 const VERSION_LEN: usize = std::mem::size_of::<u16>();
 const HEADER_LEN: usize = MAGIC.len() + VERSION_LEN;
 
+const ZOOM_MIN: f32 = 0.5;
+const ZOOM_MAX: f32 = 3.0;
+const ZOOM_STEP: f32 = 0.25;
+
 const GRID_SIZE: f32 = 25.0;
 const GRID_WIDTH: f32 = 1.0;
 
@@ -33,10 +37,6 @@ const PORT_RADIUS: f32 = 5.0;
 const PORT_RADIUS_HOVER: f32 = 7.0;
 const PORT_BORDER: f32 = 1.5;
 const PORT_HITBOX_RADIUS: f32 = 16.0;
-
-const ZOOM_SENSITIVITY: f32 = 0.001;
-const ZOOM_MIN: f32 = 0.5;
-const ZOOM_MAX: f32 = 3.0;
 
 const WIRE_HOVER_THRESHOLD: f32 = 6.0;
 const WIRE_SEGMENTS: u32 = 24;
@@ -64,6 +64,7 @@ pub(crate) struct VisualEditor {
     run: Option<RunState>,
     cameras: Vec<Camera>,
     interaction: Interaction,
+    wire_caches: Vec<WireCache>,
 
     snap_to_grid: bool,
     dirty: bool,
@@ -83,6 +84,60 @@ struct Meta {
     format_version: u16,
     created: Option<DateTime<Utc>>,
     modified: Option<DateTime<Utc>>,
+}
+
+#[derive(Clone)]
+struct CachedWire {
+    from: Pos2,
+    to: Pos2,
+    points: Vec<Pos2>,
+    bounds: egui::Rect,
+    stamp: u64,
+}
+
+#[derive(Default, Clone)]
+struct WireCache {
+    entries: HashMap<(usize, u8), CachedWire>,
+    frame: u64,
+}
+
+impl CachedWire {
+    fn build(from: Pos2, to: Pos2, stamp: u64) -> Self {
+        let points = wire_points(from, to);
+        let bounds = egui::Rect::from_points(&points);
+        Self {
+            from,
+            to,
+            points,
+            bounds,
+            stamp,
+        }
+    }
+}
+
+impl WireCache {
+    fn begin_frame(&mut self) {
+        self.frame = self.frame.wrapping_add(1);
+    }
+
+    fn ensure(&mut self, key: (usize, u8), from: Pos2, to: Pos2) -> &CachedWire {
+        let entry = self
+            .entries
+            .entry(key)
+            .or_insert_with(|| CachedWire::build(from, to, self.frame));
+        if entry.from != from || entry.to != to {
+            *entry = CachedWire::build(from, to, self.frame);
+        } else {
+            entry.stamp = self.frame;
+        }
+        entry
+    }
+
+    fn end_frame(&mut self, live_wires: usize) {
+        if self.entries.len() > live_wires {
+            self.entries.retain(|_, e| e.stamp == self.frame);
+        }
+    }
 }
 
 #[derive(Clone, Copy)]
@@ -127,7 +182,11 @@ impl Camera {
     }
 
     fn zoom_at(&mut self, pointer: Pos2, scroll_y: f32) {
-        let new_zoom = (self.zoom * (scroll_y * ZOOM_SENSITIVITY).exp()).clamp(ZOOM_MIN, ZOOM_MAX);
+        let new_zoom = if scroll_y > 0.0 {
+            (self.zoom + ZOOM_STEP).min(ZOOM_MAX)
+        } else {
+            (self.zoom - ZOOM_STEP).max(ZOOM_MIN)
+        };
         let world = self.transform().inverse() * pointer;
         self.offset = pointer.to_vec2() - new_zoom * world.to_vec2();
         self.zoom = new_zoom;
@@ -152,6 +211,20 @@ pub fn in_port(rect: &egui::Rect, port: u8) -> egui::Pos2 {
     egui::Pos2::new(
         rect.left() - (BLOCK_BORDER_BASE / 2.0),
         rect.top() + (GRID_SIZE * 2.0) - BLOCK_BORDER_BASE + (port as f32) * GRID_SIZE,
+    )
+}
+
+fn out_port_screen(rect: &egui::Rect, port: u8, zoom: f32) -> Pos2 {
+    Pos2::new(
+        rect.right() + (BLOCK_BORDER_BASE / 2.0) * zoom,
+        rect.top() + ((GRID_SIZE * 2.0) - BLOCK_BORDER_BASE + port as f32 * GRID_SIZE) * zoom,
+    )
+}
+
+fn in_port_screen(rect: &egui::Rect, port: u8, zoom: f32) -> Pos2 {
+    Pos2::new(
+        rect.left() - (BLOCK_BORDER_BASE / 2.0) * zoom,
+        rect.top() + ((GRID_SIZE * 2.0) - BLOCK_BORDER_BASE + port as f32 * GRID_SIZE) * zoom,
     )
 }
 
@@ -420,6 +493,7 @@ impl VisualEditor {
             run: None,
             cameras: vec![Camera::default()],
             interaction: Interaction::default(),
+            wire_caches: vec![WireCache::default()],
 
             snap_to_grid: false,
             dirty: false,
@@ -469,26 +543,19 @@ impl VisualEditor {
     }
 
     fn move_block(&mut self, id: usize, delta: Vec2) {
-        if let Some(block) = self.graphs[self.graph_index]
-            .blocks_mut()
-            .find(|b| b.id == id)
-        {
-            block.pos.x += delta.x;
-            block.pos.y += delta.y;
-            self.dirty = true;
-        }
+        self.graphs[self.graph_index].translate_block(id, delta.x, delta.y);
+        self.dirty = true;
     }
 
     fn snap_block_to_grid(&mut self, id: usize) {
         if !self.snap_to_grid {
             return;
         }
-        if let Some(block) = self.graphs[self.graph_index]
-            .blocks_mut()
-            .find(|b| b.id == id)
-        {
-            block.pos.x = (block.pos.x / GRID_SIZE).round() * GRID_SIZE;
-            block.pos.y = (block.pos.y / GRID_SIZE).round() * GRID_SIZE;
+
+        if let Some(block) = self.graphs[self.graph_index].block(id) {
+            let x = (block.pos.x / GRID_SIZE).round() * GRID_SIZE;
+            let y = (block.pos.y / GRID_SIZE).round() * GRID_SIZE;
+            self.graphs[self.graph_index].set_block_pos(id, x, y);
             self.dirty = true;
         }
     }
@@ -497,7 +564,7 @@ impl VisualEditor {
         if !response.hovered() {
             return;
         };
-        let scroll_y = ui.input(|i| i.smooth_scroll_delta.y);
+        let scroll_y = ui.input(|i| i.raw_scroll_delta.y);
         if scroll_y == 0.0 {
             return;
         };
@@ -563,6 +630,7 @@ impl VisualEditor {
                 .push(Graph::from_parts("Graph 0", Vec::new(), Vec::new()));
         }
         self.cameras = vec![Camera::default(); self.graphs.len()];
+        self.wire_caches = vec![WireCache::default(); self.graphs.len()];
         self.graph_index = 0;
         self.graphs.iter_mut().for_each(Graph::normalize);
         self.interaction = Interaction::default();
@@ -610,10 +678,11 @@ impl VisualEditor {
         let run_current = self.run.map(|r| r.current);
         let over_canvas = pointer.is_some_and(|p| canvas_rect.contains(p));
         let mut interaction = BlockInteraction::default();
+        let transform = self.cameras[self.graph_index].transform();
 
         for block in self.graphs[self.graph_index].blocks() {
             let area = egui::Area::new(egui::Id::new(("block", block.id)))
-                .fixed_pos(Pos2::new(block.pos.x, block.pos.y))
+                .fixed_pos(transform * Pos2::new(block.pos.x, block.pos.y))
                 .movable(false)
                 .constrain(false)
                 .interactable(over_canvas)
@@ -623,6 +692,12 @@ impl VisualEditor {
                 let title = LOADER.get(block.kind.block_type().meta().title_key);
                 let field = LOADER.get(block.kind.block_type().meta().field_key);
                 let id = format!("#{}", block.id);
+
+                let zoom = self.cameras[self.graph_index].zoom;
+
+                for font in ui.style_mut().text_styles.values_mut() {
+                    font.size *= zoom;
+                }
 
                 let body = egui::TextStyle::Body.resolve(ui.style());
                 let small = egui::TextStyle::Small.resolve(ui.style());
@@ -634,50 +709,56 @@ impl VisualEditor {
                     })
                 };
 
-                let gap = ui.spacing().item_spacing.x;
+                let gap = ui.spacing().item_spacing.x * zoom;
 
                 let header_w = text_w(ui, &title, body.clone())
                     + gap
                     + text_w(ui, &id, small)
-                    + (BLOCK_MARGIN_X * 2.0);
-                let content_w = text_w(ui, &field, body.clone()) + (BLOCK_MARGIN_X * 2.0);
+                    + (BLOCK_MARGIN_X * 2.0) * zoom;
+                let content_w = text_w(ui, &field, body.clone()) + (BLOCK_MARGIN_X * 2.0) * zoom;
+                let world_w = header_w.max(content_w) / zoom;
+                let block_w =
+                    ((world_w / GRID_SIZE).ceil() * GRID_SIZE).max(MINIMUM_BLOCK_WIDTH) * zoom;
 
-                let block_w = ((header_w.max(content_w) / GRID_SIZE).ceil() * GRID_SIZE)
-                    .max(MINIMUM_BLOCK_WIDTH);
-                ui.set_clip_rect(
-                    self.cameras[self.graph_index].transform().inverse() * canvas_rect,
-                );
+                ui.set_clip_rect(canvas_rect);
 
                 let outline = if run_current == Some(block.id) {
-                    Stroke::new(BLOCK_BORDER_RUNNING, Color32::from_rgb(255, 210, 80))
+                    Stroke::new(BLOCK_BORDER_RUNNING * zoom, Color32::from_rgb(255, 210, 80))
                 } else if selected == Some(block.id) {
-                    Stroke::new(BLOCK_BORDER_SELECTED, Color32::WHITE)
+                    Stroke::new(BLOCK_BORDER_SELECTED * zoom, Color32::WHITE)
                 } else {
-                    Stroke::new(BLOCK_BORDER_BASE, block.kind.block_type().meta().color)
+                    Stroke::new(
+                        BLOCK_BORDER_BASE * zoom,
+                        block.kind.block_type().meta().color,
+                    )
                 };
 
                 let shell = egui::Frame::none()
                     .fill(Color32::from_rgb(18, 18, 22))
                     .stroke(outline)
-                    .rounding(6.0)
+                    .rounding(6.0 * zoom)
                     .inner_margin(egui::Margin::ZERO)
                     .show(ui, |ui| {
-                        ui.set_min_width(block_w - (BLOCK_BORDER_BASE * 2.0));
-                        ui.set_max_width(block_w - (BLOCK_BORDER_BASE * 2.0));
+                        ui.set_min_width(block_w - (BLOCK_BORDER_BASE * 2.0) * zoom);
+                        ui.set_max_width(block_w - (BLOCK_BORDER_BASE * 2.0) * zoom);
                         ui.spacing_mut().item_spacing.y = 0.0;
 
                         let header = egui::Frame::none()
                             .fill(block.kind.block_type().meta().color)
                             .rounding(egui::Rounding {
-                                nw: 5.0,
-                                ne: 5.0,
-                                sw: 0.0,
-                                se: 0.0,
+                                nw: 5.0 * zoom,
+                                ne: 5.0 * zoom,
+                                sw: 0.0 * zoom,
+                                se: 0.0 * zoom,
                             })
-                            .inner_margin(egui::Margin::symmetric(BLOCK_MARGIN_X, BLOCK_MARGIN_Y))
+                            .inner_margin(egui::Margin::symmetric(
+                                BLOCK_MARGIN_X * zoom,
+                                BLOCK_MARGIN_Y * zoom,
+                            ))
                             .show(ui, |ui| {
                                 ui.set_min_width(
-                                    block_w - (BLOCK_MARGIN_X * 2.0) - (BLOCK_BORDER_BASE * 2.0),
+                                    block_w
+                                        - (BLOCK_MARGIN_X * 2.0 + BLOCK_BORDER_BASE * 2.0) * zoom,
                                 );
                                 ui.horizontal(|ui| {
                                     let block_kind =
@@ -701,7 +782,7 @@ impl VisualEditor {
 
                         let header_drag = header.response.interact(Sense::click_and_drag());
                         if header_drag.dragged_by(egui::PointerButton::Primary) {
-                            interaction.drag = Some((block.id, header_drag.drag_delta()));
+                            interaction.drag = Some((block.id, header_drag.drag_delta() / zoom));
                             ui.ctx().set_cursor_icon(egui::CursorIcon::Grabbing);
                         } else if header_drag.hovered() {
                             ui.ctx().set_cursor_icon(egui::CursorIcon::Grab);
@@ -731,16 +812,16 @@ impl VisualEditor {
 
                         //MARK: - Block content
                         egui::Frame::none()
-                            .inner_margin(egui::Margin::same(BLOCK_MARGIN_X))
+                            .inner_margin(egui::Margin::same(BLOCK_MARGIN_X * zoom))
                             .show(ui, |ui| {
                                 let ports_count =
                                     block.kind.out_ports().max(block.kind.in_ports()) as f32;
                                 ui.set_min_height(
-                                    (ports_count + 1.0) * GRID_SIZE
-                                        - (BLOCK_MARGIN_Y * 2.0)
-                                        - (BLOCK_BORDER_BASE * 2.0),
+                                    (ports_count + 1.0) * GRID_SIZE * zoom
+                                        - ((BLOCK_MARGIN_Y * 2.0) * zoom)
+                                        - (BLOCK_BORDER_BASE * 2.0) * zoom,
                                 );
-                                ui.spacing_mut().item_spacing.y = 4.0;
+                                ui.spacing_mut().item_spacing.y = 4.0 * zoom;
                                 ui.with_layout(egui::Layout::top_down(egui::Align::Center), |ui| {
                                     ui.label(
                                         RichText::new(
@@ -752,65 +833,62 @@ impl VisualEditor {
                             });
                     });
 
+                //MARK: - Draw ports
                 let rect = shell.response.rect;
                 let painter = ui.painter();
-                let world_ptr =
-                    pointer.map(|p| self.cameras[self.graph_index].transform().inverse() * p);
                 let out_ports: Vec<Pos2> = (0..block.kind.out_ports())
-                    .map(|i| out_port(&rect, i))
+                    .map(|i| out_port_screen(&rect, i, zoom))
                     .collect();
                 let in_ports: Vec<Pos2> = (0..block.kind.in_ports())
-                    .map(|i| in_port(&rect, i))
+                    .map(|i| in_port_screen(&rect, i, zoom))
                     .collect();
+
                 for port in out_ports.iter() {
-                    let out_hot = world_ptr.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS);
+                    let out_hot =
+                        pointer.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS * zoom);
                     painter.circle_filled(
                         *port,
                         if out_hot {
-                            PORT_RADIUS_HOVER
+                            PORT_RADIUS_HOVER * zoom
                         } else {
-                            PORT_RADIUS
+                            PORT_RADIUS * zoom
                         },
                         Color32::WHITE,
                     );
                     painter.circle_stroke(
                         *port,
                         if out_hot {
-                            PORT_RADIUS_HOVER
+                            PORT_RADIUS_HOVER * zoom
                         } else {
-                            PORT_RADIUS
+                            PORT_RADIUS * zoom
                         },
-                        Stroke::new(PORT_BORDER, Color32::BLACK),
+                        Stroke::new(PORT_BORDER * zoom, Color32::BLACK),
                     );
                 }
                 for port in in_ports.iter() {
-                    let in_hot = world_ptr.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS);
+                    let in_hot =
+                        pointer.is_some_and(|p| p.distance(*port) < PORT_HITBOX_RADIUS * zoom);
                     painter.circle_filled(
                         *port,
                         if in_hot {
-                            PORT_RADIUS_HOVER
+                            PORT_RADIUS_HOVER * zoom
                         } else {
-                            PORT_RADIUS
+                            PORT_RADIUS * zoom
                         },
                         Color32::from_rgb(180, 220, 200),
                     );
                     painter.circle_stroke(
                         *port,
                         if in_hot {
-                            PORT_RADIUS_HOVER
+                            PORT_RADIUS_HOVER * zoom
                         } else {
-                            PORT_RADIUS
+                            PORT_RADIUS * zoom
                         },
-                        Stroke::new(PORT_BORDER, Color32::BLACK),
+                        Stroke::new(PORT_BORDER * zoom, Color32::BLACK),
                     );
                 }
             });
-            ctx.set_transform_layer(
-                resp.response.layer_id,
-                self.cameras[self.graph_index].transform(),
-            );
-
-            rects.insert(block.id, resp.response.rect);
+            rects.insert(block.id, transform.inverse() * resp.response.rect);
         }
 
         interaction
@@ -882,71 +960,85 @@ impl VisualEditor {
         response: &egui::Response,
         grabbed_port: bool,
     ) {
-        let mut wire_paths: Vec<Vec<Pos2>> =
-            Vec::with_capacity(self.graphs[self.graph_index].wires().len());
-        let mut hovered_wire: Option<usize> = None;
-        for (i, wire) in self.graphs[self.graph_index].wires().iter().enumerate() {
-            let path = match (rects.get(&wire.from_block), rects.get(&wire.to_block)) {
-                (Some(from), Some(to)) => wire_points(
-                    self.cameras[self.graph_index].transform() * out_port(from, wire.from_port),
-                    self.cameras[self.graph_index].transform() * in_port(to, wire.to_port),
-                ),
-                _ => Vec::new(),
+        let graph = &self.graphs[self.graph_index];
+        let cache = &mut self.wire_caches[self.graph_index];
+        let transform = self.cameras[self.graph_index].transform();
+
+        cache.begin_frame();
+
+        let mut hovered: Option<(usize, u8)> = None;
+        let pointer_world = pointer
+            .filter(|p| canvas_rect.contains(*p))
+            .map(|p| self.cameras[self.graph_index].transform().inverse() * p);
+        let threshold = WIRE_HOVER_THRESHOLD / self.cameras[self.graph_index].zoom;
+
+        for wire in graph.wires() {
+            let (Some(from_rect), Some(to_rect)) =
+                (rects.get(&wire.from_block), rects.get(&wire.to_block))
+            else {
+                continue;
             };
-            if hovered_wire.is_none() {
-                if let Some(p) = pointer {
-                    if !path.is_empty()
-                        && canvas_rect.contains(p)
-                        && dist_to_polyline(p, &path) < WIRE_HOVER_THRESHOLD
+
+            let key = (wire.from_block, wire.from_port);
+            let entry = cache.ensure(
+                key,
+                out_port(from_rect, wire.from_port),
+                in_port(to_rect, wire.to_port),
+            );
+
+            if hovered.is_none() {
+                if let Some(wp) = pointer_world {
+                    if entry.bounds.expand(threshold).contains(wp)
+                        && dist_to_polyline(wp, &entry.points) < threshold
                     {
-                        hovered_wire = Some(i);
+                        hovered = Some(key);
                     }
                 }
             }
-            wire_paths.push(path);
         }
 
+        cache.end_frame(graph.wires().len());
+
+        let wire_layer = egui::LayerId::new(egui::Order::Background, egui::Id::new("wires"));
+        ctx.set_transform_layer(wire_layer, transform);
+        let mut wire_painter = ctx.layer_painter(wire_layer);
+        wire_painter.set_clip_rect(transform.inverse() * canvas_rect);
+
         if response.secondary_clicked() && !grabbed_port {
-            self.interaction.context_wire = hovered_wire.map(|i| {
-                (
-                    self.graphs[self.graph_index].wires()[i].from_block,
-                    self.graphs[self.graph_index].wires()[i].from_port,
-                    self.graphs[self.graph_index].wires()[i].to_block,
-                    self.graphs[self.graph_index].wires()[i].to_port,
-                )
-            });
+            self.interaction.context_wire =
+                hovered.and_then(|i| graph.successor(i).map(|to| (i.0, i.1, to.0, to.1)));
         }
-        if self.interaction.context_wire.is_some() {
+
+        let context_wire = self.interaction.context_wire;
+        let mut disconnect: Option<(usize, u8, usize, u8)> = None;
+
+        if context_wire.is_some() {
             response.context_menu(|ui| {
-                if let Some((from, from_port, to, to_port)) = self.interaction.context_wire {
+                if let Some(w) = context_wire {
                     if ui
                         .button(fl!(LOADER, "main-gui-wire-context-menu-delete"))
                         .clicked()
                     {
-                        Graph::disconnect(
-                            &mut self.graphs[self.graph_index],
-                            (from, from_port),
-                            (to, to_port),
-                        );
-                        self.dirty = true;
+                        disconnect = Some(w);
                         ui.close_menu();
                     }
                 }
             });
         }
-        let wire_painter = ctx
-            .layer_painter(egui::LayerId::new(
-                egui::Order::Background,
-                egui::Id::new("wires"),
-            ))
-            .with_clip_rect(canvas_rect);
-        for (i, path) in wire_paths.iter().enumerate() {
-            let (width, color) = if hovered_wire == Some(i) {
+
+        for wire in graph.wires() {
+            let key = (wire.from_block, wire.from_port);
+            let Some(entry) = cache.entries.get(&key) else {
+                continue;
+            };
+            
+            let (width, color) = if hovered == Some(key) {
                 (4.0_f32, Color32::from_rgb(255, 100, 100))
             } else {
                 (2.5_f32, Color32::from_rgb(80, 200, 160))
             };
-            for seg in path.windows(2) {
+
+            for seg in entry.points.windows(2) {
                 wire_painter.line_segment([seg[0], seg[1]], Stroke::new(width, color));
             }
         }
@@ -959,18 +1051,19 @@ impl VisualEditor {
             .with_clip_rect(canvas_rect);
         if let (Some(from), Some(pos)) = (self.interaction.wire_from, pointer) {
             if let Some(rect) = rects.get(&from.0) {
-                for seg in wire_points(
-                    self.cameras[self.graph_index].transform() * out_port(rect, from.1),
-                    pos,
-                )
-                .windows(2)
-                {
+                for seg in wire_points(transform * out_port(rect, from.1), pos).windows(2) {
                     fg.line_segment(
                         [seg[0], seg[1]],
                         Stroke::new(2.5_f32, Color32::from_rgb(255, 100, 60)),
                     );
                 }
             }
+        }
+
+        if let Some((from_block, from_port, to_block, to_port)) = disconnect {
+            self.graphs[self.graph_index].disconnect((from_block, from_port), (to_block, to_port));
+            self.interaction.context_wire = None;
+            self.dirty = true;
         }
     }
 
