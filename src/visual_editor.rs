@@ -1031,7 +1031,7 @@ impl VisualEditor {
             let Some(entry) = cache.entries.get(&key) else {
                 continue;
             };
-            
+
             let (width, color) = if hovered == Some(key) {
                 (4.0_f32, Color32::from_rgb(255, 100, 100))
             } else {

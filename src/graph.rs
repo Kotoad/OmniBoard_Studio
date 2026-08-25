@@ -786,10 +786,10 @@ impl Graph {
         for w in old_wires {
             let out_port_valid = self
                 .block(w.from_block)
-                .map_or(false, |b| w.from_port < b.kind.out_ports());
+                .is_some_and(|b| w.from_port < b.kind.out_ports());
             let in_port_valid = self
                 .block(w.to_block)
-                .map_or(false, |b| w.to_port < b.kind.in_ports());
+                .is_some_and(|b| w.to_port < b.kind.in_ports());
             let out_port_free = !self.out_wire.contains_key(&(w.from_block, w.from_port));
             let in_port_free = !self.in_wire.contains_key(&(w.to_block, w.to_port));
             let blocks_exist = self.block_exists(w.from_block) && self.block_exists(w.to_block);
