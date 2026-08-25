@@ -3,25 +3,6 @@
 Rust + egui/eframe 0.30 visual block editor. Blocks are wired into a graph that will later be
 compiled to device code.
 
-## How to work on this repo
-
-**Explain, don't implement.** The maintainer drives the implementation and uses Claude as an
-advisor. Default to explanation plus paste-ready snippets — do not edit source files unless given a
-direct, explicit instruction to change code.
-
-- *Not* permission to edit: "how do I X", "why does X happen", and bug/symptom reports
-  ("X doesn't work", "the button does nothing"). A described problem is a request to find and
-  explain the fix, not to apply it.
-- *Is* permission to edit: a direct imperative — "fix it", "apply it", "change X to Y",
-  "implement X", "write the tests".
-- When unsure, explain first and offer to apply it.
-
-Reading and searching files to diagnose is always fine.
-
-**Read the related files first.** Before answering, read every file relevant to the question *and*
-every file a proposed change would touch — including the callers of anything being changed. Do not
-answer from the shape of the code you remember; line numbers and APIs here move often.
-
 ## Verifying work
 
 CI (`.github/workflows/test.yaml`) runs exactly these, and **clippy warnings are errors**:
@@ -82,17 +63,14 @@ same reason — it compares `name`, `blocks`, and `wires` only.
 
 ## Conventions
 
-- Tunables are named `const`s at the top of the file. No magic numbers at the use site.
-- `//MARK:` comments separate sections in long files.
-- User-facing strings go through `LOADER.get(...)` or `fl!(LOADER, "key")`, never hardcoded, and
-  every new key is added to **both** `i18n/en` and `i18n/cs`.
-- Tests live in the same file under `#[cfg(test)] mod tests`, with `//MARK:` groups.
-- When testing an indexed lookup, the oracle must be an independent linear scan over `blocks` /
-  `wires` — never a call back into the index being tested.
-- proptest strategies draw ids and ports from a small space (ids `0..8`, ports `0..4`) so generated
-  operations actually hit existing blocks, and probe over a wider space so absent ids are covered
-  too.
-- Commit subjects use `feat:` / `refactor:` prefixes.
+General working rules and code conventions live in the global `~/.claude/CLAUDE.md`. On top of
+those, here:
+
+- User-facing strings go through `LOADER.get(...)` or `fl!(LOADER, "key")`, and every new key is
+  added to **both** `i18n/en` and `i18n/cs`.
+- Test oracles scan `blocks` / `wires` directly.
+- proptest strategies draw ids `0..8` and ports `0..4`, and probe over a wider space so absent ids
+  are covered too.
 
 ## Tracker
 
