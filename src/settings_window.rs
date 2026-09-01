@@ -127,7 +127,7 @@ fn color_row(ui: &mut Ui, color_category: &str, settings: &mut settings::Setting
                 *color = c;
             }
 
-            theme::install(ui.ctx(), pal);
+            theme::install(ui, pal);
             settings.custom_theme = Some(pal);
         }
         changed

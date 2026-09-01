@@ -21,7 +21,7 @@ const HEADER_LEN: usize = MAGIC.len() + VERSION_LEN;
 
 const ZOOM_MIN: f32 = 0.5;
 const ZOOM_MAX: f32 = 3.0;
-const ZOOM_STEP: f32 = 0.25;
+const ZOOM_SPEED: f32 = 0.001;
 
 const GRID_SIZE: f32 = 25.0;
 const GRID_WIDTH: f32 = 1.0;
@@ -31,7 +31,9 @@ const BLOCK_BORDER_SELECTED: f32 = 2.5;
 const BLOCK_BORDER_RUNNING: f32 = 3.0;
 const BLOCK_MARGIN_X: f32 = 8.0;
 const BLOCK_MARGIN_Y: f32 = 5.0;
-const MINIMUM_BLOCK_WIDTH: f32 = 175.0;
+const HEADER_CORNER_RADIUS: f32 = 6.0;
+const SHELL_CORNER_RADIUS: f32 = 5.0;
+const BLOCK_MINIMUM_WIDTH: f32 = 175.0;
 
 const PORT_RADIUS: f32 = 5.0;
 const PORT_RADIUS_HOVER: f32 = 7.0;
@@ -86,6 +88,7 @@ struct Meta {
     modified: Option<DateTime<Utc>>,
 }
 
+//MARK: - Wire caching
 #[derive(Clone)]
 struct CachedWire {
     from: Pos2,
@@ -140,6 +143,7 @@ impl WireCache {
     }
 }
 
+//MARK: - Camera
 #[derive(Clone, Copy)]
 struct Camera {
     offset: Vec2,
@@ -182,11 +186,7 @@ impl Camera {
     }
 
     fn zoom_at(&mut self, pointer: Pos2, scroll_y: f32) {
-        let new_zoom = if scroll_y > 0.0 {
-            (self.zoom + ZOOM_STEP).min(ZOOM_MAX)
-        } else {
-            (self.zoom - ZOOM_STEP).max(ZOOM_MIN)
-        };
+        let new_zoom = (self.zoom * (scroll_y * ZOOM_SPEED).exp()).clamp(ZOOM_MIN, ZOOM_MAX);
         let world = self.transform().inverse() * pointer;
         self.offset = pointer.to_vec2() - new_zoom * world.to_vec2();
         self.zoom = new_zoom;
@@ -287,6 +287,10 @@ fn draw_grid(
         );
         y += zoom_grid_size;
     }
+}
+
+fn snap_font_size(size: f32, pixels_per_point: f32) -> f32 {
+    (size * pixels_per_point).round().max(1.0) / pixels_per_point
 }
 
 //MARK: - File encoding/decoding
@@ -564,7 +568,7 @@ impl VisualEditor {
         if !response.hovered() {
             return;
         };
-        let scroll_y = ui.input(|i| i.raw_scroll_delta.y);
+        let scroll_y = ui.input(|i| i.smooth_scroll_delta.y);
         if scroll_y == 0.0 {
             return;
         };
@@ -692,17 +696,17 @@ impl VisualEditor {
                 let title = LOADER.get(block.kind.block_type().meta().title_key);
                 let field = LOADER.get(block.kind.block_type().meta().field_key);
                 let id = format!("#{}", block.id);
-
                 let zoom = self.cameras[self.graph_index].zoom;
+                let pixels_per_point = ui.ctx().pixels_per_point();
 
                 for font in ui.style_mut().text_styles.values_mut() {
-                    font.size *= zoom;
+                    font.size = snap_font_size(font.size * zoom, pixels_per_point);
                 }
 
                 let body = egui::TextStyle::Body.resolve(ui.style());
                 let small = egui::TextStyle::Small.resolve(ui.style());
                 let text_w = |ui: &egui::Ui, s: &str, font: egui::FontId| {
-                    ui.fonts(|f| {
+                    ui.fonts_mut(|f| {
                         f.layout_no_wrap(s.to_owned(), font, Color32::WHITE)
                             .rect
                             .width()
@@ -718,7 +722,7 @@ impl VisualEditor {
                 let content_w = text_w(ui, &field, body.clone()) + (BLOCK_MARGIN_X * 2.0) * zoom;
                 let world_w = header_w.max(content_w) / zoom;
                 let block_w =
-                    ((world_w / GRID_SIZE).ceil() * GRID_SIZE).max(MINIMUM_BLOCK_WIDTH) * zoom;
+                    ((world_w / GRID_SIZE).ceil() * GRID_SIZE).max(BLOCK_MINIMUM_WIDTH) * zoom;
 
                 ui.set_clip_rect(canvas_rect);
 
@@ -733,25 +737,25 @@ impl VisualEditor {
                     )
                 };
 
-                let shell = egui::Frame::none()
+                let shell = egui::Frame::new()
                     .fill(Color32::from_rgb(18, 18, 22))
                     .stroke(outline)
-                    .rounding(6.0 * zoom)
+                    .corner_radius(SHELL_CORNER_RADIUS * zoom)
                     .inner_margin(egui::Margin::ZERO)
                     .show(ui, |ui| {
                         ui.set_min_width(block_w - (BLOCK_BORDER_BASE * 2.0) * zoom);
                         ui.set_max_width(block_w - (BLOCK_BORDER_BASE * 2.0) * zoom);
                         ui.spacing_mut().item_spacing.y = 0.0;
 
-                        let header = egui::Frame::none()
+                        let header = egui::Frame::new()
                             .fill(block.kind.block_type().meta().color)
-                            .rounding(egui::Rounding {
-                                nw: 5.0 * zoom,
-                                ne: 5.0 * zoom,
-                                sw: 0.0 * zoom,
-                                se: 0.0 * zoom,
+                            .corner_radius(egui::CornerRadius {
+                                nw: (HEADER_CORNER_RADIUS * zoom).round() as u8,
+                                ne: (HEADER_CORNER_RADIUS * zoom).round() as u8,
+                                sw: 0,
+                                se: 0,
                             })
-                            .inner_margin(egui::Margin::symmetric(
+                            .inner_margin(egui::vec2(
                                 BLOCK_MARGIN_X * zoom,
                                 BLOCK_MARGIN_Y * zoom,
                             ))
@@ -799,20 +803,20 @@ impl VisualEditor {
                                 .clicked()
                             {
                                 interaction.duplicate = Some(block.id);
-                                ui.close_menu();
+                                ui.close();
                             }
                             if ui
                                 .button(fl!(LOADER, "main-gui-block-context-menu-delete"))
                                 .clicked()
                             {
                                 interaction.delete = Some(block.id);
-                                ui.close_menu();
+                                ui.close();
                             }
                         });
 
                         //MARK: - Block content
-                        egui::Frame::none()
-                            .inner_margin(egui::Margin::same(BLOCK_MARGIN_X * zoom))
+                        egui::Frame::new()
+                            .inner_margin(egui::Margin::same((BLOCK_MARGIN_X * zoom).round() as i8))
                             .show(ui, |ui| {
                                 let ports_count =
                                     block.kind.out_ports().max(block.kind.in_ports()) as f32;
@@ -1020,7 +1024,7 @@ impl VisualEditor {
                         .clicked()
                     {
                         disconnect = Some(w);
-                        ui.close_menu();
+                        ui.close();
                     }
                 }
             });
@@ -1068,8 +1072,8 @@ impl VisualEditor {
     }
 
     //MARK: - GUI
-    pub(crate) fn show_visual_editor(&mut self, ctx: &egui::Context) {
-        egui::CentralPanel::default().show(ctx, |ui| {
+    pub(crate) fn show_visual_editor(&mut self, ui: &mut egui::Ui) {
+        egui::CentralPanel::default().show(ui, |ui| {
             let canvas_rect = ui.max_rect();
             let response = ui.allocate_rect(canvas_rect, egui::Sense::click_and_drag());
 
@@ -1079,7 +1083,7 @@ impl VisualEditor {
             let mmb_pressed = ui.input(|i| i.pointer.middle_down());
 
             let painter = ui.painter();
-            let pal = theme::palette(ctx);
+            let pal = theme::palette(ui.ctx());
 
             let mut rects: HashMap<usize, egui::Rect> = HashMap::new();
 
@@ -1095,7 +1099,7 @@ impl VisualEditor {
                 pal.mid,
             );
 
-            let interaction = self.draw_blocks(pointer, canvas_rect, ctx, &mut rects);
+            let interaction = self.draw_blocks(pointer, canvas_rect, ui.ctx(), &mut rects);
 
             if let Some(id) = interaction.select {
                 self.interaction.selected = Some(id);
@@ -1116,7 +1120,7 @@ impl VisualEditor {
             let grabbed_port =
                 self.handle_wire_interaction(pointer, rmb_pressed, rmb_released, &rects);
 
-            self.draw_wires(ctx, pointer, canvas_rect, &rects, &response, grabbed_port);
+            self.draw_wires(ui.ctx(), pointer, canvas_rect, &rects, &response, grabbed_port);
         });
     }
 }

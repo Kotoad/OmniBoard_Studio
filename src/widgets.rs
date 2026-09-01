@@ -1,5 +1,5 @@
 use egui::text::LayoutJob;
-use egui::{self, FontId, Rounding, TextFormat, Ui};
+use egui::{self, FontId, CornerRadius, TextFormat, Ui};
 
 pub fn file_button_simple(
     ui: &mut Ui,
@@ -32,6 +32,6 @@ pub fn file_button_simple(
     // min_size makes the button fill the panel width and have a fixed height.
     ui.add_sized(
         [ui.available_width(), 28.0],
-        egui::Button::new(job).rounding(Rounding::same(6.0)),
+        egui::Button::new(job).corner_radius(CornerRadius::same(6)),
     )
 }

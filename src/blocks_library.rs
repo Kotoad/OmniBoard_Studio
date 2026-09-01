@@ -107,10 +107,10 @@ impl visual_editor::VisualEditor {
             }
         }
 
-        egui::SidePanel::left("blocks_library_panel")
+        egui::panel::Panel::left("blocks_library_panel")
             .resizable(true)
-            .default_width(100.0)
-            .show_inside(ui, |ui| {
+            .default_size(100.0)
+            .show(ui, |ui| {
                 egui::ScrollArea::vertical()
                     .auto_shrink([false, false])
                     .show(ui, |ui| {
@@ -159,7 +159,7 @@ impl visual_editor::VisualEditor {
                         state_machine.set_current_block(current_block);
                     });
             });
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             show_block_details(self, ui, &current_block);
         });
     }

@@ -1,5 +1,5 @@
 use eframe::egui::{
-    self, Color32, FontFamily, FontId, Rounding, Stroke, Style, TextStyle, Visuals,
+    self, Color32, FontFamily, FontId, CornerRadius, Stroke, Style, TextStyle, Visuals,
 };
 
 use serde::{Deserialize, Serialize};
@@ -287,7 +287,7 @@ impl Palette {
     }
 }
 
-const ROUNDING: f32 = 4.0;
+const CORNER_RADIUS: u8 = 4;
 const BORDER: f32 = 1.0;
 
 pub fn style_from(p: Palette) -> Style {
@@ -305,7 +305,9 @@ fn palette_id() -> egui::Id {
 }
 
 pub fn install(ctx: &egui::Context, p: Palette) {
-    ctx.set_style(style_from(p));
+    let style = style_from(p);
+    ctx.set_style_of(egui::Theme::Light, style.clone());
+    ctx.set_style_of(egui::Theme::Dark, style);
     ctx.data_mut(|d| d.insert_temp(palette_id(), p));
 }
 
@@ -341,11 +343,13 @@ fn visuals(p: &Palette) -> Visuals {
         Visuals::dark()
     };
 
+    let corner_radius = CornerRadius::same(CORNER_RADIUS);
+
     v.panel_fill = p.window;
     v.window_fill = p.window;
     v.extreme_bg_color = p.base;
     v.faint_bg_color = p.alternate_base;
-    v.window_rounding = Rounding::same(ROUNDING);
+    v.window_corner_radius = corner_radius;
     v.window_stroke = Stroke::new(BORDER, p.dark);
 
     v.selection.bg_fill = p.highlight.gamma_multiply(0.55);
@@ -355,40 +359,39 @@ fn visuals(p: &Palette) -> Visuals {
     v.warn_fg_color = p.bright_text;
     v.error_fg_color = p.bright_text;
 
-    let rounding = Rounding::same(ROUNDING);
 
     v.widgets.noninteractive.bg_fill = p.window;
     v.widgets.noninteractive.weak_bg_fill = p.window;
     v.widgets.noninteractive.bg_stroke = Stroke::new(BORDER, p.mid);
     v.widgets.noninteractive.fg_stroke = Stroke::new(BORDER, p.window_text);
-    v.widgets.noninteractive.rounding = rounding;
+    v.widgets.noninteractive.corner_radius = corner_radius;
 
     v.widgets.inactive.bg_fill = p.button;
     v.widgets.inactive.weak_bg_fill = p.button;
     v.widgets.inactive.bg_stroke = Stroke::new(BORDER, p.mid);
     v.widgets.inactive.fg_stroke = Stroke::new(BORDER, p.button_text);
-    v.widgets.inactive.rounding = rounding;
+    v.widgets.inactive.corner_radius = corner_radius;
     v.widgets.inactive.expansion = 0.0;
 
     v.widgets.hovered.bg_fill = p.alternate_base;
     v.widgets.hovered.weak_bg_fill = p.alternate_base;
     v.widgets.hovered.bg_stroke = Stroke::new(BORDER, p.highlight);
     v.widgets.hovered.fg_stroke = Stroke::new(BORDER, p.highlight);
-    v.widgets.hovered.rounding = rounding;
+    v.widgets.hovered.corner_radius = corner_radius;
     v.widgets.hovered.expansion = 1.0;
 
     v.widgets.active.bg_fill = p.mid;
     v.widgets.active.weak_bg_fill = p.mid;
     v.widgets.active.bg_stroke = Stroke::new(BORDER, p.highlight);
     v.widgets.active.fg_stroke = Stroke::new(BORDER, p.highlighted_text);
-    v.widgets.active.rounding = rounding;
+    v.widgets.active.corner_radius = corner_radius;
     v.widgets.active.expansion = 1.0;
 
     v.widgets.open.bg_fill = p.base;
     v.widgets.open.weak_bg_fill = p.base;
     v.widgets.open.bg_stroke = Stroke::new(BORDER, p.mid);
     v.widgets.open.fg_stroke = Stroke::new(BORDER, p.text);
-    v.widgets.open.rounding = rounding;
+    v.widgets.open.corner_radius = corner_radius;
 
     v
 }
@@ -409,7 +412,7 @@ fn apply_spacing(style: &mut Style) {
     let s = &mut style.spacing;
     s.item_spacing = egui::vec2(8.0, 6.0);
     s.button_padding = egui::vec2(10.0, 6.0);
-    s.menu_margin = egui::Margin::same(6.0);
+    s.menu_margin = egui::Margin::same(6);
     s.indent = 18.0;
     s.scroll.bar_width = 10.0;
 }

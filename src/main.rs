@@ -71,7 +71,7 @@ fn tool_button(ui: &mut egui::Ui, image_key: egui::ImageSource<'_>, h: f32) -> e
     let tool_button = egui::Image::new(image_key)
         .fit_to_exact_size(egui::vec2(h, h))
         .tint(ui.visuals().text_color());
-    ui.add(egui::ImageButton::new(tool_button))
+    ui.add(egui::Button::image(tool_button))
 }
 
 fn project_path(path: PathBuf) -> PathBuf {
@@ -272,14 +272,15 @@ impl OmniBoardStudio {
     }
 
     //MARK: - GUI
-    fn hub_tab_ui(&mut self, ctx: &egui::Context) {
-        let _window_width: f32 = ctx.screen_rect().width();
+    fn hub_tab_ui(&mut self, ui: &mut egui::Ui) {
 
-        egui::SidePanel::left("File Sidebar")
+        let window_width = ui.ctx().content_rect().width();
+
+        egui::panel::Panel::left("File Sidebar")
             .resizable(true)
-            .default_width(300.0)
-            .width_range(150.0..=(_window_width * 0.5).max(150.0))
-            .show(ctx, |ui| {
+            .default_size(300.0)
+            .size_range(150.0..=(window_width * 0.5).max(150.0))
+            .show(ui, |ui| {
                 egui::ScrollArea::horizontal()
                     .auto_shrink(false)
                     .show(ui, |ui| {
@@ -305,7 +306,7 @@ impl OmniBoardStudio {
                     });
             });
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             egui::ScrollArea::both().auto_shrink(false).show(ui, |ui| {
                 ui.style_mut().wrap_mode = Some(egui::TextWrapMode::Extend);
                 ui.label("Main Hub")
@@ -316,7 +317,7 @@ impl OmniBoardStudio {
 
 //MARK: - eframe::App Implementation
 impl eframe::App for OmniBoardStudio {
-    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+    fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let project = self
             .current_file
             .as_ref()
@@ -331,7 +332,7 @@ impl eframe::App for OmniBoardStudio {
         let title = format!("OmniBoard Studio - {project}{dirty_mark}");
         if title != self.window_title {
             self.window_title = title.clone();
-            ctx.send_viewport_cmd(egui::ViewportCommand::Title(title));
+            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Title(title));
         }
 
         let mut changed = false;
@@ -344,15 +345,15 @@ impl eframe::App for OmniBoardStudio {
 
         let current_tab = self.state_machine.get_app_tab();
 
-        let pal = theme::palette(ctx);
-        egui::TopBottomPanel::top("Menu bar")
+        let pal = theme::palette(ui);
+        egui::panel::Panel::top("Menu bar")
             .frame(
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(pal.base)
-                    .inner_margin(egui::Margin::symmetric(8.0, 4.0)),
+                    .inner_margin(egui::Margin::symmetric(8, 4)),
             )
-            .show(ctx, |ui| {
-                egui::menu::bar(ui, |ui| {
+            .show(ui, |ui| {
+                egui::MenuBar::new().ui(ui, |ui| {
                     let v = ui.visuals_mut();
 
                     v.widgets.noninteractive.bg_stroke.color = pal.window;
@@ -360,23 +361,24 @@ impl eframe::App for OmniBoardStudio {
                     ui.menu_button(fl!(LOADER, "main-gui-menu-file"), |ui| {
                         if ui.button(fl!(LOADER, "main-gui-menu-new")).clicked() {
                             self.new_file();
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.button(fl!(LOADER, "main-gui-menu-open")).clicked() {
                             self.open_via_file_dialog();
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.button(fl!(LOADER, "main-gui-menu-save")).clicked() {
                             self.save();
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.button(fl!(LOADER, "main-gui-menu-save-as")).clicked() {
                             self.save_as();
-                            ui.close_menu();
+                            ui.close();
                         }
                         ui.separator();
                         if ui.button(fl!(LOADER, "main-gui-menu-exit")).clicked() {
-                            ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                            ui.close();
+                            ui.ctx().send_viewport_cmd(egui::ViewportCommand::Close);
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-blocks"), |ui| {
@@ -385,13 +387,13 @@ impl eframe::App for OmniBoardStudio {
                             .clicked()
                         {
                             self.state_machine.on_open_blocks_library_window();
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-view"), |ui| {
                         if ui.button(fl!(LOADER, "main-gui-menu-hub")).clicked() {
                             self.state_machine.set_app_tab(state_machine::AppTab::Hub);
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui
                             .button(fl!(LOADER, "main-gui-menu-visual-editor"))
@@ -399,7 +401,7 @@ impl eframe::App for OmniBoardStudio {
                         {
                             self.state_machine
                                 .set_app_tab(state_machine::AppTab::VisualEditor);
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui
                             .button(fl!(LOADER, "main-gui-menu-code-editor"))
@@ -407,7 +409,7 @@ impl eframe::App for OmniBoardStudio {
                         {
                             self.state_machine
                                 .set_app_tab(state_machine::AppTab::CodeEditor);
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-compile"), |ui| {
@@ -416,13 +418,13 @@ impl eframe::App for OmniBoardStudio {
                             .clicked()
                         {
                             debug!("Compile code");
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-settings"), |ui| {
                         if ui.button(fl!(LOADER, "main-gui-menu-settings")).clicked() {
                             self.state_machine.on_open_settings_window();
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                     ui.menu_button(fl!(LOADER, "main-gui-menu-help"), |ui| {
@@ -431,15 +433,15 @@ impl eframe::App for OmniBoardStudio {
                             .clicked()
                         {
                             debug!("Get Started");
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.button(fl!(LOADER, "main-gui-menu-tutorials")).clicked() {
                             debug!("View Tutorials");
-                            ui.close_menu();
+                            ui.close();
                         }
                         if ui.button(fl!(LOADER, "main-gui-menu-faq")).clicked() {
                             debug!("View FAQ");
-                            ui.close_menu();
+                            ui.close();
                         }
                     });
                 });
@@ -447,13 +449,13 @@ impl eframe::App for OmniBoardStudio {
                     egui::Stroke::new(1.0_f32, pal.window);
                 ui.separator();
             });
-        egui::TopBottomPanel::top("Toolbar")
+        egui::panel::Panel::top("Toolbar")
             .frame(
-                egui::Frame::none()
+                egui::Frame::new()
                     .fill(pal.base)
-                    .inner_margin(egui::Margin::symmetric(8.0, 4.0)),
+                    .inner_margin(egui::Margin::symmetric(8, 4)),
             )
-            .show(ctx, |ui| {
+            .show(ui, |ui| {
                 ui.spacing_mut().button_padding = egui::vec2(2.0, 2.0);
 
                 ui.horizontal(|ui| {
@@ -514,18 +516,18 @@ impl eframe::App for OmniBoardStudio {
             });
 
         match current_tab {
-            state_machine::AppTab::Hub => self.hub_tab_ui(ctx),
+            state_machine::AppTab::Hub => self.hub_tab_ui(ui),
             state_machine::AppTab::VisualEditor => {
-                self.visual_editor.show_visual_editor(ctx);
+                self.visual_editor.show_visual_editor(ui);
             }
             state_machine::AppTab::CodeEditor => {
-                egui::CentralPanel::default().show(ctx, |ui| {
+                egui::CentralPanel::default().show(ui, |ui| {
                     ui.label("Code Editor");
                 });
             }
         }
 
-        self.check_open_windows(ctx);
+        self.check_open_windows(ui);
     }
 
     fn on_exit(&mut self, _gl: Option<&eframe::glow::Context>) {
